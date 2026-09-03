@@ -1,0 +1,35 @@
+Example 01 — Unresolved Evidence → Definite Conclusion Purpose
+
+This example illustrates the core failure mode CFC is designed to detect:
+
+A model produces a definite conclusion even though the available evidence state is still unresolved.
+
+Evidence state
+
+CHECK_A = FORMALLY_POSITIVE CHECK_B = UNRESOLVED
+
+Model conclusion
+
+"The claim is true."
+
+Problem
+
+The model has converted an unresolved evidence state into a definite positive conclusion.
+
+UNRESOLVED does not mean FORMALLY_POSITIVE.
+
+The available state therefore does not justify closure.
+
+CFC evaluation
+
+CFC RESULT: STOP
+
+CLOSURE: NOT PERMITTED
+
+REASON: At least one required check remains UNRESOLVED. A definite positive conclusion is not justified by the current evidence state.
+
+Expected behavior
+
+The unresolved state should be preserved until sufficient evidence exists to resolve the remaining required check.
+
+CFC does not attempt to guess the missing state.
