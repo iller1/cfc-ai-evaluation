@@ -5,13 +5,13 @@
 - [Independent Review Guide](REVIEW.md)
 - [Representative Examples](#representative-examples)
 - ## Quick links
+## Quick links
 
 - [Project Status](PROJECT_STATUS.md)
-- [Technical Overview](docs/TECHNICAL_OVERVIEW.md
+- [Technical Overview](docs/TECHNICAL_OVERVIEW.md)
 - [Technical Brief (PDF)](docs/CFC_Technical_Brief_September_2026.pdf)
 - [Independent Review Guide](REVIEW.md)
 - [Representative Examples](#representative-examples)
-
 **CFC** is an independent AI evaluation and control project focused on a specific LLM reliability failure mode:
 
 ## Feedback and review
