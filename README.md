@@ -32,7 +32,8 @@ Two simplified examples illustrate the core control logic:
 
 - [Example 01 — Unresolved Evidence → Definite Conclusion](examples/01_unresolved_to_definite_conclusion.md)
 - [Example 02 — Valid Evidence → Definite Conclusion](examples/02_valid_closure.md)
-
+- 
+- [Example 03 — Conflicting Evidence Without Valid Resolution](examples/03_conflicting_evidence.md)
 These examples are intended to explain the logic of CFC and are not presented as empirical benchmark results.
 
 CFC separates two questions:
