@@ -3,7 +3,8 @@
 **CFC** is an independent AI evaluation and control project focused on a specific LLM reliability failure mode:
 
 > An AI system reaches a definite conclusion even though the available evidence or current system state does not justify closing the question yet.
-
+> 
+For the current development and validation stage, see [Current Project Status](PROJECT_STATUS.md).
 ## The problem
 
 A model can produce a fluent and confident answer while the underlying evidence is still:
