@@ -26,6 +26,14 @@ Typical failure patterns include:
 - definitive conclusions while required checks remain incomplete
 
 ## What CFC does
+## Representative examples
+
+Two simplified examples illustrate the core control logic:
+
+- [Example 01 — Unresolved Evidence → Definite Conclusion](examples/01_unresolved_to_definite_conclusion.md)
+- [Example 02 — Valid Evidence → Definite Conclusion](examples/02_valid_closure.md)
+
+These examples are intended to explain the logic of CFC and are not presented as empirical benchmark results.
 
 CFC separates two questions:
 
