@@ -15,8 +15,15 @@
 
 > An AI system reaches a definite conclusion even though the available evidence or current system state does not justify closing the question yet.
 > 
-For the current development and validation stage, see [Current Project Status](PROJECT_STATUS.md).
- | [Independent Review Guide](REVIEW.md)
+## Representative examples
+
+Three simplified examples illustrate the core control logic:
+
+- [Example 01 — Unresolved Evidence → Definite Conclusion](examples/01_unresolved_to_definite_conclusion.md)
+- [Example 02 — Valid Evidence → Definite Conclusion](examples/02_valid_closure.md)
+- [Example 03 — Conflicting Evidence Without Valid Resolution](examples/03_conflicting_evidence.md)
+
+These examples are intended to explain the logic of CFC and are not presented as empirical benchmark results.
 ## The problem
 
 A model can produce a fluent and confident answer while the underlying evidence is still:
