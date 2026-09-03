@@ -7,7 +7,8 @@
 - ## Quick links
 
 - [Project Status](PROJECT_STATUS.md)
-- [Technical Overview](docs/TECHNICAL_OVERVIEW.md)
+- [Technical Overview](docs/TECHNICAL_OVERVIEW.md
+- [Technical Brief (PDF)](docs/CFC_Technical_Brief_September_2026.pdf)
 - [Independent Review Guide](REVIEW.md)
 - [Representative Examples](#representative-examples)
 
