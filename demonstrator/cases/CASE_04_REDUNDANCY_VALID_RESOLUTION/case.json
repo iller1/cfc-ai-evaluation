@@ -1,0 +1,32 @@
+{
+  "case_id": "CASE_04_REDUNDANCY_VALID_RESOLUTION",
+  "claim_boundary": "This case demonstrates resolution of a typed support relation. It does not demonstrate overriding a direct factual contradiction.",
+  "demo_case_version": "0.1",
+  "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "evidence_state": {
+    "E1": "positive matching support; selected",
+    "E2": "positive matching support; selected",
+    "E3": "positive matching support; excluded as redundant with E2"
+  },
+  "execution_engine": "cfc-anchor 0.2.90rc1",
+  "expected_presentation": {
+    "claim_state": "VERIFIED",
+    "closure_decision": "ALLOW"
+  },
+  "model_conclusion": "DemoSubject is safe.",
+  "relation": {
+    "effect": "REDUNDANCY_ONLY",
+    "evidence_ids": [
+      "E2",
+      "E3"
+    ]
+  },
+  "requirements": {
+    "c1": {
+      "required_independent_supports": 2
+    }
+  },
+  "resolution": "REDUNDANT_RELATION_ACCOUNTED",
+  "teaching_point": "A modeled redundant/common-mode support does not have to force a permanent block when the redundancy is explicitly resolved and the excluded support is formally accounted for.",
+  "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303"
+}

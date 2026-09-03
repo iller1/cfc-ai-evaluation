@@ -1,0 +1,33 @@
+{
+  "case_id": "CASE_03_ACTIVE_CONFLICT_NO_RESOLUTION",
+  "checks": {
+    "claim_quarantined": true,
+    "control_closure_false": true,
+    "engine_file_sha256_exact": true,
+    "full_audit_shape_present": true,
+    "global_consistency_gate_false": true,
+    "mandatory_gate_count_49": true,
+    "no_developer_fixture_session": true,
+    "no_evidence_errors": true,
+    "no_identity_errors": true,
+    "no_integration_errors": true,
+    "no_private_engine_import": true,
+    "no_relation_resolution_certificates": true,
+    "no_testing_namespace_import": true,
+    "one_claim": true,
+    "persistence_v6": true,
+    "polarity_conflict_exact": true,
+    "reason_exact": true,
+    "reported_engine_sha256_exact": true,
+    "stop_type_none": true,
+    "three_fresh_process_outputs_byte_identical": true,
+    "wheel_sha256_exact": true
+  },
+  "engine_file_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "fixture_revision": "0.1",
+  "note": "Public API execution with synthetic case-scoped host trust; no private/testing imports in shipped runner.",
+  "reference_execution_sha256": "471aa196dea06503823c1c69dd29a8f6a2a38184d226b8d5341bfadfa1dedb32",
+  "result": "PASS",
+  "schema": "CFC_DEMONSTRATOR_CASE_VALIDATION_V1",
+  "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303"
+}

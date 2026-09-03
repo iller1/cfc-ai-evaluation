@@ -1,0 +1,559 @@
+{
+  "bound_relation_resolution_ids": [
+    "rr:case04:e2-e3"
+  ],
+  "case_id": "CASE_04_REDUNDANCY_VALID_RESOLUTION",
+  "claim_states": [
+    {
+      "certificate": {
+        "audit_context_id": "660618457ba06939c4022a0cca1823ad1d8452fb83fd31cba93a30207d115129",
+        "authority_certificate_id": "d31a71ff2b600e2862431ac5dc6ddf2bd6f727c8e1337109eb26a8e051a1997a",
+        "certificate_id": "667e6b0fd86fa15902d1ff94b0396bea2d661d3050fd4bf07b1f17046b88f024",
+        "claim_id": "c1",
+        "claim_identity_certificate_id": "c1b10f60f880c36edc46a6f4d7a251bf11c80d09694ea90128de0629e5b9e620",
+        "dependency_ontology_conformance_certificate_id": "2d69911951262e24ee28f8f0ce4231e36a1e75c2e2df8f0d397b46a58f2b95a9",
+        "epistemic_role_certificate_id": "191eed066dc269e8f632b974c3499bded20925de2e5f1e6ca10a1f6fc7eee442",
+        "evidence_fingerprint": "70c39afe55def750c1d8cb238b9639ed2917b779f0e079cb74e14bac1539445c",
+        "evidence_id": "E1",
+        "evidence_identity_certificate_id": "4fd789a090cc028d5e21e9df701125bb149b559a76ab0bdee5bec037eba2ca1e",
+        "provenance_certificate_id": "52f171aebf002c604791c8e340a1e90a04cbf2a4f4977bc7a8273352b39ea45e",
+        "provenance_completeness_certificate_id": "c2f20dcb0afcbb102838edaeac3cd178c45348a89a9a41ed558426555ce86242",
+        "referent_consistency_certificate_id": "756c8c86f21e50a4b1b548ea92f19f79cd846c9e1a81f8ef9db5c052062581ec",
+        "source_failure_domain_certificate_id": "ce9060f2ab79e0bc7753b2f644e9333e9f6f83ca957bb548a89379b93cdf9bf2",
+        "temporal_certificate_id": "26f199ed015b0f4433193c96af6bc56be988971fa25f9d68ed2fb8b722402d8a"
+      },
+      "id": "c1",
+      "identity": {
+        "certificate_id": "c1b10f60f880c36edc46a6f4d7a251bf11c80d09694ea90128de0629e5b9e620",
+        "domain_id": "GENERAL_ENTITY",
+        "entity_id": "entity:demo-subject",
+        "event_id": "event:current",
+        "owner_id": "c1",
+        "owner_type": "CLAIM",
+        "registry_entry_id": "id:demo-subject:v1",
+        "surface_subject": "DemoSubject",
+        "version_id": "v1"
+      },
+      "reason": "policy-satisfied support set (2)",
+      "status": "VERIFIED",
+      "support_set_certificate": {
+        "audit_context_id": "660618457ba06939c4022a0cca1823ad1d8452fb83fd31cba93a30207d115129",
+        "certificate_id": "c4c67256c836a07856561cc6509a95c33eecf4368530a4797a7812401e68ed7a",
+        "claim_id": "c1",
+        "direct_certificate_ids_hash": "868c4f5bc18cb158e96ba114ffe6612aa57177b87ca397255a5abeb738ac511f",
+        "independence_certificate_id": "dda82a6d5df9a8914c79057af1f23f6bb5e9be22fde63516f4758cc7018eb5e6",
+        "matching_support_universe_hash": "dc7378126f504a598c270b54c4e732fd7212980f66b3d34afd8a272fcd5bd82d",
+        "required_supports": 2,
+        "set_level_independence_certificate_id": "e1c02f294efd2a8a3b0fd1a9768c03c8f28c05d7da41c8d9254dd201d633513b",
+        "support_ids_hash": "000eab9fb7bbc0bcdb59fd3c4fae80b16b7820529c465d05a4069abfbae0e13a",
+        "support_policy_hash": "834a4510d277c4c3e0556fcfb9643a96fdf5db10511f17c7368acb72f9fd097f",
+        "support_selection_certificate_id": "5f2e1c43e6b71d290ae19b26f722b0d4c704d18a93214ba894169b5158460c05",
+        "support_set_result": "PASS",
+        "support_universe_coverage_certificate_id": "1af0099ef66952b5c9a65d7207da85890d153f19c2662a165b7b1fb823a6dbd9"
+      },
+      "text": "DemoSubject is safe."
+    }
+  ],
+  "claim_support_policy_violations": [],
+  "claim_support_universe_coverage_certificates": [
+    {
+      "audit_context_id": "660618457ba06939c4022a0cca1823ad1d8452fb83fd31cba93a30207d115129",
+      "certificate_id": "1af0099ef66952b5c9a65d7207da85890d153f19c2662a165b7b1fb823a6dbd9",
+      "claim_id": "c1",
+      "common_mode_registry_hash": "9013bbf03797156bcadddbdb314a1b42218eebbc28889085c32423380c661e0a",
+      "coverage_id": "coverage:4436644d427d310e997c2977",
+      "coverage_result": "PASS",
+      "decision_relevant_relation_ids_hash": "72c79bbb86cdcc42558d383c215f49a65d422546c3fa33010089fc8bdb076bcf",
+      "decision_relevant_relation_universe_hash": "3e6e30d27d59a7ec96844b76646a6557824321a9c6b53fd93bb7db48a32d922a",
+      "excluded_support_ids_hash": "e624eaef297d9eacea503ec7cf43ddf70a3f4ff85a2f64a9c56c8545f450ae37",
+      "matching_support_universe_hash": "dc7378126f504a598c270b54c4e732fd7212980f66b3d34afd8a272fcd5bd82d",
+      "ontology_hash": "f2891d3fabc926fee3b7da5c6b772b36edcd4ea5992dcb6c73d8cbf2994831d3",
+      "relation_decision_relevance_policy_hash": "4dc542f49a68a9bae15ccdac553fac58292ee67d8b3525d0bdd95293e2921dd0",
+      "relation_ledger_hash": "558718abb950c6c9743fdca5d712703b1723f55a110a7cd2e716647f0253ce42",
+      "relation_resolution_hash": "a3e1c0ef737de9cc806e455e7487815129eebb66a3ae48893367727fc9ab3eb1",
+      "retrieval_scope_id": "scope:demo:case04",
+      "retrieval_snapshot_id": "snapshot:demo:case04",
+      "selected_support_ids_hash": "000eab9fb7bbc0bcdb59fd3c4fae80b16b7820529c465d05a4069abfbae0e13a",
+      "source_failure_domain_closure_hash": "88ca1e302c4fa6d1f40e9ed7708634d9fa5b6f8c6c5c4caf4d828bf937c9e79e",
+      "source_policy_hash": "50d9d911c2cbdda64f10df9c0a4a78341f422ffc7d1ce220af1d453d06bcf253",
+      "source_semantics_policy_hash": "f6dad8b881b1c6b4f5d6042885c6f8fa00c92924584308ca6da32f1fb747cff4",
+      "support_selection_certificate_id": "5f2e1c43e6b71d290ae19b26f722b0d4c704d18a93214ba894169b5158460c05",
+      "support_universe_policy_hash": "500142c77792606bb162bd508db9f6c05a91eaf91693925d449e1f3688d8b99b"
+    }
+  ],
+  "constraint_coverage_violations": [],
+  "constraint_relation_coverage_violations": [],
+  "control_closure": true,
+  "critical_unresolved": [],
+  "decision_support_closure_certificate": {
+    "audit_context_id": "660618457ba06939c4022a0cca1823ad1d8452fb83fd31cba93a30207d115129",
+    "certificate_id": "136e49c2563f588b5286ff9d3cea074c21ba0a9270998c05593a252b1611cba4",
+    "claim_ids_hash": "bc56b594c5cc4e2dac04fa978d45acafe7a78e5c16c84167faf3704d01e052d9",
+    "closure_result": "PASS",
+    "cross_channel_coverage_hash": "6c613fa50555c7bd0a06ea91df65251ce0d155455be5adfd36651e1e526e3c49",
+    "cross_claim_shared_nodes_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "decision_evidence_ownership_map_hash": "591a919e77f64a8c697ae63565a5eb438e3c3b446e7e4c1fc6d6d1e941cbf92d",
+    "decision_level_generic_dependency_accounting_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "decision_level_generic_dependency_obligations_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "decision_level_generic_dependency_raw_representation_records_hash": "330a0a730ebca10553a63631f329959ebb2d106710dcff42e3d2c865bcde28ab",
+    "decision_level_generic_dependency_records_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "decision_level_generic_dependency_universe_hash": "3388aa01827802b56172f5d601e5c584435403d45f07cac26c5054fbcae518d2",
+    "decision_level_relation_ids_hash": "72c79bbb86cdcc42558d383c215f49a65d422546c3fa33010089fc8bdb076bcf",
+    "decision_level_relation_instance_records_hash": "acd34b1276796989998287149048f6a75f7bd7ba88ead5bd131a8c2777c7cecf",
+    "decision_level_relation_resolution_artifacts_hash": "dbd0be561a3d8c6ed427f542aef33f8b609585f37d6ae59f3ddeb6fa916dc1f7",
+    "decision_level_relation_scope_coverage_hash": "e8d35ce2fac6d7792c45ef82b0678ccb7d608e9164ace52c0385b38daaabf01b",
+    "decision_level_relation_universe_hash": "8a455fb0bf5b4591c1ea7b4557c54b21c5c9429260da61caf6776134ba29b764",
+    "decision_level_source_obligation_pairs_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "decision_level_source_relation_records_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "decision_level_source_relation_universe_hash": "f5f0e66cace53dfa084dd609027a77afea2c4a7ba3f12efe4a6c4e3642d3d8a9",
+    "decision_relevant_relation_universe_map_hash": "c7a31f357fddd89d0fe1c36accad38223b15205e4dcbe9d15f1df85f6b990d0c",
+    "generic_active_equivalence_ids_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "generic_candidate_disposition_records_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "generic_candidate_representation_pair_universe_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "generic_candidate_semantic_descriptor_records_hash": "963f4a9dbdca443ae6ab33716cf9fd83002f4f3a80776785e80bc01f0f1952a6",
+    "generic_complete_raw_representation_inventory_hash": "330a0a730ebca10553a63631f329959ebb2d106710dcff42e3d2c865bcde28ab",
+    "generic_contextual_equivalence_resolution_hash": "c48ef88f95d702abe93becbf9b193eca5775f8318092db5013e6b1cd1d8dbe46",
+    "generic_cross_representation_pair_coverage_records_hash": "df58f40ae5394a209c80e0e7b2721d61b801a8bf334812905c763a17e1c39c8f",
+    "generic_equivalence_applicability_records_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "generic_equivalence_resolution_records_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "generic_inactive_equivalence_records_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "generic_ontology_prefix_map_hash": "a3849b5d488927167bdfa81b44925ecb1fd7d2a334d5ea5bd4ad7e65ba1020df",
+    "generic_proven_non_candidate_records_hash": "505af3efa3683e58c5c0f4e84ad8851f546c85b314a2afea4fb44352fbc2609c",
+    "generic_relation_source_identity_policy_hash": "edf1130ac24cb83c72747206142e3ef52869e903eab25e531b70b20b5b6ec37f",
+    "generic_representation_classes_present_hash": "ca68a995fdbdab05d7a3535f4442fb71f5222e2ee4b6a3a7d0551abba3508b63",
+    "generic_representation_completeness_certificate_hash": "f715f988f0f1d5093d754c57929e75dea89d84a7c461764b243bd792bfa40801",
+    "generic_representation_distinctness_certificate_registry_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "generic_representation_distinctness_registry_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "generic_representation_equivalence_certificate_registry_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "generic_representation_equivalence_registry_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "generic_source_discovery_signal_hash": "f70d31e49ae1df8aad2ee8875ab642c048b050be2b329572e35d625c25a0a063",
+    "generic_typed_discovery_signal_hash": "e32c9d40bdbb1b9873f3e3891972e0771e28bdb77f7be7211561e266bcdf3449",
+    "matching_support_universe_map_hash": "3832900d3a2e30c797bc5f856c266dbd6d05e8db3c3c68725ea251f82edc1f01",
+    "selected_support_map_hash": "699f89a7dbcaed2a4a5e928c55452cffdcae89f2810f2624bf95fa05cde6607f",
+    "source_independence_certificate_ids_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "source_relation_ledger_hash": "c2356c0aaa9ad24310702ee061db66a5bcf91da5be23a925a78f89ebadb0c91e",
+    "support_selection_certificate_ids_hash": "5286fb2a57c4fbc3a233a24da3a478030cbbb08474e9f156c00bd1c0ddbcd557",
+    "support_set_certificate_ids_hash": "adba97aa5fd0244805ba2e848ecfc098a6169ad8ec8a35efea522ff04de980b0",
+    "support_set_independence_certificate_ids_hash": "2164fcbb4813758b0cae3d5d21985c9d3d72b70ef7983392ee0d6fd7c0699872",
+    "support_universe_coverage_certificate_ids_hash": "3b1f2837800f6875a77e49ebfd19bff0e13663f2df68a1256d89e4dc89290d5f",
+    "temporal_identity_compatibility_hash": "1eb32640b3cce01357d1c1a7834710e7f85e2356f008ac256a709bd9b482beb3",
+    "three_channel_composition_hash": "46c2c963ac43f849c174e8bcdc6d71e3cc9a9eccb20d679460e7bfbbec04a0cc",
+    "union_dependency_graph_hash": "5883a9201ecc477150db40916283d8ddc82592dc978609378e9f524f42cc5c28"
+  },
+  "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "evidence": [
+    {
+      "authority_id": "GENERAL_RECORD_V5",
+      "authority_record_entity_id": "entity:demo-subject",
+      "authority_record_event_id": "event:current",
+      "authority_record_version_id": "v1",
+      "available_at": "2026-09-03",
+      "epistemic_role_record_id": "role:auth:bae826101fa7c65f23ed36e9",
+      "evidence_id": "E1",
+      "identity_registry_entry_id": "id:demo-subject:v1",
+      "observed_at": "2026-09-03",
+      "polarity": "POSITIVE",
+      "predicate": "state",
+      "provenance": {
+        "common_mode_group": "group:case04:e1",
+        "dependencies": {
+          "cache": {
+            "id": "cache:case04:e1",
+            "state": "KNOWN"
+          },
+          "data_source": {
+            "id": "data:case04:e1",
+            "state": "KNOWN"
+          },
+          "extractor": {
+            "id": "extractor:case04:e1",
+            "state": "KNOWN"
+          },
+          "model": {
+            "id": "model:case04:e1",
+            "state": "KNOWN"
+          },
+          "operator": {
+            "id": "operator:case04:e1",
+            "state": "KNOWN"
+          },
+          "preprocessing": {
+            "id": "prep:case04:e1",
+            "state": "KNOWN"
+          },
+          "runtime": {
+            "id": "runtime:case04:e1",
+            "state": "KNOWN"
+          },
+          "sensor_input": {
+            "id": "sensor:case04:e1",
+            "state": "KNOWN"
+          },
+          "transform": {
+            "id": "transform:case04:e1",
+            "state": "KNOWN"
+          },
+          "upstream_db": {
+            "id": "db:case04:e1",
+            "state": "KNOWN"
+          }
+        },
+        "extractor_id": "extractor:case04:e1",
+        "lineage": [
+          "general-record:root:case04:e1",
+          "general-record:origin:case04:e1"
+        ],
+        "origin_id": "general-record:origin:case04:e1",
+        "referent_entity_id": "entity:demo-subject",
+        "referent_event_id": "event:current",
+        "referent_version_id": "v1",
+        "root_origin_id": "general-record:root:case04:e1",
+        "source_id": "general-record:case04:e1"
+      },
+      "source": "display:case04:e1",
+      "source_semantics_id": "sem:case04:e1",
+      "subject": "DemoSubject",
+      "valid_from": "2026-01-01",
+      "valid_to": "2026-12-31",
+      "value": "safe"
+    },
+    {
+      "authority_id": "GENERAL_RECORD_V5",
+      "authority_record_entity_id": "entity:demo-subject",
+      "authority_record_event_id": "event:current",
+      "authority_record_version_id": "v1",
+      "available_at": "2026-09-03",
+      "epistemic_role_record_id": "role:auth:9ee8c6d9a8c4bf7690d6f1e8",
+      "evidence_id": "E2",
+      "identity_registry_entry_id": "id:demo-subject:v1",
+      "observed_at": "2026-09-03",
+      "polarity": "POSITIVE",
+      "predicate": "state",
+      "provenance": {
+        "common_mode_group": "group:case04:e2",
+        "dependencies": {
+          "cache": {
+            "id": "cache:case04:e2",
+            "state": "KNOWN"
+          },
+          "data_source": {
+            "id": "data:case04:e2",
+            "state": "KNOWN"
+          },
+          "extractor": {
+            "id": "extractor:case04:e2",
+            "state": "KNOWN"
+          },
+          "model": {
+            "id": "model:case04:e2",
+            "state": "KNOWN"
+          },
+          "operator": {
+            "id": "operator:case04:e2",
+            "state": "KNOWN"
+          },
+          "preprocessing": {
+            "id": "prep:case04:e2",
+            "state": "KNOWN"
+          },
+          "runtime": {
+            "id": "runtime:case04:e2",
+            "state": "KNOWN"
+          },
+          "sensor_input": {
+            "id": "sensor:case04:e2",
+            "state": "KNOWN"
+          },
+          "transform": {
+            "id": "transform:case04:e2",
+            "state": "KNOWN"
+          },
+          "upstream_db": {
+            "id": "db:case04:e2",
+            "state": "KNOWN"
+          }
+        },
+        "extractor_id": "extractor:case04:e2",
+        "lineage": [
+          "general-record:root:case04:e2",
+          "general-record:origin:case04:e2"
+        ],
+        "origin_id": "general-record:origin:case04:e2",
+        "referent_entity_id": "entity:demo-subject",
+        "referent_event_id": "event:current",
+        "referent_version_id": "v1",
+        "root_origin_id": "general-record:root:case04:e2",
+        "source_id": "general-record:case04:e2"
+      },
+      "source": "display:case04:e2",
+      "source_semantics_id": "sem:case04:e2",
+      "subject": "DemoSubject",
+      "valid_from": "2026-01-01",
+      "valid_to": "2026-12-31",
+      "value": "safe"
+    },
+    {
+      "authority_id": "GENERAL_RECORD_V5",
+      "authority_record_entity_id": "entity:demo-subject",
+      "authority_record_event_id": "event:current",
+      "authority_record_version_id": "v1",
+      "available_at": "2026-09-03",
+      "epistemic_role_record_id": "role:auth:ca9c6d72329840fa000dfc4f",
+      "evidence_id": "E3",
+      "identity_registry_entry_id": "id:demo-subject:v1",
+      "observed_at": "2026-09-03",
+      "polarity": "POSITIVE",
+      "predicate": "state",
+      "provenance": {
+        "common_mode_group": "group:case04:e3",
+        "dependencies": {
+          "cache": {
+            "id": "cache:case04:e3",
+            "state": "KNOWN"
+          },
+          "data_source": {
+            "id": "data:case04:e3",
+            "state": "KNOWN"
+          },
+          "extractor": {
+            "id": "extractor:case04:e3",
+            "state": "KNOWN"
+          },
+          "model": {
+            "id": "model:case04:e3",
+            "state": "KNOWN"
+          },
+          "operator": {
+            "id": "operator:case04:e3",
+            "state": "KNOWN"
+          },
+          "preprocessing": {
+            "id": "prep:case04:e3",
+            "state": "KNOWN"
+          },
+          "runtime": {
+            "id": "runtime:case04:e3",
+            "state": "KNOWN"
+          },
+          "sensor_input": {
+            "id": "sensor:case04:e3",
+            "state": "KNOWN"
+          },
+          "transform": {
+            "id": "transform:case04:e3",
+            "state": "KNOWN"
+          },
+          "upstream_db": {
+            "id": "db:case04:e3",
+            "state": "KNOWN"
+          }
+        },
+        "extractor_id": "extractor:case04:e3",
+        "lineage": [
+          "general-record:root:case04:e3",
+          "general-record:origin:case04:e3"
+        ],
+        "origin_id": "general-record:origin:case04:e3",
+        "referent_entity_id": "entity:demo-subject",
+        "referent_event_id": "event:current",
+        "referent_version_id": "v1",
+        "root_origin_id": "general-record:root:case04:e3",
+        "source_id": "general-record:case04:e3"
+      },
+      "source": "display:case04:e3",
+      "source_semantics_id": "sem:case04:e3",
+      "subject": "DemoSubject",
+      "valid_from": "2026-01-01",
+      "valid_to": "2026-12-31",
+      "value": "safe"
+    }
+  ],
+  "evidence_errors": [],
+  "excluded_redundant_id": "E3",
+  "excluded_support_disposition_certificates": [
+    {
+      "audit_context_id": "660618457ba06939c4022a0cca1823ad1d8452fb83fd31cba93a30207d115129",
+      "authority_id": "LOCAL_EXCLUSION_DISPOSITION_AUTHORITY",
+      "certificate_id": "a78e43ff419a1200147eef3a065ec7f4b943ecb6da141a184af6fc9840e521cc",
+      "claim_id": "c1",
+      "decision_relevant_relation_ids_hash": "72c79bbb86cdcc42558d383c215f49a65d422546c3fa33010089fc8bdb076bcf",
+      "decision_relevant_relation_universe_hash": "3e6e30d27d59a7ec96844b76646a6557824321a9c6b53fd93bb7db48a32d922a",
+      "disposition_id": "disp:case04:e3",
+      "excluded_evidence_id": "E3",
+      "justification_hash": "d2e9a29b67968c72ae3377d5925ff9c7702e9bc1affc80687181817918f90fed",
+      "matching_support_universe_hash": "dc7378126f504a598c270b54c4e732fd7212980f66b3d34afd8a272fcd5bd82d",
+      "relation_decision_relevance_policy_hash": "4dc542f49a68a9bae15ccdac553fac58292ee67d8b3525d0bdd95293e2921dd0",
+      "relation_resolution_policy_hash": "e53169d19025425eda020116deaa374596b98975466338a500e4de4af71d0b51",
+      "required_relation_effect": "REDUNDANCY_ONLY",
+      "result": "PASS",
+      "retrieval_scope_id": "scope:demo:case04",
+      "retrieval_snapshot_id": "snapshot:demo:case04",
+      "selected_evidence_ids_hash": "000eab9fb7bbc0bcdb59fd3c4fae80b16b7820529c465d05a4069abfbae0e13a",
+      "selected_support_ids_hash": "000eab9fb7bbc0bcdb59fd3c4fae80b16b7820529c465d05a4069abfbae0e13a",
+      "support_universe_policy_hash": "500142c77792606bb162bd508db9f6c05a91eaf91693925d449e1f3688d8b99b",
+      "supporting_relation_ids_hash": "72c79bbb86cdcc42558d383c215f49a65d422546c3fa33010089fc8bdb076bcf"
+    }
+  ],
+  "gates": {
+    "accepted_certificates_revalidate": true,
+    "audit_context_valid": true,
+    "claim_set_nonempty": true,
+    "claim_snapshot_projection_complete": true,
+    "claim_specific_support_policy_valid": true,
+    "claim_support_universe_common_mode_coverage_valid": true,
+    "closure_policy_authorization_valid": true,
+    "closure_policy_valid": true,
+    "constraint_coverage_sufficient": true,
+    "constraint_relation_coverage_sufficient": true,
+    "cross_group_snapshot_competition_resolved": true,
+    "cross_universe_evidence_closure_valid": true,
+    "decision_relevant_relation_discovery_complete_valid": true,
+    "decision_relevant_snapshot_overlap_complete": true,
+    "decision_support_closure_valid": true,
+    "dependency_instance_ontology_conformance_valid": true,
+    "dependency_ontology_adequacy_valid": true,
+    "dependency_state_justification_valid": true,
+    "evidence_admission_valid": true,
+    "evidence_id_universe_complete": true,
+    "evidence_set_coverage_sufficient": true,
+    "extraction_adequacy_valid": true,
+    "extraction_binding_valid": true,
+    "gate_registry_adequate_for_closure_class": true,
+    "gate_registry_binding_valid": true,
+    "gate_registry_schema_complete": true,
+    "global_consistency_valid": true,
+    "identity_resolution_valid": true,
+    "justification_common_mode_coverage_valid": true,
+    "meta_baseline_version_applicable": true,
+    "no_critical_unresolved": true,
+    "no_identity_ambiguity": true,
+    "provenance_completeness_valid": true,
+    "provenance_dependency_resolution_valid": true,
+    "referent_consistency_valid": true,
+    "relational_claim_neighborhood_complete": true,
+    "retrieval_snapshot_applicability_valid": true,
+    "retrieval_snapshot_content_matches": true,
+    "retrieval_universe_membership_valid": true,
+    "retrieval_universe_partition_adequate": true,
+    "scope_adequacy_valid": true,
+    "scope_binding_valid": true,
+    "snapshot_freshness_valid": true,
+    "snapshot_supersession_valid": true,
+    "source_failure_domain_resolution_complete_valid": true,
+    "source_independence_semantics_valid": true,
+    "support_relation_instance_resolution_coverage_valid": true,
+    "support_selection_justification_valid": true,
+    "support_set_common_mode_coverage_valid": true,
+    "unique_evidence_ids": true
+  },
+  "global_consistency_violations": [],
+  "identity_errors": [],
+  "integration_errors": [],
+  "mandatory_gate_count": 49,
+  "model_conclusion": "DemoSubject is safe.",
+  "persistence_schema": "DECISION_PERSISTENCE_HISTORY_V6",
+  "raw_keys": [
+    "accepted_evidence",
+    "certificate_violations",
+    "claim_support_policy_violations",
+    "claim_support_universe_coverage_certificates",
+    "claims",
+    "constraint_coverage_violations",
+    "constraint_relation_coverage_violations",
+    "control_closure",
+    "critical_unresolved",
+    "decision_generic_representation_completeness_certificate",
+    "decision_level_generic_dependency_assessments",
+    "decision_level_generic_dependency_universe",
+    "decision_level_relation_universe",
+    "decision_level_source_relation_assessments",
+    "decision_level_source_relation_universe",
+    "decision_relevant_relation_universes",
+    "decision_support_closure_certificate",
+    "decision_support_dependency_graph",
+    "evidence_errors",
+    "excluded_support_disposition_certificates",
+    "gates",
+    "global_consistency_violations",
+    "identity_ambiguities",
+    "identity_errors",
+    "matching_support_universes",
+    "relation_resolution_certificates",
+    "stop_type",
+    "support_selection_certificates"
+  ],
+  "relation_effect": "REDUNDANCY_ONLY",
+  "relation_resolution_certificates": [
+    {
+      "audit_context_id": "660618457ba06939c4022a0cca1823ad1d8452fb83fd31cba93a30207d115129",
+      "authorization_scope_hash": "3a7ca5d15abacdbcca68fb1a29fedb0e29ccd0d9cf9668704e1b72bf6da2fb9c",
+      "authorizer_id": "LOCAL_RELATION_RESOLUTION_AUTHORITY",
+      "certificate_id": "b8a907c9088df530b37e873480dca09ba49549a424fa545c0b79d560de980cbe",
+      "claim_id": "c1",
+      "evidence_ids_hash": "906fff0f4baa003e8332ad81a605679b407445372096ad2d90ca270ea307e2b3",
+      "exclusion_classification_hash": "40d07675f43d6a3888ce2941441da8c0ff02632a11f2393d068a52d999c90e24",
+      "justification_hash": "b10b058db1f2c679e98847ce83ff7c8e9b1696f51ea57350618b0d08d948101e",
+      "matching_support_universe_hash": "dc7378126f504a598c270b54c4e732fd7212980f66b3d34afd8a272fcd5bd82d",
+      "relation_decision_relevance_policy_hash": "4dc542f49a68a9bae15ccdac553fac58292ee67d8b3525d0bdd95293e2921dd0",
+      "relation_effect": "REDUNDANCY_ONLY",
+      "relation_id": "rel:case04:e2-e3-redundancy",
+      "relation_registry_hash": "9013bbf03797156bcadddbdb314a1b42218eebbc28889085c32423380c661e0a",
+      "relation_resolution_policy_hash": "e53169d19025425eda020116deaa374596b98975466338a500e4de4af71d0b51",
+      "relation_type": "COMMON_MODE",
+      "resolution_id": "rr:case04:e2-e3",
+      "resolution_type": "REDUNDANT_RELATION_ACCOUNTED",
+      "result": "PASS",
+      "retrieval_scope_id": "scope:demo:case04",
+      "retrieval_snapshot_id": "snapshot:demo:case04",
+      "selected_support_ids_hash": "000eab9fb7bbc0bcdb59fd3c4fae80b16b7820529c465d05a4069abfbae0e13a",
+      "source_failure_domain_closure_hash": "88ca1e302c4fa6d1f40e9ed7708634d9fa5b6f8c6c5c4caf4d828bf937c9e79e",
+      "support_universe_policy_hash": "500142c77792606bb162bd508db9f6c05a91eaf91693925d449e1f3688d8b99b"
+    }
+  ],
+  "resolution_type": "REDUNDANT_RELATION_ACCOUNTED",
+  "selected_support_ids": [
+    "E1",
+    "E2"
+  ],
+  "stop_type": "EPISTEMIC_STOP",
+  "support_selection_certificates": [
+    {
+      "audit_context_id": "660618457ba06939c4022a0cca1823ad1d8452fb83fd31cba93a30207d115129",
+      "certificate_id": "5f2e1c43e6b71d290ae19b26f722b0d4c704d18a93214ba894169b5158460c05",
+      "claim_id": "c1",
+      "common_mode_registry_hash": "9013bbf03797156bcadddbdb314a1b42218eebbc28889085c32423380c661e0a",
+      "excluded_support_ids": [
+        "E3"
+      ],
+      "excluded_support_ids_hash": "e624eaef297d9eacea503ec7cf43ddf70a3f4ff85a2f64a9c56c8545f450ae37",
+      "exclusion_classification_hash": "40d07675f43d6a3888ce2941441da8c0ff02632a11f2393d068a52d999c90e24",
+      "exclusion_classifications": [
+        [
+          "E3",
+          "EXCLUDED_REDUNDANT"
+        ]
+      ],
+      "exclusion_reason_hash": "4e986f16cb3e203b1710e0b34d2df1171dcb92bf25e715f94e4bd6b52bc4d0b6",
+      "justification_reason_hash": "de4b63488361143b1615097596844742facc0632e29829571f57ada669a28b7d",
+      "matching_support_universe_hash": "dc7378126f504a598c270b54c4e732fd7212980f66b3d34afd8a272fcd5bd82d",
+      "ontology_hash": "f2891d3fabc926fee3b7da5c6b772b36edcd4ea5992dcb6c73d8cbf2994831d3",
+      "relation_decision_relevance_policy_hash": "4dc542f49a68a9bae15ccdac553fac58292ee67d8b3525d0bdd95293e2921dd0",
+      "relation_ledger_hash": "558718abb950c6c9743fdca5d712703b1723f55a110a7cd2e716647f0253ce42",
+      "relation_resolution_hash": "a3e1c0ef737de9cc806e455e7487815129eebb66a3ae48893367727fc9ab3eb1",
+      "result": "PASS",
+      "retrieval_scope_id": "scope:demo:case04",
+      "retrieval_snapshot_id": "snapshot:demo:case04",
+      "selected_support_ids": [
+        "E1",
+        "E2"
+      ],
+      "selected_support_ids_hash": "000eab9fb7bbc0bcdb59fd3c4fae80b16b7820529c465d05a4069abfbae0e13a",
+      "selection_id": "sel:case04",
+      "source_failure_domain_closure_hash": "88ca1e302c4fa6d1f40e9ed7708634d9fa5b6f8c6c5c4caf4d828bf937c9e79e",
+      "source_policy_hash": "50d9d911c2cbdda64f10df9c0a4a78341f422ffc7d1ce220af1d453d06bcf253",
+      "source_semantics_policy_hash": "f6dad8b881b1c6b4f5d6042885c6f8fa00c92924584308ca6da32f1fb747cff4",
+      "support_requirement_hash": "834a4510d277c4c3e0556fcfb9643a96fdf5db10511f17c7368acb72f9fd097f",
+      "support_universe_policy_hash": "500142c77792606bb162bd508db9f6c05a91eaf91693925d449e1f3688d8b99b"
+    }
+  ]
+}

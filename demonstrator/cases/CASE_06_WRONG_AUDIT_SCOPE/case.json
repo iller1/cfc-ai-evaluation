@@ -1,0 +1,14 @@
+{
+  "case_id": "CASE_06_WRONG_AUDIT_SCOPE",
+  "demo_case_version": "0.1",
+  "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "evidence_state": "E1 is current and supporting; controller audit scope is intentionally set to IGNORE.",
+  "execution_engine": "cfc-anchor 0.2.90rc1",
+  "expected_presentation": {
+    "claim_state": "VERIFIED",
+    "closure_decision": "STOP"
+  },
+  "model_conclusion": "DemoSubject is safe.",
+  "teaching_point": "Even when the claim itself is verified by current evidence, an invalid audit scope blocks decision closure.",
+  "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303"
+}

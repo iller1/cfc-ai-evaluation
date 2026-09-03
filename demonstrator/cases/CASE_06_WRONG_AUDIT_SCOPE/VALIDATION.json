@@ -1,0 +1,18 @@
+{
+  "case_id": "CASE_06_WRONG_AUDIT_SCOPE",
+  "checks": {
+    "claim_verified": true,
+    "closure_false": true,
+    "engine_sha_exact": true,
+    "forbidden_imports_absent": true,
+    "mandatory_gate_count_exact": true,
+    "only_scope_gate_false": true,
+    "persistence_schema_exact": true,
+    "scope_gate_false": true,
+    "three_runs_byte_identical": true,
+    "zero_evidence_errors": true,
+    "zero_identity_errors": true,
+    "zero_integration_errors": true
+  },
+  "status": "PASS"
+}

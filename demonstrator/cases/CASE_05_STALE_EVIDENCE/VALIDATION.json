@@ -1,0 +1,18 @@
+{
+  "case_id": "CASE_05_STALE_EVIDENCE",
+  "checks": {
+    "claim_unresolved": true,
+    "closure_false": true,
+    "engine_sha_exact": true,
+    "forbidden_imports_absent": true,
+    "insufficient_support": true,
+    "mandatory_gate_count_exact": true,
+    "persistence_schema_exact": true,
+    "stop_none": true,
+    "three_runs_byte_identical": true,
+    "zero_evidence_errors": true,
+    "zero_identity_errors": true,
+    "zero_integration_errors": true
+  },
+  "status": "PASS"
+}

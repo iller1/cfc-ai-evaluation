@@ -1,0 +1,14 @@
+{
+  "case_id": "CASE_08_VALID_NEGATIVE_CLOSURE",
+  "demo_case_version": "0.1",
+  "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "evidence_state": "E1 is current, NEGATIVE evidence for state=safe and matches the claim DemoSubject is not safe.",
+  "execution_engine": "cfc-anchor 0.2.90rc1",
+  "expected_presentation": {
+    "claim_state": "VERIFIED",
+    "closure_decision": "ALLOW"
+  },
+  "model_conclusion": "DemoSubject is not safe.",
+  "teaching_point": "A current trusted negative record matching a negative claim permits a valid negative closure; negative evidence is distinct from missing positive evidence.",
+  "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303"
+}

@@ -1,0 +1,19 @@
+{
+  "case_id": "CASE_08_VALID_NEGATIVE_CLOSURE",
+  "checks": {
+    "all_gates_true": true,
+    "claim_verified": true,
+    "closure_true": true,
+    "engine_sha_exact": true,
+    "epistemic_stop": true,
+    "forbidden_imports_absent": true,
+    "mandatory_gate_count_exact": true,
+    "negative_evidence": true,
+    "persistence_schema_exact": true,
+    "three_runs_byte_identical": true,
+    "zero_evidence_errors": true,
+    "zero_identity_errors": true,
+    "zero_integration_errors": true
+  },
+  "status": "PASS"
+}

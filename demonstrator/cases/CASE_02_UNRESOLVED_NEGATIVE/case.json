@@ -1,0 +1,24 @@
+{
+  "schema": "CFC_DEMONSTRATOR_CASE_V1",
+  "fixture_revision": "0.2",
+  "case_id": "CASE_02_UNRESOLVED_NEGATIVE",
+  "title": "Unresolved current state / definite negative conclusion",
+  "purpose": "Demonstrate that lack of currently usable support for P does not justify a definite negation of P.",
+  "execution_engine": "cfc-anchor 0.2.90rc1",
+  "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303",
+  "as_of": "2026-09-03",
+  "model_conclusion": "DemoSubject is not safe.",
+  "evidence_summary": "A trusted record about state=safe exists but is observed/available only on 2026-12-01, after the evaluation date. At 2026-09-03 it establishes neither the positive proposition nor its negation.",
+  "trust_mode": "SYNTHETIC_DEMONSTRATION_HOST_TRUST",
+  "trust_nonclaim": "Synthetic attestations/verifiers establish the fictional case state only. They are not production trust, cryptographic verification, or external validation.",
+  "expected_reference": {
+    "claim_status": "UNRESOLVED",
+    "reason": "no referent-consistent epistemically available support",
+    "control_closure": false,
+    "stop_type": "NONE"
+  },
+  "expected_reference_is_runtime_authority": false,
+  "supersedes_fixture_revision": "0.1",
+  "supersession_reason": "v0.1 used a snapshot whose semantic/projection setup caused the engine to return before full current-context audit. v0.2 requires a full audit-shaped result."
+}

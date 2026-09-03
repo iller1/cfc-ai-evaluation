@@ -1,0 +1,27 @@
+{
+  "case_id": "CASE_04_REDUNDANCY_VALID_RESOLUTION",
+  "checks": {
+    "claim_verified": true,
+    "closure_allowed": true,
+    "decision_support_closure_certificate_present": true,
+    "engine_sha_exact": true,
+    "forbidden_imports_absent": true,
+    "mandatory_gate_count_exact": true,
+    "one_excluded_disposition_certificate": true,
+    "one_resolution_certificate": true,
+    "one_selection_certificate": true,
+    "one_universe_coverage_certificate": true,
+    "persistence_schema_exact": true,
+    "policy_satisfied_reason": true,
+    "resolution_result_pass": true,
+    "resolution_type_exact": true,
+    "stop_type_epistemic_stop": true,
+    "three_runs_byte_identical": true,
+    "zero_evidence_errors": true,
+    "zero_false_gates": true,
+    "zero_global_consistency_violations": true,
+    "zero_identity_errors": true,
+    "zero_integration_errors": true
+  },
+  "status": "PASS"
+}

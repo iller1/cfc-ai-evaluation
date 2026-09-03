@@ -1,0 +1,14 @@
+{
+  "case_id": "CASE_05_STALE_EVIDENCE",
+  "demo_case_version": "0.1",
+  "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "evidence_state": "E1 supports safe but valid_to=2026-08-31; audit as_of=2026-09-03.",
+  "execution_engine": "cfc-anchor 0.2.90rc1",
+  "expected_presentation": {
+    "claim_state": "UNRESOLVED",
+    "closure_decision": "STOP"
+  },
+  "model_conclusion": "DemoSubject is safe.",
+  "teaching_point": "A record can be structurally trusted yet stale at the audit date; stale evidence must not justify closure.",
+  "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303"
+}
