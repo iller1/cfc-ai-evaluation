@@ -1,28 +1,29 @@
-Cel
+Example 02 — Valid Evidence → Definite Conclusion
+Purpose
 
-Ten przykład pokazuje sytuację, w której dostępny stan dowodowy rzeczywiście pozwala na wydanie jednoznacznego wniosku.
+This example shows a case where the available evidence state does justify a definite conclusion.
 
-Stan dowodowy
+Evidence state
 
 CHECK_A = FORMALLY_POSITIVE
-CHECK_B = FOR_
+CHECK_B = FORMALLY_POSITIVE
 
-Wnios
+Model conclusion
 
-„Twierdzenie jest prawdziwe.”
+"The claim is true."
 
-Ocena CFC
+CFC evaluation
 
 CFC RESULT: ALLOW
 
 CLOSURE: PERMITTED
 
 REASON:
-Wszystkie wymagane kontrole mają stan FORMALLY_POSITIVE.
-Aktualny stan dowodowy pozwala na jednoznaczne pozytywne rozstrzygnięcie.
+All required checks are FORMALLY_POSITIVE.
+The current evidence state supports a definite positive conclusion.
 
-Oczekiwane zachowanie
+Expected behavior
 
-CFC powinien zezwolić na zamknięcie decyzji, gdy wszystkie wymagane warunki są spełnione.
+CFC should allow closure when all required conditions are satisfied.
 
-F
+The framework is designed to distinguish unsupported closure from legitimate closure.
