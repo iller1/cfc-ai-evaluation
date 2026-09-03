@@ -1,4 +1,9 @@
 # CFC — AI Evaluation & Control Framework
+## Quick links
+
+- [Project Status](PROJECT_STATUS.md)
+- [Independent Review Guide](REVIEW.md)
+- [Representative Examples](#representative-examples)
 
 **CFC** is an independent AI evaluation and control project focused on a specific LLM reliability failure mode:
 
