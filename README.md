@@ -1,84 +1,35 @@
-# CFC — AI Evaluation & Control Framework
-## Quick links
+# CFC Demonstrator — working v0.1
 
-- [Project Status](PROJECT_STATUS.md)
-- [Independent Review Guide](REVIEW.md)
-- [Representative Examples](#representative-examples)
-- ## Quick link
-- [Project Status](PROJECT_STATUS.md)
-- [Technical Overview](docs/TECHNICAL_OVERVIEW.md)
-- [Technical Brief (PDF)](docs/CFC_Technical_Brief_September_2026.pdf)
-- [Independent Review Guide](REVIEW.md)
-- [Representative Examples](#representative-examples)
+Minimal local demonstrator over the frozen CFC Anchor execution track.
 
-**CFC** is an independent AI evaluation and control project focused on a specific LLM reliability failure mode:
+Pipeline:
 
-## Feedback and review
+`INPUT / EVIDENCE STATE -> MODEL CONCLUSION -> FROZEN CFC CHECK -> ALLOW / STOP + CLAIM STATE + REASON`
 
-Independent technical feedback is welcome.
+## Run
 
-If you identify a counterexample, unsupported closure, false block, ambiguity in the state model, or a methodological weakness, please open a GitHub Issue with enough detail to reproduce the case.
-
-The most useful feedback is specific, technical and reproducible.
-> An AI system reaches a definite conclusion even though the available evidence or current system state does not justify closing the question yet.
-> 
-## Representative examples
-
-Three simplified examples illustrate the core control logic:
-
-- [Example 01 — Unresolved Evidence → Definite Conclusion](examples/01_unresolved_to_definite_conclusion.md)
-- [Example 02 — Valid Evidence → Definite Conclusion](examples/02_valid_closure.md)
-- [Example 03 — Conflicting Evidence Without Valid Resolution](examples/03_conflicting_evidence.md)
-
-These examples are intended to explain the logic of CFC and are not presented as empirical benchmark results.
-## The problem
-
-A model can produce a fluent and confident answer while the underlying evidence is still:
-
-- unresolved,
-- conflicting,
-- stale,
-- out of scope,
-- incomplete,
-- or dependent on an invalid resolution.
-
-In these situations, response quality alone does not tell us whether the conclusion was legitimately supported.
-
-Typical failure patterns include:
-
-- `UNRESOLVED → TRUE / FALSE`
-- conflicting evidence resolved without a valid rule
-- stale or wrong-scope evidence influencing a decision
-- unsupported state transitions
-- definitive conclusions while required checks remain incomplete
-
-## What CFC does
-## Representative examples
-
-Two simplified examples illustrate the core control logic:
-
-- [Example 01 — Unresolved Evidence → Definite Conclusion](examples/01_unresolved_to_definite_conclusion.md)
-- [Example 02 — Valid Evidence → Definite Conclusion](examples/02_valid_closure.md)
-- 
-- [Example 03 — Conflicting Evidence Without Valid Resolution](examples/03_conflicting_evidence.md)
-These examples are intended to explain the logic of CFC and are not presented as empirical benchmark results.
-
-CFC separates two questions:
-
-1. **Can the model generate a conclusion?**
-2. **Does the available evidence and system state actually justify that conclusion?**
-
-The framework applies explicit state, evidence, validity, scope and closure rules before allowing a decision to be treated as resolved.
-
-Conceptually:
+Windows: double-click `RUN_DEMO.bat` or run:
 
 ```text
-INPUT / EVIDENCE STATE
-        ↓
-MODEL CONCLUSION
-        ↓
-CFC CHECK
-        ↓
-ALLOW / STOP / UNRESOLVED
-        ↓
-REASON
+python server.py
+```
+
+macOS/Linux:
+
+```text
+./run_demo.sh
+```
+
+Open `http://127.0.0.1:8765`.
+
+The first start verifies the bundled frozen wheel SHA-256 and installs that exact wheel into the local `runtime/site` directory. No controller source is modified.
+
+## Verify
+
+```text
+python verify_demo.py
+```
+
+The UI contains eight executable synthetic fixtures. `Run frozen controller` executes the selected fixture in a fresh Python process and compares the result with its preserved reference execution.
+
+Operator Wrapper v1.23 remains byte-for-byte frozen and separate. The executable controller used by this demo is the frozen CFC Anchor `0.2.90rc1` public API.
