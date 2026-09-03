@@ -13,6 +13,13 @@
 
 **CFC** is an independent AI evaluation and control project focused on a specific LLM reliability failure mode:
 
+## Feedback and review
+
+Independent technical feedback is welcome.
+
+If you identify a counterexample, unsupported closure, false block, ambiguity in the state model, or a methodological weakness, please open a GitHub Issue with enough detail to reproduce the case.
+
+The most useful feedback is specific, technical and reproducible.
 > An AI system reaches a definite conclusion even though the available evidence or current system state does not justify closing the question yet.
 > 
 ## Representative examples
