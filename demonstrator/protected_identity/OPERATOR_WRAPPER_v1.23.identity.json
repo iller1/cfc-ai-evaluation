@@ -1,0 +1,8 @@
+{
+  "component": "Operator Wrapper",
+  "version": "v1.23",
+  "role": "behavioral instruction layer; separate from CFC Anchor",
+  "sha256": "95277663c445509af0820c3abdddaa295dfaaf93dd077ce32897b185b80957d8",
+  "status": "FROZEN",
+  "bundled": false
+}

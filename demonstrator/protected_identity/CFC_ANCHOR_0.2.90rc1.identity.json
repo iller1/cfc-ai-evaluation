@@ -1,0 +1,11 @@
+{
+  "component": "CFC Anchor",
+  "package": "cfc-anchor 0.2.90rc1",
+  "role": "deterministic executable controller",
+  "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303",
+  "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "public_api_contract_sha256": "fee18165ea5d4a29e72137028ec3cf5c637b85c83672437b2352fc316f53b66a",
+  "mandatory_gates": 49,
+  "persistence_schema": "DECISION_PERSISTENCE_HISTORY_V6",
+  "status": "FROZEN PUBLIC API V1"
+}
