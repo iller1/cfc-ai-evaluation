@@ -1,0 +1,215 @@
+{
+  "demo_version": "0.1-working",
+  "execution_engine": "cfc-anchor 0.2.90rc1",
+  "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303",
+  "operator_wrapper": {
+    "version": "v1.23",
+    "sha256": "95277663c445509af0820c3abdddaa295dfaaf93dd077ce32897b185b80957d8",
+    "role": "separate frozen behavioral instruction layer; not the executable engine used by this UI",
+    "bundled": false
+  },
+  "cases": [
+    {
+      "id": "CASE_01_UNRESOLVED_POSITIVE",
+      "title": "Unresolved → positive claim",
+      "subtitle": "Evidence exists, but it is not yet epistemically available at the audit date.",
+      "model_conclusion": "DemoSubject is safe.",
+      "claim_state": "UNRESOLVED",
+      "claim_reason": "no referent-consistent epistemically available support",
+      "closure_decision": "STOP",
+      "stop_type": "NONE",
+      "control_closure": false,
+      "false_gates": [
+        "claim_specific_support_policy_valid",
+        "claim_support_universe_common_mode_coverage_valid",
+        "decision_relevant_relation_discovery_complete_valid",
+        "decision_support_closure_valid",
+        "no_critical_unresolved",
+        "source_independence_semantics_valid",
+        "support_relation_instance_resolution_coverage_valid",
+        "support_selection_justification_valid",
+        "support_set_common_mode_coverage_valid"
+      ],
+      "reason": "no referent-consistent epistemically available support",
+      "evidence_lines": [
+        "E1: state=safe / POSITIVE"
+      ],
+      "validation": "PASS",
+      "teaching_point": "Evidence exists, but it is not yet epistemically available at the audit date.",
+      "reference_file": "cases/CASE_01_UNRESOLVED_POSITIVE/reference_execution.json"
+    },
+    {
+      "id": "CASE_02_UNRESOLVED_NEGATIVE",
+      "title": "Unresolved ≠ false",
+      "subtitle": "Missing proof for P must not be converted into proof for not-P.",
+      "model_conclusion": "DemoSubject is not safe.",
+      "claim_state": "UNRESOLVED",
+      "claim_reason": "no referent-consistent epistemically available support",
+      "closure_decision": "STOP",
+      "stop_type": "NONE",
+      "control_closure": false,
+      "false_gates": [
+        "claim_specific_support_policy_valid",
+        "claim_support_universe_common_mode_coverage_valid",
+        "decision_relevant_relation_discovery_complete_valid",
+        "decision_support_closure_valid",
+        "no_critical_unresolved",
+        "source_independence_semantics_valid",
+        "support_relation_instance_resolution_coverage_valid",
+        "support_selection_justification_valid",
+        "support_set_common_mode_coverage_valid"
+      ],
+      "reason": "no referent-consistent epistemically available support",
+      "evidence_lines": [
+        "E1: state=safe / POSITIVE"
+      ],
+      "validation": "PASS",
+      "teaching_point": "Missing proof for P must not be converted into proof for not-P.",
+      "reference_file": "cases/CASE_02_UNRESOLVED_NEGATIVE/reference_execution.json"
+    },
+    {
+      "id": "CASE_03_ACTIVE_CONFLICT_NO_RESOLUTION",
+      "title": "Direct contradiction",
+      "subtitle": "Active positive and negative records produce a quarantine state.",
+      "model_conclusion": "DemoSubject is safe.",
+      "claim_state": "QUARANTINED",
+      "claim_reason": "direct contradiction",
+      "closure_decision": "STOP",
+      "stop_type": "NONE",
+      "control_closure": false,
+      "false_gates": [
+        "decision_support_closure_valid",
+        "global_consistency_valid",
+        "no_critical_unresolved"
+      ],
+      "reason": "direct contradiction",
+      "evidence_lines": [
+        "E1: state=safe / POSITIVE",
+        "E2: state=safe / NEGATIVE"
+      ],
+      "validation": "PASS",
+      "teaching_point": "Active positive and negative records produce a quarantine state.",
+      "reference_file": "cases/CASE_03_ACTIVE_CONFLICT_NO_RESOLUTION/reference_execution.json"
+    },
+    {
+      "id": "CASE_04_REDUNDANCY_VALID_RESOLUTION",
+      "title": "Redundancy resolved",
+      "subtitle": "A known redundant support is explicitly accounted for, allowing valid closure.",
+      "model_conclusion": "DemoSubject is safe.",
+      "claim_state": "VERIFIED",
+      "claim_reason": "policy-satisfied support set (2)",
+      "closure_decision": "ALLOW",
+      "stop_type": "EPISTEMIC_STOP",
+      "control_closure": true,
+      "false_gates": [],
+      "reason": "policy-satisfied support set (2)",
+      "evidence_lines": [
+        "E1: positive matching support; selected",
+        "E2: positive matching support; selected",
+        "E3: positive matching support; excluded as redundant with E2"
+      ],
+      "validation": "PASS",
+      "teaching_point": "A modeled redundant/common-mode support does not have to force a permanent block when the redundancy is explicitly resolved and the excluded support is formally accounted for.",
+      "reference_file": "cases/CASE_04_REDUNDANCY_VALID_RESOLUTION/reference_execution.json"
+    },
+    {
+      "id": "CASE_05_STALE_EVIDENCE",
+      "title": "Stale evidence",
+      "subtitle": "Expired evidence cannot justify a current closure.",
+      "model_conclusion": "DemoSubject is safe.",
+      "claim_state": "UNRESOLVED",
+      "claim_reason": "no referent-consistent epistemically available support",
+      "closure_decision": "STOP",
+      "stop_type": "NONE",
+      "control_closure": false,
+      "false_gates": [
+        "claim_specific_support_policy_valid",
+        "claim_support_universe_common_mode_coverage_valid",
+        "decision_relevant_relation_discovery_complete_valid",
+        "decision_support_closure_valid",
+        "no_critical_unresolved",
+        "source_independence_semantics_valid",
+        "support_relation_instance_resolution_coverage_valid",
+        "support_selection_justification_valid",
+        "support_set_common_mode_coverage_valid"
+      ],
+      "reason": "no referent-consistent epistemically available support",
+      "evidence_lines": [
+        "E1 supports safe but valid_to=2026-08-31; audit as_of=2026-09-03."
+      ],
+      "validation": "PASS",
+      "teaching_point": "A record can be structurally trusted yet stale at the audit date; stale evidence must not justify closure.",
+      "reference_file": "cases/CASE_05_STALE_EVIDENCE/reference_execution.json"
+    },
+    {
+      "id": "CASE_06_WRONG_AUDIT_SCOPE",
+      "title": "Wrong audit scope",
+      "subtitle": "The claim is verified, but closure is blocked because the audit scope is invalid.",
+      "model_conclusion": "DemoSubject is safe.",
+      "claim_state": "VERIFIED",
+      "claim_reason": "policy-satisfied support set (1)",
+      "closure_decision": "STOP",
+      "stop_type": "NONE",
+      "control_closure": false,
+      "false_gates": [
+        "scope_adequacy_valid"
+      ],
+      "reason": "Closure blocked by gate: scope_adequacy_valid",
+      "evidence_lines": [
+        "E1 is current and supporting; controller audit scope is intentionally set to IGNORE."
+      ],
+      "validation": "PASS",
+      "teaching_point": "Even when the claim itself is verified by current evidence, an invalid audit scope blocks decision closure.",
+      "reference_file": "cases/CASE_06_WRONG_AUDIT_SCOPE/reference_execution.json"
+    },
+    {
+      "id": "CASE_07_VALID_POSITIVE_CLOSURE",
+      "title": "Valid positive closure",
+      "subtitle": "Current trusted positive support satisfies the frozen closure policy.",
+      "model_conclusion": "DemoSubject is safe.",
+      "claim_state": "VERIFIED",
+      "claim_reason": "policy-satisfied support set (1)",
+      "closure_decision": "ALLOW",
+      "stop_type": "EPISTEMIC_STOP",
+      "control_closure": true,
+      "false_gates": [],
+      "reason": "policy-satisfied support set (1)",
+      "evidence_lines": [
+        "E1 is current, positive, direct, trusted, and matches the claim."
+      ],
+      "validation": "PASS",
+      "teaching_point": "A current trusted positive record satisfying the support policy permits a valid positive closure.",
+      "reference_file": "cases/CASE_07_VALID_POSITIVE_CLOSURE/reference_execution.json"
+    },
+    {
+      "id": "CASE_08_VALID_NEGATIVE_CLOSURE",
+      "title": "Valid negative closure",
+      "subtitle": "Current trusted negative support supports a negative claim and closes validly.",
+      "model_conclusion": "DemoSubject is not safe.",
+      "claim_state": "VERIFIED",
+      "claim_reason": "policy-satisfied support set (1)",
+      "closure_decision": "ALLOW",
+      "stop_type": "EPISTEMIC_STOP",
+      "control_closure": true,
+      "false_gates": [],
+      "reason": "policy-satisfied support set (1)",
+      "evidence_lines": [
+        "E1 is current, NEGATIVE evidence for state=safe and matches the claim DemoSubject is not safe."
+      ],
+      "validation": "PASS",
+      "teaching_point": "A current trusted negative record matching a negative claim permits a valid negative closure; negative evidence is distinct from missing positive evidence.",
+      "reference_file": "cases/CASE_08_VALID_NEGATIVE_CLOSURE/reference_execution.json"
+    }
+  ],
+  "public_api_contract_sha256": "fee18165ea5d4a29e72137028ec3cf5c637b85c83672437b2352fc316f53b66a",
+  "mandatory_gates": 49,
+  "persistence_schema": "DECISION_PERSISTENCE_HISTORY_V6",
+  "reviewer_60s_path": [
+    "CASE_01_UNRESOLVED_POSITIVE",
+    "CASE_03_ACTIVE_CONFLICT_NO_RESOLUTION",
+    "CASE_04_REDUNDANCY_VALID_RESOLUTION",
+    "CASE_06_WRONG_AUDIT_SCOPE",
+    "CASE_08_VALID_NEGATIVE_CLOSURE"
+  ]
+}
