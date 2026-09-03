@@ -12,6 +12,7 @@
 - [Technical Brief (PDF)](docs/CFC_Technical_Brief_September_2026.pdf)
 - [Independent Review Guide](REVIEW.md)
 - [Representative Examples](#representative-examples)
+
 **CFC** is an independent AI evaluation and control project focused on a specific LLM reliability failure mode:
 
 ## Feedback and review
