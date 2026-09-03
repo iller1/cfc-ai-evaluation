@@ -1,2 +1,48 @@
-# cfc-ai-evaluation
-CFC is an independent AI evaluation and control framework for detecting unsupported conclusions when evidence or system state does not justify closure.
+# CFC — AI Evaluation & Control Framework
+
+**CFC** is an independent AI evaluation and control project focused on a specific LLM reliability failure mode:
+
+> An AI system reaches a definite conclusion even though the available evidence or current system state does not justify closing the question yet.
+
+## The problem
+
+A model can produce a fluent and confident answer while the underlying evidence is still:
+
+- unresolved,
+- conflicting,
+- stale,
+- out of scope,
+- incomplete,
+- or dependent on an invalid resolution.
+
+In these situations, response quality alone does not tell us whether the conclusion was legitimately supported.
+
+Typical failure patterns include:
+
+- `UNRESOLVED → TRUE / FALSE`
+- conflicting evidence resolved without a valid rule
+- stale or wrong-scope evidence influencing a decision
+- unsupported state transitions
+- definitive conclusions while required checks remain incomplete
+
+## What CFC does
+
+CFC separates two questions:
+
+1. **Can the model generate a conclusion?**
+2. **Does the available evidence and system state actually justify that conclusion?**
+
+The framework applies explicit state, evidence, validity, scope and closure rules before allowing a decision to be treated as resolved.
+
+Conceptually:
+
+```text
+INPUT / EVIDENCE STATE
+        ↓
+MODEL CONCLUSION
+        ↓
+CFC CHECK
+        ↓
+ALLOW / STOP / UNRESOLVED
+        ↓
+REASON
