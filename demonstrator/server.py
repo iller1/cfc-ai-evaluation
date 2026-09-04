@@ -1,5 +1,5 @@
 from __future__ import annotations
-import hashlib, json, os, shutil, subprocess, sys, tempfile
+import hashlib, json, os, shutil, subprocess, sys, tempfile, zipfile
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlparse
@@ -10,11 +10,14 @@ WHEEL=ROOT/'cfc_anchor-0.2.90rc1-py3-none-any.whl'
 EXPECTED_WHEEL=CONFIG['wheel_sha256']
 EXPECTED_ENGINE=CONFIG['engine_sha256']
 RUNTIME=ROOT/'runtime'/'site'
+CUSTOM_SCHEMA=json.loads((ROOT/'custom_schema.json').read_text(encoding='utf-8'))
 
 def sha256(path:Path)->str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def ensure_runtime():
+    if sys.version_info < (3,10):
+        raise RuntimeError('Python 3.10 or newer is required')
     if sha256(WHEEL)!=EXPECTED_WHEEL:
         raise RuntimeError('Frozen wheel SHA-256 mismatch')
     marker=RUNTIME/'.ready'
@@ -22,7 +25,15 @@ def ensure_runtime():
         return
     if RUNTIME.exists(): shutil.rmtree(RUNTIME)
     RUNTIME.mkdir(parents=True)
-    subprocess.run([sys.executable,'-m','pip','install','--no-deps','--disable-pip-version-check','--target',str(RUNTIME),str(WHEEL)],check=True,stdout=subprocess.DEVNULL)
+    # The wheel is already pinned by SHA-256. Extract it with Python's standard
+    # library instead of invoking pip; this keeps the demo dependency-free while
+    # giving the frozen engine a real filesystem path for its own identity hash.
+    with zipfile.ZipFile(WHEEL) as zf:
+        for info in zf.infolist():
+            rel=Path(info.filename)
+            if rel.is_absolute() or '..' in rel.parts:
+                raise RuntimeError('Unsafe path in frozen wheel')
+        zf.extractall(RUNTIME)
     marker.write_text(EXPECTED_WHEEL+'\n')
 
 def case_row(case_id):
@@ -42,6 +53,21 @@ def presentation(result):
     else:
         reason='Closure not established by frozen controller.'
     return {'claim_state':claim.get('status'),'decision':'ALLOW' if closure else 'STOP','reason':reason,'false_gates':false_gates}
+
+def run_custom(payload):
+    ensure_runtime()
+    script=ROOT/'custom_case_runner.py'
+    env=os.environ.copy(); env['PYTHONPATH']=str(RUNTIME)
+    cp=subprocess.run([sys.executable,str(script)],input=json.dumps(payload),env=env,capture_output=True,text=True,timeout=30)
+    try:
+        result=json.loads(cp.stdout)
+    except Exception:
+        raise RuntimeError(cp.stderr.strip() or cp.stdout.strip() or f'custom runner exited {cp.returncode}')
+    if cp.returncode!=0 or result.get('error'):
+        raise ValueError(result.get('error') or cp.stderr.strip() or f'custom runner exited {cp.returncode}')
+    if result.get('engine_sha256')!=EXPECTED_ENGINE:
+        raise RuntimeError('Executed engine SHA-256 mismatch')
+    return {'case_id':'CUSTOM_CASE','presentation':presentation(result),'result':result}
 
 def run_case(case_id):
     row=case_row(case_id)
@@ -72,11 +98,21 @@ class Handler(SimpleHTTPRequestHandler):
         p=urlparse(self.path).path
         if p=='/api/status':
             ok=sha256(WHEEL)==EXPECTED_WHEEL
-            self.send_json({'demo_version':CONFIG['demo_version'],'wheel_integrity':ok,'wheel_sha256':sha256(WHEEL),'expected_wheel_sha256':EXPECTED_WHEEL,'engine_sha256':EXPECTED_ENGINE,'public_api_contract_sha256':CONFIG.get('public_api_contract_sha256'),'reviewer_60s_path':CONFIG.get('reviewer_60s_path',[]),'mandatory_gates':CONFIG.get('mandatory_gates'),'persistence_schema':CONFIG.get('persistence_schema'),'cases':len(CONFIG['cases'])}); return
+            self.send_json({'demo_version':CONFIG['demo_version'],'wheel_integrity':ok,'wheel_sha256':sha256(WHEEL),'expected_wheel_sha256':EXPECTED_WHEEL,'engine_sha256':EXPECTED_ENGINE,'public_api_contract_sha256':CONFIG.get('public_api_contract_sha256'),'reviewer_60s_path':CONFIG.get('reviewer_60s_path',[]),'reviewer_experiment':CONFIG.get('reviewer_experiment'),'mandatory_gates':CONFIG.get('mandatory_gates'),'persistence_schema':CONFIG.get('persistence_schema'),'cases':len(CONFIG['cases'])}); return
         if p=='/api/cases': self.send_json(CONFIG['cases']); return
+        if p=='/api/custom/schema': self.send_json(CUSTOM_SCHEMA); return
         super().do_GET()
     def do_POST(self):
         p=urlparse(self.path).path
+        if p=='/api/custom':
+            try:
+                n=int(self.headers.get('Content-Length','0'))
+                if n<=0 or n>20000: raise ValueError('invalid request size')
+                payload=json.loads(self.rfile.read(n).decode('utf-8'))
+                self.send_json(run_custom(payload))
+            except ValueError as e:self.send_json({'error':str(e)},400)
+            except Exception as e:self.send_json({'error':str(e)},500)
+            return
         if p.startswith('/api/run/'):
             cid=p.split('/api/run/',1)[1]
             try:self.send_json(run_case(cid))

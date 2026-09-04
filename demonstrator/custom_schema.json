@@ -1,0 +1,26 @@
+{
+  "schema_version": "1",
+  "title": "Custom evidence-state builder",
+  "boundary": "This builder does not parse arbitrary natural language and does not implement closure logic. It maps bounded selections to public frozen CFC Anchor API inputs using synthetic, case-scoped trust fixtures.",
+  "fixed_claim": {
+    "subject": "DemoSubject",
+    "predicate": "state",
+    "value": "safe"
+  },
+  "fields": {
+    "conclusion": ["POSITIVE", "NEGATIVE"],
+    "evidence_polarity": ["POSITIVE", "NEGATIVE", "OMIT"],
+    "evidence_validity": ["CURRENT", "STALE"],
+    "required_independent_supports": [1, 2],
+    "provenance_shape": ["DISTINCT", "SHARED_LINEAGE"],
+    "independence_authority": ["NONE", "VERIFIED"],
+    "scope": ["EXPECTED", "WRONG"]
+  },
+  "notes": [
+    "DISTINCT provenance does not itself prove independence.",
+    "VERIFIED independence installs an explicit synthetic host-authority attestation over E1/E2 through the frozen public API.",
+    "The builder does not offer a contradictory VERIFIED-independence + SHARED_LINEAGE combination.",
+    "STALE changes the evidence validity window; WRONG changes the Controller audit scope input.",
+    "All final closure decisions come from frozen control_closure, not from this schema or the browser."
+  ]
+}

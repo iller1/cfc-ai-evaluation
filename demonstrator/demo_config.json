@@ -1,5 +1,5 @@
 {
-  "demo_version": "0.1-working",
+  "demo_version": "1.0-rc1",
   "execution_engine": "cfc-anchor 0.2.90rc1",
   "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
   "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303",
@@ -200,6 +200,61 @@
       "validation": "PASS",
       "teaching_point": "A current trusted negative record matching a negative claim permits a valid negative closure; negative evidence is distinct from missing positive evidence.",
       "reference_file": "cases/CASE_08_VALID_NEGATIVE_CLOSURE/reference_execution.json"
+    },
+    {
+      "id": "CASE_09_INACTIVE_UNBOUND_RESOLUTION",
+      "title": "Unbound resolution cannot close",
+      "subtitle": "A resolution declaration exists and is runtime-verified, but it is not bound to the exact decision context.",
+      "model_conclusion": "DemoSubject is safe.",
+      "claim_state": "claim_states = []",
+      "claim_reason": "RELATION_RESOLUTION_NOT_BOUND; evaluation stops at integration authority gate before a claim state is emitted",
+      "closure_decision": "STOP",
+      "stop_type": "NONE",
+      "control_closure": false,
+      "false_gates": [
+        "integration_decision_authority_runtime_verified"
+      ],
+      "reason": "Closure blocked by gate: integration_decision_authority_runtime_verified",
+      "evidence_lines": [
+        "E1 + E2: selected positive supports",
+        "E3: matching support modeled as redundant with E2",
+        "Resolution: externally verified, but bound=false"
+      ],
+      "validation": "PASS",
+      "teaching_point": "Verified existence of a resolution is not enough. An unbound/PENDING resolution cannot authorize closure.",
+      "reference_file": "cases/CASE_09_INACTIVE_UNBOUND_RESOLUTION/reference_execution.json"
+    },
+    {
+      "id": "CASE_10_INCOMPLETE_REQUIRED_CHECKS",
+      "title": "Incomplete required checks",
+      "subtitle": "The evidence supports the claim, but the explicit closure requirement is not fully satisfied.",
+      "model_conclusion": "DemoSubject is safe.",
+      "claim_state": "SUPPORTED",
+      "claim_reason": "direct referent-consistent support E1; support policy pending",
+      "closure_decision": "STOP",
+      "stop_type": "NONE",
+      "control_closure": false,
+      "false_gates": [
+        "claim_specific_support_policy_valid",
+        "claim_support_universe_common_mode_coverage_valid",
+        "decision_relevant_relation_discovery_complete_valid",
+        "decision_support_closure_valid",
+        "no_critical_unresolved",
+        "source_failure_domain_resolution_complete_valid",
+        "source_independence_semantics_valid",
+        "support_relation_instance_resolution_coverage_valid",
+        "support_selection_justification_valid",
+        "support_set_common_mode_coverage_valid"
+      ],
+      "reason": "direct referent-consistent support E1; support policy pending",
+      "evidence_lines": [
+        "E1: current, positive, direct, trusted support",
+        "Required independent supports: 2",
+        "Observed qualifying supports: 1"
+      ],
+      "validation": "PASS",
+      "teaching_point": "SUPPORTED is not the same as VERIFIED. One valid support cannot satisfy an explicit requirement for two independent supports.",
+      "reference_file": "cases/CASE_10_INCOMPLETE_REQUIRED_CHECKS/reference_execution.json"
     }
   ],
   "public_api_contract_sha256": "fee18165ea5d4a29e72137028ec3cf5c637b85c83672437b2352fc316f53b66a",
@@ -208,8 +263,61 @@
   "reviewer_60s_path": [
     "CASE_01_UNRESOLVED_POSITIVE",
     "CASE_03_ACTIVE_CONFLICT_NO_RESOLUTION",
-    "CASE_04_REDUNDANCY_VALID_RESOLUTION",
-    "CASE_06_WRONG_AUDIT_SCOPE",
-    "CASE_08_VALID_NEGATIVE_CLOSURE"
-  ]
+    "CASE_09_INACTIVE_UNBOUND_RESOLUTION",
+    "CASE_10_INCOMPLETE_REQUIRED_CHECKS",
+    "CASE_07_VALID_POSITIVE_CLOSURE"
+  ],
+  "reviewer_experiment": {
+    "id": "REVIEWER_AB_INDEPENDENCE_AUTHORITY",
+    "title": "Same evidence. One authority-state change.",
+    "question": "Do two distinct-looking positive supports justify closure when independence has not been explicitly verified?",
+    "invariant_fields": [
+      "conclusion",
+      "required_independent_supports",
+      "provenance_shape",
+      "scope",
+      "evidence"
+    ],
+    "changed_field": "independence_authority",
+    "a": {
+      "label": "A · Independence not verified",
+      "input": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 2,
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "NONE",
+        "scope": "EXPECTED",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      }
+    },
+    "b": {
+      "label": "B · Independence explicitly verified",
+      "input": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 2,
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "VERIFIED",
+        "scope": "EXPECTED",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      }
+    }
+  }
 }
