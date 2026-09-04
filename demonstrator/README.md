@@ -5,6 +5,14 @@ Minimal local demonstrator over the frozen CFC Anchor execution track.
 
 `INPUT / EVIDENCE STATE -> MODEL CONCLUSION -> FROZEN CFC CHECK -> ALLOW / STOP + CLAIM STATE + REASON`
 
+## Reconciliation status
+
+The published RC1 release asset contains 10 preserved representative fixtures and records a successful 107-file release verification with 10/10 preset replay. The current `main` source tree is not yet byte-for-byte reconciled with that asset: the checked-in case directories currently contain CASE_01–CASE_08, while `demo_config.json` references CASE_01–CASE_10.
+
+This mismatch is a repository/release provenance issue. It is not evidence of a controller-logic failure. Final v1.0 promotion remains blocked until exact CASE_09 and CASE_10 release bytes are restored to the reconciled source tree and the complete release verification is rerun on the final candidate.
+
+See [RECONCILIATION_STATUS.md](RECONCILIATION_STATUS.md).
+
 ## Run
 
 Requirements: Python 3.10 or newer. No third-party Python packages, pip install, or network access are required.
@@ -19,7 +27,8 @@ The first start verifies the bundled frozen wheel SHA-256 and extracts that exac
 
 ## What is executable
 
-- 10 preserved representative fixtures with live replay against the frozen controller.
+The published RC1 release asset contains 10 preserved representative fixtures with live replay against the frozen controller. The current repository tree is under reconciliation as described above.
+
 - `Reviewer mode`: a live A/B experiment that executes two otherwise identical states and changes only explicit independence-authority state.
 - `Build custom case`: a bounded evidence-state builder that maps selected fields to the frozen public API and executes the result live.
 
