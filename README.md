@@ -2,13 +2,19 @@
 
 ## CFC Demonstrator
 
-A local executable demonstrator is available for the frozen CFC execution track:
-
-**CFC Demonstrator v1.0-rc1**
+A reconciled and locally validated CFC Demonstrator v1.0 source/package candidate is now present on `main` over the frozen CFC execution track.
 
 `INPUT / EVIDENCE STATE → MODEL CONCLUSION → CFC CHECK → ALLOW / STOP + CLAIM STATE + REASON`
 
-The published RC1 release asset contains 10 executable representative cases and records a complete release self-check. The current `main` source tree is being reconciled against that release asset before final v1.0 promotion; at present the repository case directories contain CASE_01–CASE_08 while `demo_config.json` and the RC1 release asset reference CASE_01–CASE_10.
+The earlier RC1 repository/release provenance mismatch has been resolved. Exact CASE_09 and CASE_10 bytes were recovered from the preserved RC1 release asset, verified against preserved SHA-256 anchors, and restored to the reconciled source tree. The final v1.0 candidate contains CASE_01–CASE_10 and a freshly generated SHA-256 manifest.
+
+Final candidate validation passed:
+
+* manifest: 108/108 files
+* preset replay: 10/10
+* custom regression: PASS
+* reviewer A/B: PASS
+* frozen CFC Anchor wheel identity: PASS
 
 The demonstrator also includes:
 
@@ -16,15 +22,16 @@ The demonstrator also includes:
 * Reviewer Mode live A/B experiment
 * bounded Custom Case Builder
 * SHA-256 verification
-* offline release self-check
 * no pip requirement
 * no network requirement
 
 ### Links
 
 * [Open the demonstrator source](https://github.com/iller1/cfc-ai-evaluation/tree/main/demonstrator)
-* [Download CFC Demonstrator v1.0-rc1](https://github.com/iller1/cfc-ai-evaluation/releases/tag/cfc-demonstrator-v1.0-rc1)
+* [Historical CFC Demonstrator v1.0-rc1 release](https://github.com/iller1/cfc-ai-evaluation/releases/tag/cfc-demonstrator-v1.0-rc1)
 * [Read reconciliation status](demonstrator/RECONCILIATION_STATUS.md)
+
+The final `cfc-demonstrator-v1.0` tag/release publication is still pending. Until that publication step is completed, the validated `main` source and locally frozen v1.0 package candidate are the current finalization artifacts.
 
 The demonstrator is an external layer over the frozen CFC Anchor `0.2.90rc1` public API.
 
