@@ -1,5 +1,5 @@
 {
-  "demo_version": "1.0-rc1",
+  "demo_version": "1.0",
   "execution_engine": "cfc-anchor 0.2.90rc1",
   "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
   "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303",
