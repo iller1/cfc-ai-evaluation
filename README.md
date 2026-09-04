@@ -1,35 +1,29 @@
-# CFC Demonstrator — working v0.1
+# CFC — AI Evaluation & Control Framework
 
-Minimal local demonstrator over the frozen CFC Anchor execution track.
+## CFC Demonstrator
 
-Pipeline:
+A local executable demonstrator is available for the frozen CFC execution track:
 
-`INPUT / EVIDENCE STATE -> MODEL CONCLUSION -> FROZEN CFC CHECK -> ALLOW / STOP + CLAIM STATE + REASON`
+**CFC Demonstrator v1.0-rc1**
 
-## Run
+`INPUT / EVIDENCE STATE → MODEL CONCLUSION → CFC CHECK → ALLOW / STOP + CLAIM STATE + REASON`
 
-Windows: double-click `RUN_DEMO.bat` or run:
+The demonstrator includes:
 
-```text
-python server.py
-```
+* 10 executable representative cases
+* live replay against the frozen controller
+* Reviewer Mode live A/B experiment
+* bounded Custom Case Builder
+* SHA-256 verification
+* offline release self-check
+* no pip requirement
+* no network requirement
 
-macOS/Linux:
+### Links
 
-```text
-./run_demo.sh
-```
+* [Open the demonstrator source](https://github.com/iller1/cfc-ai-evaluation/tree/main/demonstrator)
+* [Download CFC Demonstrator v1.0-rc1](https://github.com/iller1/cfc-ai-evaluation/releases/tag/cfc-demonstrator-v1.0-rc1)
 
-Open `http://127.0.0.1:8765`.
+The demonstrator is an external layer over the frozen CFC Anchor `0.2.90rc1` public API.
 
-The first start verifies the bundled frozen wheel SHA-256 and installs that exact wheel into the local `runtime/site` directory. No controller source is modified.
-
-## Verify
-
-```text
-python verify_demo.py
-```
-
-The UI contains eight executable synthetic fixtures. `Run frozen controller` executes the selected fixture in a fresh Python process and compares the result with its preserved reference execution.
-
-Operator Wrapper v1.23 remains byte-for-byte frozen and separate. The executable controller used by this demo is the frozen CFC Anchor `0.2.90rc1` public API.
+Operator Wrapper v1.23 remains byte-for-byte frozen and separate.
