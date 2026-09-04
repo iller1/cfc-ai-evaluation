@@ -2,9 +2,11 @@
 
 ## What this demonstrator establishes
 
-Within the ten configured synthetic demonstration cases, the bundled frozen CFC Anchor execution track produces the preserved claim states, gate states, and closure decisions shown by the interface, and those cases are locally replayable through the frozen public API.
+The following demonstrator claim applies only to a reconciled source/release state in which the configured case inventory, referenced case files, release package, and integrity manifest agree.
 
-This statement is limited to a reconciled demonstrator source/release state in which the configured case inventory, referenced case files, release package, and integrity manifest agree.
+In that reconciled state, across the ten configured synthetic demonstration cases, the bundled frozen CFC Anchor execution track produces the preserved claim states, gate states, and closure decisions shown by the interface, and those cases are locally replayable through the frozen public API.
+
+The current `main` branch is still under repository/release reconciliation and therefore does not yet satisfy that promotion condition.
 
 ## What it is designed to illustrate
 
