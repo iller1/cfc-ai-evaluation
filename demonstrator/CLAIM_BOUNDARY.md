@@ -2,11 +2,9 @@
 
 ## What this demonstrator establishes
 
-The following demonstrator claim applies only to a reconciled source/release state in which the configured case inventory, referenced case files, release package, and integrity manifest agree.
+Across the ten configured synthetic demonstration cases in the reconciled v1.0 package, the bundled frozen CFC Anchor execution track produces the preserved claim states, gate states, and closure decisions shown by the interface, and those cases are locally replayable through the frozen public API when the package verification succeeds.
 
-In that reconciled state, across the ten configured synthetic demonstration cases, the bundled frozen CFC Anchor execution track produces the preserved claim states, gate states, and closure decisions shown by the interface, and those cases are locally replayable through the frozen public API.
-
-The current `main` branch is still under repository/release reconciliation and therefore does not yet satisfy that promotion condition.
+The source/release provenance defect identified in RC1 was resolved by recovering the exact CASE_09 and CASE_10 bytes from the preserved RC1 release asset and verifying them against the preserved integrity anchors before restoring them to the reconciled source tree.
 
 ## What it is designed to illustrate
 
