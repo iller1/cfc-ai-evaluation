@@ -1,0 +1,22 @@
+{
+  "case_id": "CASE_10_INCOMPLETE_REQUIRED_CHECKS",
+  "claim_boundary": "This case demonstrates an unsatisfied explicit support-count requirement using one otherwise current and trusted support.",
+  "demo_case_version": "0.2",
+  "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "evidence_state": {
+    "E1": "current, positive, direct, trusted support"
+  },
+  "execution_engine": "cfc-anchor 0.2.90rc1",
+  "expected_presentation": {
+    "claim_state": "SUPPORTED",
+    "closure_decision": "STOP"
+  },
+  "model_conclusion": "DemoSubject is safe.",
+  "requirements": {
+    "c1": {
+      "required_independent_supports": 2
+    }
+  },
+  "teaching_point": "One valid support can support the proposition without satisfying a requirement for two independent supports. SUPPORTED must not be promoted to VERIFIED/closure.",
+  "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303"
+}

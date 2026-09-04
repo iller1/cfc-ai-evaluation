@@ -1,0 +1,18 @@
+{
+  "case_id": "CASE_10_INCOMPLETE_REQUIRED_CHECKS",
+  "checks": {
+    "claim_specific_support_gate_false": true,
+    "claim_supported_not_verified": true,
+    "closure_blocked": true,
+    "engine_sha_exact": true,
+    "forbidden_imports_absent": true,
+    "insufficient_support_count_exact": true,
+    "mandatory_gate_count_exact": true,
+    "no_evidence_errors": true,
+    "no_identity_errors": true,
+    "no_integration_errors": true,
+    "persistence_schema_exact": true,
+    "three_runs_byte_identical": true
+  },
+  "status": "PASS"
+}

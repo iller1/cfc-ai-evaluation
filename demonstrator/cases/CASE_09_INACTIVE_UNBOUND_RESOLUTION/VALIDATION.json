@@ -1,0 +1,18 @@
+{
+  "case_id": "CASE_09_INACTIVE_UNBOUND_RESOLUTION",
+  "checks": {
+    "closure_blocked": true,
+    "engine_sha_exact": true,
+    "forbidden_imports_absent": true,
+    "integration_runtime_gate_false": true,
+    "mandatory_gate_count_exact": true,
+    "no_bound_resolution_ids": true,
+    "no_relation_resolution_certificate": true,
+    "persistence_schema_exact": true,
+    "relation_resolution_not_bound_error": true,
+    "resolution_not_bound": true,
+    "resolution_runtime_verified": true,
+    "three_runs_byte_identical": true
+  },
+  "status": "PASS"
+}
