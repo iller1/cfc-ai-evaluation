@@ -2,7 +2,7 @@
 
 ## Current stage
 
-CFC is currently in the external validation, demonstrator closure, and controlled-study preparation stage.
+CFC is currently in the external validation and controlled-study preparation stage. Demonstrator source reconciliation and final local package validation are complete; publication of the final GitHub `cfc-demonstrator-v1.0` tag/release remains pending.
 
 ## Frozen / closed baselines
 
@@ -17,9 +17,19 @@ The frozen baselines are not being modified during the current review phase.
 
 ## Demonstrator
 
-CFC Demonstrator v1.0-rc1 is a separate external presentation and replay layer over the frozen CFC Anchor checkpoint.
+CFC Demonstrator v1.0 is a separate external presentation and replay layer over the frozen CFC Anchor checkpoint.
 
-Current demonstrator work is limited to repository/release reconciliation, documentation hygiene, verification, and final promotion. It does not modify controller logic.
+The RC1 repository/release provenance defect was resolved by recovering the exact CASE_09 and CASE_10 bytes from the preserved RC1 release asset, verifying all recovered files against preserved SHA-256 anchors, and restoring them to the reconciled source tree.
+
+The final v1.0 candidate was validated locally with:
+
+- fresh manifest: 108/108 PASS;
+- frozen wheel identity: PASS;
+- preset replay: 10/10 PASS;
+- custom regression: PASS;
+- reviewer A/B: PASS.
+
+The validated source candidate is present on `main`. Final GitHub tag/release publication is still pending and must not be described as completed until the tag and release asset actually exist.
 
 ## Current priority
 
@@ -27,7 +37,7 @@ The current priority is not further controller development.
 
 The focus is now on:
 
-1. closing the Demonstrator v1.0 release audit and repository reconciliation;
+1. publishing the already-validated Demonstrator v1.0 final tag/release;
 2. independent human methods review;
 3. independent replication as a separate evidence class;
 4. preregistration of the controlled A/B/C/D study only after activation blockers are closed;
@@ -57,5 +67,6 @@ Its purpose is to add a specific control layer around unsupported closure.
 
 **Frozen Operator Wrapper baseline:** v1.23  
 **Frozen executable controller checkpoint:** CFC Anchor 0.2.90rc1  
-**Project stage:** External validation / demonstrator closure / controlled-study preparation  
+**Demonstrator status:** v1.0 source/package candidate validated; GitHub final release publication pending  
+**Project stage:** External validation / controlled-study preparation  
 **Author:** Krzysztof Śliwka
