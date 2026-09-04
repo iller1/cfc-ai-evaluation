@@ -2,81 +2,63 @@
 
 ## Current status
 
-`RC_BLOCKED_FOR_REPOSITORY_RECONCILIATION`
+`RC_RECONCILED_PENDING_FINAL_PACKAGE_VALIDATION`
 
-Final v1.0 promotion is not authorized yet.
+The original repository/source mismatch has been repaired on `main`. Final v1.0 promotion is still not authorized until a fresh final package manifest and full final-candidate verification pass.
 
 ## Confirmed facts
 
-- Historical tag `cfc-demonstrator-v1.0-rc1` is preserved unchanged.
-- The published RC1 release asset is `CFC_DEMONSTRATOR_v1.0-rc1.zip`.
-- Release asset digest: `sha256:ba52b52fac78b7a1753fdd5a79d43f0d63b6604daac3701bbe44b96cd5fcb394`.
-- The RC1 release record states:
-  - 10 executable representative cases;
-  - 107 manifest files verified;
-  - preset replay 10/10;
-  - custom regression PASS;
-  - reviewer A/B PASS.
-- Frozen execution engine: CFC Anchor `0.2.90rc1`.
-- Frozen wheel SHA-256: `b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303`.
+- Historical tag `cfc-demonstrator-v1.0-rc1` remains preserved unchanged.
+- Published RC1 release asset: `CFC_DEMONSTRATOR_v1.0-rc1.zip`.
+- RC1 asset size: `424046` bytes.
+- RC1 asset SHA-256: `ba52b52fac78b7a1753fdd5a79d43f0d63b6604daac3701bbe44b96cd5fcb394`.
+- Exact RC1 asset bytes were recovered and independently checked against the preserved release digest.
+- CASE_09 and CASE_10 were extracted from that exact asset; every recovered file passed its preserved SHA-256 integrity anchor.
+- The exact recovered bytes were restored to `main` in commit `2fc0bf2758db0328ed0edf6a97bca72214704101`.
+- Post-write Git blob identities for all 18 restored CASE_09/CASE_10 files match the Git blob identities computed from the recovered RC1 bytes, confirming byte-for-byte repository restoration.
+- `demo_config.json` references CASE_01 through CASE_10 and the corresponding CASE_09/CASE_10 `reference_execution.json` files now exist on `main`.
+- Frozen execution engine remains CFC Anchor `0.2.90rc1`.
+- Frozen wheel SHA-256 remains `b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303`.
 - Operator Wrapper v1.23 remains byte-for-byte frozen and separate.
-- `demo_config.json` on `main` references CASE_01 through CASE_10.
-- The checked-in `demonstrator/cases/` tree on `main` currently contains CASE_01 through CASE_08 only.
-- The historical RC1 tag also contains CASE_01 through CASE_08 only in its repository tree.
 
-## CASE_09 / CASE_10 integrity anchors
+## Fresh recovery replay
 
-The existing demonstrator manifest preserves exact expected SHA-256 values for the missing release files.
+The recovered RC1 asset was freshly extracted and `verify_release.py` was executed locally after recovery.
 
-### CASE_09_INACTIVE_UNBOUND_RESOLUTION
+Result:
 
-- `README.md` — `f57523a658f0e3c5baa61216a4aea2ed439570ce67776a7c92e2f88965f059b5`
-- `SHA256SUMS.txt` — `70d0713f8983654662ba3637268d0dc3aaea6369ab397ed5bc2e89f614ed175f`
-- `VALIDATION.json` — `f0d72c8334f12d4415b4e4377ec5915d6d3c69b0b7ee91e8dc77a9ff3a761e4a`
-- `case.json` — `c9dfe98fbc84e298f6f7f7e894a8601b737a425f2c81027d386ff8378544ea78`
-- `execution_1.json` / `execution_2.json` / `execution_3.json` / `reference_execution.json` — `543f831aa6214f35a1e08f6e6af111c82ac52bbfcfa59d7e0d37b3c0978984c1`
-- `run_case.py` — `3c1262814eae0738f31771328d87ec2aac1e9c792de80456208c1c57ad576748`
+- status: `PASS`
+- manifest files verified: `107`
+- live preset replay: `10/10`
+- custom regression: `PASS`
+- reviewer A/B: `PASS`
+- wheel SHA-256: exact expected frozen value
+- engine SHA-256: exact expected frozen value
+- Python used for the fresh replay: `3.13.5`
+- pip required: `false`
+- network required: `false`
 
-### CASE_10_INCOMPLETE_REQUIRED_CHECKS
+This confirms the recovered historical RC1 bytes remain internally executable and reproducible. It does not by itself promote the current reconciled `main` tree to final v1.0 because current documentation differs from the historical release package and the final manifest must be regenerated from the exact final candidate bytes.
 
-- `README.md` — `25d109d3ea6143572bca74c18611c72710aad603baa9aa2236db1563b40ae71a`
-- `SHA256SUMS.txt` — `d999031b425e80fa94735267a5020f02206e207d73c491aeba1b7220be57a7cf`
-- `VALIDATION.json` — `2f676b6322450536d022b8a2da09af055b518fdc3fcc70bfb9f491fe1c321779`
-- `case.json` — `7be5714a4ad253b7b3c65ee6b066e26b4b515ce7b8c53c0e9c2dfddd28335bfc`
-- `execution_1.json` / `execution_2.json` / `execution_3.json` / `reference_execution.json` — `8c83275544091d39d45ae44216db4bd4d4646f495f42a74dca1ffbadeebd1800`
-- `run_case.py` — `9aad2b0a3f44178d8b04d29ad2acdfdaac1d76f97f720f4cd6fc6eaa1a75bf48`
+## Reconciliation defect disposition
 
-These values are verification anchors only. They are not substitutes for the missing file bytes.
+The previously recorded discrepancy was a demonstrator packaging/source-provenance defect: CASE_09 and CASE_10 existed in the release asset but were absent from the repository source tree. It was not evidence of a frozen-controller logic failure.
 
-## Interpretation
-
-The discrepancy is between the repository source tree and the published release asset. It is a provenance/reconciliation defect in the demonstrator packaging workflow, not a demonstrated failure of the frozen controller logic.
-
-CASE_09 and CASE_10 must not be recreated from memory, summaries, or inferred behavior. Their exact release bytes must be recovered from the preserved RC1 release asset or another byte-identical preserved source before insertion into the final candidate tree.
-
-## Already corrected on main
-
-- `PROJECT_STATUS.md` updated to the current external-validation / demonstrator-closure / controlled-study-preparation stage.
-- `demonstrator/CLAIM_BOUNDARY.md` corrected and made explicitly conditional on a reconciled 10-case source/release state.
-- `examples/` normalized so examples 01, 02, and 03 live at one level.
-- accidental nested `examples/examples/...` duplicates removed.
-- repository README files now disclose the source/release mismatch explicitly.
+That specific provenance defect is now **RESOLVED**.
 
 ## Remaining finalization gate
 
 Before final v1.0 promotion:
 
-1. Recover exact CASE_09 and CASE_10 release bytes.
-2. Verify every recovered file against the integrity anchors above.
-3. Restore them into one reconciled source tree.
-4. Confirm every `demo_config.json` `reference_file` exists.
-5. Regenerate `SHA256SUMS.txt` from the exact final candidate bytes.
-6. Verify the frozen wheel identity.
-7. Run complete manifest verification.
-8. Run preset replay and require 10/10 PASS.
-9. Run custom regression and require PASS.
-10. Run reviewer A/B verification and require PASS.
-11. Audit public links and claim language.
-12. Only then create/promote CFC Demonstrator v1.0.
+1. Freeze the reconciled final candidate tree.
+2. Build the final package from the exact reconciled source bytes.
+3. Regenerate top-level `SHA256SUMS.txt` from the exact final candidate bytes; do not reuse the stale RC1/main manifest.
+4. Verify the frozen wheel identity.
+5. Run complete manifest verification on the final candidate package.
+6. Run preset replay and require `10/10 PASS`.
+7. Run custom regression and require `PASS`.
+8. Run reviewer A/B verification and require `PASS`.
+9. Audit public links and claim language against the bounded Proof-of-Concept / experimental-research status.
+10. Only then create/promote CFC Demonstrator v1.0 and record the final tag, package SHA-256, and release URL.
 
-Until all items pass, the historical RC1 remains evidence and the final release remains blocked.
+Until these remaining items pass, the historical RC1 remains evidence and the final v1.0 release remains pending.
