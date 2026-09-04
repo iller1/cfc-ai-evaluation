@@ -1,4 +1,5 @@
 # CFC Demonstrator — release candidate v1.0-rc1
+- [CFC Demonstrator v1.0-rc1](https://github.com/iller1/cfc-ai-evaluation/releases/tag/cfc-demonstrator-v1.0-rc1)
 
 Minimal local demonstrator over the frozen CFC Anchor execution track.
 
