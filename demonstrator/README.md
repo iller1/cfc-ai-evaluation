@@ -1,17 +1,18 @@
-# CFC Demonstrator — release candidate v1.0-rc1
-- [CFC Demonstrator v1.0-rc1](https://github.com/iller1/cfc-ai-evaluation/releases/tag/cfc-demonstrator-v1.0-rc1)
+# CFC Demonstrator v1.0
 
 Minimal local demonstrator over the frozen CFC Anchor execution track.
 
 `INPUT / EVIDENCE STATE -> MODEL CONCLUSION -> FROZEN CFC CHECK -> ALLOW / STOP + CLAIM STATE + REASON`
 
-## Reconciliation status
+## Status
 
-The published RC1 release asset contains 10 preserved representative fixtures and records a successful 107-file release verification with 10/10 preset replay. The current `main` source tree is not yet byte-for-byte reconciled with that asset: the checked-in case directories currently contain CASE_01–CASE_08, while `demo_config.json` references CASE_01–CASE_10.
+This v1.0 package is the reconciled successor to the historical `cfc-demonstrator-v1.0-rc1` release candidate. The exact CASE_09 and CASE_10 bytes were recovered from the preserved RC1 release asset and verified against the preserved SHA-256 integrity anchors before inclusion in the reconciled source tree.
 
-This mismatch is a repository/release provenance issue. It is not evidence of a controller-logic failure. Final v1.0 promotion remains blocked until exact CASE_09 and CASE_10 release bytes are restored to the reconciled source tree and the complete release verification is rerun on the final candidate.
+The frozen execution boundary is unchanged:
 
-See [RECONCILIATION_STATUS.md](RECONCILIATION_STATUS.md).
+- CFC Anchor `0.2.90rc1` remains the deterministic executable controller;
+- Operator Wrapper v1.23 remains byte-for-byte frozen, separate, and not bundled;
+- the demonstrator remains an external presentation/replay layer and does not create, repair, reinterpret, or override controller decisions.
 
 ## Run
 
@@ -23,18 +24,17 @@ macOS/Linux: run `./run_demo.sh`.
 
 Open `http://127.0.0.1:8765`.
 
-The first start verifies the bundled frozen wheel SHA-256 and extracts that exact wheel into local `runtime/site` using Python standard-library `zipfile`. No network access, pip installation, frozen controller source modification, or wheel-byte modification is required.
+The first start verifies the bundled frozen wheel SHA-256 and extracts that exact wheel into local `runtime/site` using Python standard-library `zipfile`.
 
 ## What is executable
 
-The published RC1 release asset contains 10 preserved representative fixtures with live replay against the frozen controller. The current repository tree is under reconciliation as described above.
+- 10 preserved representative fixtures with live replay against the frozen controller;
+- Reviewer mode: a live A/B experiment that changes only explicit independence-authority state;
+- Build custom case: a bounded evidence-state builder mapped to the frozen public API.
 
-- `Reviewer mode`: a live A/B experiment that executes two otherwise identical states and changes only explicit independence-authority state.
-- `Build custom case`: a bounded evidence-state builder that maps selected fields to the frozen public API and executes the result live.
+The custom builder deliberately does not parse arbitrary natural language. Its fixed fictional claim is `DemoSubject / state / safe`; the user may change evidence polarity, temporal validity, required support count, provenance shape, explicit independence-authority state, and audit scope.
 
-The custom builder deliberately does **not** parse arbitrary natural language. Its fixed fictional claim is `DemoSubject / state / safe`; the user may change evidence polarity, temporal validity, required support count, provenance shape, explicit independence-authority state, and audit scope.
-
-Important: distinct-looking provenance is not treated as proof of independence. A separate `VERIFIED` independence option installs an explicit synthetic host-authority attestation through the frozen public API.
+Distinct-looking provenance is not treated as proof of independence. The `VERIFIED` independence option installs an explicit synthetic host-authority attestation through the frozen public API.
 
 ## Verify
 
@@ -46,12 +46,12 @@ python verify_release.py
 
 Individual checks remain available as `verify_demo.py`, `verify_custom.py`, and `verify_reviewer.py`.
 
-Operator Wrapper v1.23 remains byte-for-byte frozen and separate. The executable controller used by this demo is the frozen CFC Anchor `0.2.90rc1` public API.
-
 ## Reviewer mode
 
-- live one-variable Reviewer A/B experiment;
 - A: two current positive supports, independence authority `NONE` -> frozen controller returns `SUPPORTED`, closure false;
 - B: identical state except independence authority `VERIFIED` -> frozen controller returns `VERIFIED`, closure true;
-- raw A/B outputs and direct loading of either state into Custom Case;
 - `verify_reviewer.py` confirms that only the declared input field changes and that both runs use the expected frozen engine identity.
+
+## Claim boundary
+
+See `CLAIM_BOUNDARY.md`. This demonstrator is a research-prototype demonstration artifact. It does not by itself establish general model-safety improvement, production readiness, external validation, universal correctness, ROI, or causal efficacy.
