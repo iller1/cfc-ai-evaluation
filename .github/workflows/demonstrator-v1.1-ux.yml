@@ -22,3 +22,14 @@ jobs:
           python-version: '3.11'
       - name: Validate v1.1 UX candidate
         run: python demonstrator/verify_v1_1_ux.py
+      - name: Build exact v1.1 UX candidate package
+        run: python demonstrator/build_v1_1_ux_package.py
+      - name: Upload validated UX candidate package
+        uses: actions/upload-artifact@v4
+        with:
+          name: CFC_DEMONSTRATOR_v1.1_UX_CANDIDATE
+          path: |
+            dist_ux_v1_1/CFC_DEMONSTRATOR_v1.1_UX_CANDIDATE.zip
+            dist_ux_v1_1/PACKAGE_BUILD_SUMMARY.json
+          if-no-files-found: error
+          retention-days: 30
