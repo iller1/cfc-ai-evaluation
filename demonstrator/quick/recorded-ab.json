@@ -1,0 +1,663 @@
+{
+  "mode": "recorded_frozen_engine_execution",
+  "generated_at_utc": "2026-09-10T14:07:21.239059+00:00",
+  "source_commit": "aeb502fd81b0e012c1fb2cca94a0edf17b28e5cc",
+  "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+  "wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303",
+  "experiment": {
+    "id": "REVIEWER_AB_INDEPENDENCE_AUTHORITY",
+    "title": "Same evidence. One authority-state change.",
+    "question": "Do two distinct-looking positive supports justify closure when independence has not been explicitly verified?",
+    "invariant_fields": [
+      "conclusion",
+      "required_independent_supports",
+      "provenance_shape",
+      "scope",
+      "evidence"
+    ],
+    "changed_field": "independence_authority",
+    "a": {
+      "label": "A · Independence not verified",
+      "input": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 2,
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "NONE",
+        "scope": "EXPECTED",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      }
+    },
+    "b": {
+      "label": "B · Independence explicitly verified",
+      "input": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 2,
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "VERIFIED",
+        "scope": "EXPECTED",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      }
+    }
+  },
+  "runs": {
+    "a": {
+      "case_id": "CUSTOM_CASE",
+      "presentation": {
+        "claim_state": "SUPPORTED",
+        "decision": "STOP",
+        "reason": "Closure blocked by gate: claim_specific_support_policy_valid, decision_support_closure_valid, no_critical_unresolved, support_set_common_mode_coverage_valid",
+        "false_gates": [
+          "claim_specific_support_policy_valid",
+          "decision_support_closure_valid",
+          "no_critical_unresolved",
+          "support_set_common_mode_coverage_valid"
+        ]
+      },
+      "result": {
+        "case_id": "CUSTOM_CASE",
+        "claim_states": [
+          {
+            "certificate": {
+              "audit_context_id": "1dc9b111bdb9b6c19f45e20a3b06c7fe2aaf276fb7e9fd48914082d49a2567e7",
+              "authority_certificate_id": "0d5b7b11733425745b1d0b20025a65315c3006a2a9c3b7084f87181c15ec02c2",
+              "certificate_id": "8fbf679e620f14b853014797362574053fb0ef6d391dffdb023829c28bc56f7c",
+              "claim_id": "c1",
+              "claim_identity_certificate_id": "c1b10f60f880c36edc46a6f4d7a251bf11c80d09694ea90128de0629e5b9e620",
+              "dependency_ontology_conformance_certificate_id": "37386e47221836d6aceb9413cc2bb318ddbee84d18dafb2554152301069f797c",
+              "epistemic_role_certificate_id": "ee258af0cec997b312a6f5fe868d1ce1df357e470f5d8a0275b247a61f4c452d",
+              "evidence_fingerprint": "2ba261b3b30ccc3e588309cde2f3645cf254c1dc739deb2b0332ace5fefbff43",
+              "evidence_id": "E1",
+              "evidence_identity_certificate_id": "4fd789a090cc028d5e21e9df701125bb149b559a76ab0bdee5bec037eba2ca1e",
+              "provenance_certificate_id": "3190eb5683c84fa389fd4b1408c2712e4a55f5d8b19a37778b18b7c5a1dd4a1f",
+              "provenance_completeness_certificate_id": "d5ce72f810448f9f2713e05efcbbc0e12c67e4b9784112e21845a781118759b4",
+              "referent_consistency_certificate_id": "2baf0b92de4bdaca1bd4312ba170418258b32499e6bea9071bc73ce7f60755e2",
+              "source_failure_domain_certificate_id": "b7494a09a93a5d2a216f37a0a223a698faa9d7c1019633ea8ed6841f5b815662",
+              "temporal_certificate_id": "26f199ed015b0f4433193c96af6bc56be988971fa25f9d68ed2fb8b722402d8a"
+            },
+            "id": "c1",
+            "identity": {
+              "certificate_id": "c1b10f60f880c36edc46a6f4d7a251bf11c80d09694ea90128de0629e5b9e620",
+              "domain_id": "GENERAL_ENTITY",
+              "entity_id": "entity:demo-subject",
+              "event_id": "event:current",
+              "owner_id": "c1",
+              "owner_type": "CLAIM",
+              "registry_entry_id": "id:demo-subject:v1",
+              "surface_subject": "DemoSubject",
+              "version_id": "v1"
+            },
+            "reason": "direct referent-consistent support E1; support policy pending",
+            "status": "SUPPORTED",
+            "support_set_certificate": null,
+            "text": "DemoSubject is safe."
+          }
+        ],
+        "claim_support_policy_violations": [
+          {
+            "claim_id": "c1",
+            "required": 2,
+            "selected_support_ids": [
+              "E1",
+              "E2"
+            ],
+            "type": "NO_CERTIFIED_INDEPENDENT_SUBSET"
+          }
+        ],
+        "constraint_coverage_violations": [],
+        "constraint_relation_coverage_violations": [],
+        "control_closure": false,
+        "critical_unresolved": [
+          "c1"
+        ],
+        "custom_input": {
+          "conclusion": "POSITIVE",
+          "evidence": [
+            {
+              "polarity": "POSITIVE",
+              "validity": "CURRENT"
+            },
+            {
+              "polarity": "POSITIVE",
+              "validity": "CURRENT"
+            }
+          ],
+          "independence_authority": "NONE",
+          "provenance_shape": "DISTINCT",
+          "required_independent_supports": 2,
+          "scope": "EXPECTED"
+        },
+        "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+        "evidence": [
+          {
+            "authority_id": "GENERAL_RECORD_V5",
+            "authority_record_entity_id": "entity:demo-subject",
+            "authority_record_event_id": "event:current",
+            "authority_record_version_id": "v1",
+            "available_at": "2026-09-03",
+            "epistemic_role_record_id": "role:auth:c96aa322c87fab95dba6d6cf",
+            "evidence_id": "E1",
+            "identity_registry_entry_id": "id:demo-subject:v1",
+            "observed_at": "2026-09-03",
+            "polarity": "POSITIVE",
+            "predicate": "state",
+            "provenance": {
+              "common_mode_group": "group:custom:e1",
+              "dependencies": {
+                "cache": {
+                  "id": "cache:custom:e1",
+                  "state": "KNOWN"
+                },
+                "data_source": {
+                  "id": "data:custom:e1",
+                  "state": "KNOWN"
+                },
+                "extractor": {
+                  "id": "extractor:custom:e1",
+                  "state": "KNOWN"
+                },
+                "model": {
+                  "id": "model:custom:e1",
+                  "state": "KNOWN"
+                },
+                "operator": {
+                  "id": "operator:custom:e1",
+                  "state": "KNOWN"
+                },
+                "preprocessing": {
+                  "id": "prep:custom:e1",
+                  "state": "KNOWN"
+                },
+                "runtime": {
+                  "id": "runtime:custom:e1",
+                  "state": "KNOWN"
+                },
+                "sensor_input": {
+                  "id": "sensor:custom:e1",
+                  "state": "KNOWN"
+                },
+                "transform": {
+                  "id": "transform:custom:e1",
+                  "state": "KNOWN"
+                },
+                "upstream_db": {
+                  "id": "db:custom:e1",
+                  "state": "KNOWN"
+                }
+              },
+              "extractor_id": "extractor:custom:e1",
+              "lineage": [
+                "general-record:root:custom:e1",
+                "general-record:origin:custom:e1"
+              ],
+              "origin_id": "general-record:origin:custom:e1",
+              "referent_entity_id": "entity:demo-subject",
+              "referent_event_id": "event:current",
+              "referent_version_id": "v1",
+              "root_origin_id": "general-record:root:custom:e1",
+              "source_id": "general-record:custom:e1"
+            },
+            "source": "display:custom:e1",
+            "source_semantics_id": "sem:custom:e1",
+            "subject": "DemoSubject",
+            "valid_from": "2026-01-01",
+            "valid_to": "2026-12-31",
+            "value": "safe"
+          },
+          {
+            "authority_id": "GENERAL_RECORD_V5",
+            "authority_record_entity_id": "entity:demo-subject",
+            "authority_record_event_id": "event:current",
+            "authority_record_version_id": "v1",
+            "available_at": "2026-09-03",
+            "epistemic_role_record_id": "role:auth:ac2f7c8ba9d401af168df718",
+            "evidence_id": "E2",
+            "identity_registry_entry_id": "id:demo-subject:v1",
+            "observed_at": "2026-09-03",
+            "polarity": "POSITIVE",
+            "predicate": "state",
+            "provenance": {
+              "common_mode_group": "group:custom:e2",
+              "dependencies": {
+                "cache": {
+                  "id": "cache:custom:e2",
+                  "state": "KNOWN"
+                },
+                "data_source": {
+                  "id": "data:custom:e2",
+                  "state": "KNOWN"
+                },
+                "extractor": {
+                  "id": "extractor:custom:e2",
+                  "state": "KNOWN"
+                },
+                "model": {
+                  "id": "model:custom:e2",
+                  "state": "KNOWN"
+                },
+                "operator": {
+                  "id": "operator:custom:e2",
+                  "state": "KNOWN"
+                },
+                "preprocessing": {
+                  "id": "prep:custom:e2",
+                  "state": "KNOWN"
+                },
+                "runtime": {
+                  "id": "runtime:custom:e2",
+                  "state": "KNOWN"
+                },
+                "sensor_input": {
+                  "id": "sensor:custom:e2",
+                  "state": "KNOWN"
+                },
+                "transform": {
+                  "id": "transform:custom:e2",
+                  "state": "KNOWN"
+                },
+                "upstream_db": {
+                  "id": "db:custom:e2",
+                  "state": "KNOWN"
+                }
+              },
+              "extractor_id": "extractor:custom:e2",
+              "lineage": [
+                "general-record:root:custom:e2",
+                "general-record:origin:custom:e2"
+              ],
+              "origin_id": "general-record:origin:custom:e2",
+              "referent_entity_id": "entity:demo-subject",
+              "referent_event_id": "event:current",
+              "referent_version_id": "v1",
+              "root_origin_id": "general-record:root:custom:e2",
+              "source_id": "general-record:custom:e2"
+            },
+            "source": "display:custom:e2",
+            "source_semantics_id": "sem:custom:e2",
+            "subject": "DemoSubject",
+            "valid_from": "2026-01-01",
+            "valid_to": "2026-12-31",
+            "value": "safe"
+          }
+        ],
+        "evidence_errors": [],
+        "gates": {
+          "accepted_certificates_revalidate": true,
+          "audit_context_valid": true,
+          "claim_set_nonempty": true,
+          "claim_snapshot_projection_complete": true,
+          "claim_specific_support_policy_valid": false,
+          "claim_support_universe_common_mode_coverage_valid": true,
+          "closure_policy_authorization_valid": true,
+          "closure_policy_valid": true,
+          "constraint_coverage_sufficient": true,
+          "constraint_relation_coverage_sufficient": true,
+          "cross_group_snapshot_competition_resolved": true,
+          "cross_universe_evidence_closure_valid": true,
+          "decision_relevant_relation_discovery_complete_valid": true,
+          "decision_relevant_snapshot_overlap_complete": true,
+          "decision_support_closure_valid": false,
+          "dependency_instance_ontology_conformance_valid": true,
+          "dependency_ontology_adequacy_valid": true,
+          "dependency_state_justification_valid": true,
+          "evidence_admission_valid": true,
+          "evidence_id_universe_complete": true,
+          "evidence_set_coverage_sufficient": true,
+          "extraction_adequacy_valid": true,
+          "extraction_binding_valid": true,
+          "gate_registry_adequate_for_closure_class": true,
+          "gate_registry_binding_valid": true,
+          "gate_registry_schema_complete": true,
+          "global_consistency_valid": true,
+          "identity_resolution_valid": true,
+          "justification_common_mode_coverage_valid": true,
+          "meta_baseline_version_applicable": true,
+          "no_critical_unresolved": false,
+          "no_identity_ambiguity": true,
+          "provenance_completeness_valid": true,
+          "provenance_dependency_resolution_valid": true,
+          "referent_consistency_valid": true,
+          "relational_claim_neighborhood_complete": true,
+          "retrieval_snapshot_applicability_valid": true,
+          "retrieval_snapshot_content_matches": true,
+          "retrieval_universe_membership_valid": true,
+          "retrieval_universe_partition_adequate": true,
+          "scope_adequacy_valid": true,
+          "scope_binding_valid": true,
+          "snapshot_freshness_valid": true,
+          "snapshot_supersession_valid": true,
+          "source_failure_domain_resolution_complete_valid": true,
+          "source_independence_semantics_valid": true,
+          "support_relation_instance_resolution_coverage_valid": true,
+          "support_selection_justification_valid": true,
+          "support_set_common_mode_coverage_valid": false,
+          "unique_evidence_ids": true
+        },
+        "global_consistency_violations": [],
+        "identity_errors": [],
+        "input_schema_version": "1",
+        "integration_errors": [],
+        "mandatory_gate_count": 49,
+        "model_conclusion": "DemoSubject is safe.",
+        "persistence_schema": "DECISION_PERSISTENCE_HISTORY_V6",
+        "stop_type": "NONE"
+      }
+    },
+    "b": {
+      "case_id": "CUSTOM_CASE",
+      "presentation": {
+        "claim_state": "VERIFIED",
+        "decision": "ALLOW",
+        "reason": "policy-satisfied support set (2)",
+        "false_gates": []
+      },
+      "result": {
+        "case_id": "CUSTOM_CASE",
+        "claim_states": [
+          {
+            "certificate": {
+              "audit_context_id": "a4a4a8914d508d2daf7d0dfb648296e8ab5bf074a9efd9677de2ef934f089088",
+              "authority_certificate_id": "0d5b7b11733425745b1d0b20025a65315c3006a2a9c3b7084f87181c15ec02c2",
+              "certificate_id": "ef76fc66e1d6cfb8bca924ff78cc4e3524c1f0586fd99fc0f70b3f79696e522b",
+              "claim_id": "c1",
+              "claim_identity_certificate_id": "c1b10f60f880c36edc46a6f4d7a251bf11c80d09694ea90128de0629e5b9e620",
+              "dependency_ontology_conformance_certificate_id": "37386e47221836d6aceb9413cc2bb318ddbee84d18dafb2554152301069f797c",
+              "epistemic_role_certificate_id": "ee258af0cec997b312a6f5fe868d1ce1df357e470f5d8a0275b247a61f4c452d",
+              "evidence_fingerprint": "2ba261b3b30ccc3e588309cde2f3645cf254c1dc739deb2b0332ace5fefbff43",
+              "evidence_id": "E1",
+              "evidence_identity_certificate_id": "4fd789a090cc028d5e21e9df701125bb149b559a76ab0bdee5bec037eba2ca1e",
+              "provenance_certificate_id": "3190eb5683c84fa389fd4b1408c2712e4a55f5d8b19a37778b18b7c5a1dd4a1f",
+              "provenance_completeness_certificate_id": "d5ce72f810448f9f2713e05efcbbc0e12c67e4b9784112e21845a781118759b4",
+              "referent_consistency_certificate_id": "2baf0b92de4bdaca1bd4312ba170418258b32499e6bea9071bc73ce7f60755e2",
+              "source_failure_domain_certificate_id": "b7494a09a93a5d2a216f37a0a223a698faa9d7c1019633ea8ed6841f5b815662",
+              "temporal_certificate_id": "26f199ed015b0f4433193c96af6bc56be988971fa25f9d68ed2fb8b722402d8a"
+            },
+            "id": "c1",
+            "identity": {
+              "certificate_id": "c1b10f60f880c36edc46a6f4d7a251bf11c80d09694ea90128de0629e5b9e620",
+              "domain_id": "GENERAL_ENTITY",
+              "entity_id": "entity:demo-subject",
+              "event_id": "event:current",
+              "owner_id": "c1",
+              "owner_type": "CLAIM",
+              "registry_entry_id": "id:demo-subject:v1",
+              "surface_subject": "DemoSubject",
+              "version_id": "v1"
+            },
+            "reason": "policy-satisfied support set (2)",
+            "status": "VERIFIED",
+            "support_set_certificate": {
+              "audit_context_id": "a4a4a8914d508d2daf7d0dfb648296e8ab5bf074a9efd9677de2ef934f089088",
+              "certificate_id": "bf3508a522987dddfa3439b090660cb337eb58b2b1bc0d9689bf228e9f58494d",
+              "claim_id": "c1",
+              "direct_certificate_ids_hash": "9ee02d6a93348eeddb9385f02845da4873e6bf8e7549d68e4c0c5c7369c77921",
+              "independence_certificate_id": "87c014a6ab0df2d5e302a9d73e9fd19969cccddc475cc8d7717312f5cf1b2813",
+              "matching_support_universe_hash": "93621ec31e0e67f220cb1a68fc2462ca55a7251a1cd54753ec48b6824fbde5d4",
+              "required_supports": 2,
+              "set_level_independence_certificate_id": "f7339f49347f949b8f9ce7333d2dd0d76db10755162f4511b29003ecbd05e364",
+              "support_ids_hash": "000eab9fb7bbc0bcdb59fd3c4fae80b16b7820529c465d05a4069abfbae0e13a",
+              "support_policy_hash": "834a4510d277c4c3e0556fcfb9643a96fdf5db10511f17c7368acb72f9fd097f",
+              "support_selection_certificate_id": "4332d2e70789d73b5941c1d9d8c544aa8c1c52cd6c44b80e7b1232741995a363",
+              "support_set_result": "PASS",
+              "support_universe_coverage_certificate_id": "20de4c27f8efcb7e8618e00866e12d597ef15c0df15bf4ec673106447fac65de"
+            },
+            "text": "DemoSubject is safe."
+          }
+        ],
+        "claim_support_policy_violations": [],
+        "constraint_coverage_violations": [],
+        "constraint_relation_coverage_violations": [],
+        "control_closure": true,
+        "critical_unresolved": [],
+        "custom_input": {
+          "conclusion": "POSITIVE",
+          "evidence": [
+            {
+              "polarity": "POSITIVE",
+              "validity": "CURRENT"
+            },
+            {
+              "polarity": "POSITIVE",
+              "validity": "CURRENT"
+            }
+          ],
+          "independence_authority": "VERIFIED",
+          "provenance_shape": "DISTINCT",
+          "required_independent_supports": 2,
+          "scope": "EXPECTED"
+        },
+        "engine_sha256": "77a7547c02ce4aac3d3abc759bbd266f4251de9149da2308454527c7f2dea5c0",
+        "evidence": [
+          {
+            "authority_id": "GENERAL_RECORD_V5",
+            "authority_record_entity_id": "entity:demo-subject",
+            "authority_record_event_id": "event:current",
+            "authority_record_version_id": "v1",
+            "available_at": "2026-09-03",
+            "epistemic_role_record_id": "role:auth:c96aa322c87fab95dba6d6cf",
+            "evidence_id": "E1",
+            "identity_registry_entry_id": "id:demo-subject:v1",
+            "observed_at": "2026-09-03",
+            "polarity": "POSITIVE",
+            "predicate": "state",
+            "provenance": {
+              "common_mode_group": "group:custom:e1",
+              "dependencies": {
+                "cache": {
+                  "id": "cache:custom:e1",
+                  "state": "KNOWN"
+                },
+                "data_source": {
+                  "id": "data:custom:e1",
+                  "state": "KNOWN"
+                },
+                "extractor": {
+                  "id": "extractor:custom:e1",
+                  "state": "KNOWN"
+                },
+                "model": {
+                  "id": "model:custom:e1",
+                  "state": "KNOWN"
+                },
+                "operator": {
+                  "id": "operator:custom:e1",
+                  "state": "KNOWN"
+                },
+                "preprocessing": {
+                  "id": "prep:custom:e1",
+                  "state": "KNOWN"
+                },
+                "runtime": {
+                  "id": "runtime:custom:e1",
+                  "state": "KNOWN"
+                },
+                "sensor_input": {
+                  "id": "sensor:custom:e1",
+                  "state": "KNOWN"
+                },
+                "transform": {
+                  "id": "transform:custom:e1",
+                  "state": "KNOWN"
+                },
+                "upstream_db": {
+                  "id": "db:custom:e1",
+                  "state": "KNOWN"
+                }
+              },
+              "extractor_id": "extractor:custom:e1",
+              "lineage": [
+                "general-record:root:custom:e1",
+                "general-record:origin:custom:e1"
+              ],
+              "origin_id": "general-record:origin:custom:e1",
+              "referent_entity_id": "entity:demo-subject",
+              "referent_event_id": "event:current",
+              "referent_version_id": "v1",
+              "root_origin_id": "general-record:root:custom:e1",
+              "source_id": "general-record:custom:e1"
+            },
+            "source": "display:custom:e1",
+            "source_semantics_id": "sem:custom:e1",
+            "subject": "DemoSubject",
+            "valid_from": "2026-01-01",
+            "valid_to": "2026-12-31",
+            "value": "safe"
+          },
+          {
+            "authority_id": "GENERAL_RECORD_V5",
+            "authority_record_entity_id": "entity:demo-subject",
+            "authority_record_event_id": "event:current",
+            "authority_record_version_id": "v1",
+            "available_at": "2026-09-03",
+            "epistemic_role_record_id": "role:auth:ac2f7c8ba9d401af168df718",
+            "evidence_id": "E2",
+            "identity_registry_entry_id": "id:demo-subject:v1",
+            "observed_at": "2026-09-03",
+            "polarity": "POSITIVE",
+            "predicate": "state",
+            "provenance": {
+              "common_mode_group": "group:custom:e2",
+              "dependencies": {
+                "cache": {
+                  "id": "cache:custom:e2",
+                  "state": "KNOWN"
+                },
+                "data_source": {
+                  "id": "data:custom:e2",
+                  "state": "KNOWN"
+                },
+                "extractor": {
+                  "id": "extractor:custom:e2",
+                  "state": "KNOWN"
+                },
+                "model": {
+                  "id": "model:custom:e2",
+                  "state": "KNOWN"
+                },
+                "operator": {
+                  "id": "operator:custom:e2",
+                  "state": "KNOWN"
+                },
+                "preprocessing": {
+                  "id": "prep:custom:e2",
+                  "state": "KNOWN"
+                },
+                "runtime": {
+                  "id": "runtime:custom:e2",
+                  "state": "KNOWN"
+                },
+                "sensor_input": {
+                  "id": "sensor:custom:e2",
+                  "state": "KNOWN"
+                },
+                "transform": {
+                  "id": "transform:custom:e2",
+                  "state": "KNOWN"
+                },
+                "upstream_db": {
+                  "id": "db:custom:e2",
+                  "state": "KNOWN"
+                }
+              },
+              "extractor_id": "extractor:custom:e2",
+              "lineage": [
+                "general-record:root:custom:e2",
+                "general-record:origin:custom:e2"
+              ],
+              "origin_id": "general-record:origin:custom:e2",
+              "referent_entity_id": "entity:demo-subject",
+              "referent_event_id": "event:current",
+              "referent_version_id": "v1",
+              "root_origin_id": "general-record:root:custom:e2",
+              "source_id": "general-record:custom:e2"
+            },
+            "source": "display:custom:e2",
+            "source_semantics_id": "sem:custom:e2",
+            "subject": "DemoSubject",
+            "valid_from": "2026-01-01",
+            "valid_to": "2026-12-31",
+            "value": "safe"
+          }
+        ],
+        "evidence_errors": [],
+        "gates": {
+          "accepted_certificates_revalidate": true,
+          "audit_context_valid": true,
+          "claim_set_nonempty": true,
+          "claim_snapshot_projection_complete": true,
+          "claim_specific_support_policy_valid": true,
+          "claim_support_universe_common_mode_coverage_valid": true,
+          "closure_policy_authorization_valid": true,
+          "closure_policy_valid": true,
+          "constraint_coverage_sufficient": true,
+          "constraint_relation_coverage_sufficient": true,
+          "cross_group_snapshot_competition_resolved": true,
+          "cross_universe_evidence_closure_valid": true,
+          "decision_relevant_relation_discovery_complete_valid": true,
+          "decision_relevant_snapshot_overlap_complete": true,
+          "decision_support_closure_valid": true,
+          "dependency_instance_ontology_conformance_valid": true,
+          "dependency_ontology_adequacy_valid": true,
+          "dependency_state_justification_valid": true,
+          "evidence_admission_valid": true,
+          "evidence_id_universe_complete": true,
+          "evidence_set_coverage_sufficient": true,
+          "extraction_adequacy_valid": true,
+          "extraction_binding_valid": true,
+          "gate_registry_adequate_for_closure_class": true,
+          "gate_registry_binding_valid": true,
+          "gate_registry_schema_complete": true,
+          "global_consistency_valid": true,
+          "identity_resolution_valid": true,
+          "justification_common_mode_coverage_valid": true,
+          "meta_baseline_version_applicable": true,
+          "no_critical_unresolved": true,
+          "no_identity_ambiguity": true,
+          "provenance_completeness_valid": true,
+          "provenance_dependency_resolution_valid": true,
+          "referent_consistency_valid": true,
+          "relational_claim_neighborhood_complete": true,
+          "retrieval_snapshot_applicability_valid": true,
+          "retrieval_snapshot_content_matches": true,
+          "retrieval_universe_membership_valid": true,
+          "retrieval_universe_partition_adequate": true,
+          "scope_adequacy_valid": true,
+          "scope_binding_valid": true,
+          "snapshot_freshness_valid": true,
+          "snapshot_supersession_valid": true,
+          "source_failure_domain_resolution_complete_valid": true,
+          "source_independence_semantics_valid": true,
+          "support_relation_instance_resolution_coverage_valid": true,
+          "support_selection_justification_valid": true,
+          "support_set_common_mode_coverage_valid": true,
+          "unique_evidence_ids": true
+        },
+        "global_consistency_violations": [],
+        "identity_errors": [],
+        "input_schema_version": "1",
+        "integration_errors": [],
+        "mandatory_gate_count": 49,
+        "model_conclusion": "DemoSubject is safe.",
+        "persistence_schema": "DECISION_PERSISTENCE_HISTORY_V6",
+        "stop_type": "EPISTEMIC_STOP"
+      }
+    }
+  }
+}
