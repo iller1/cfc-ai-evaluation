@@ -157,7 +157,9 @@ def validate_attestation(
     nonce = _required_text(attestation, "nonce")
     if session_id is None:
         return GuardResult(UNRESOLVED, "decision_id binding absent and current session_id unavailable", (att_id,))
-    if bound_session_id is None or bound_session_id != session_id:
+    if bound_session_id is None:
+        return GuardResult(UNRESOLVED, "anti-replay session binding unavailable", (att_id,))
+    if bound_session_id != session_id:
         return GuardResult(STOP, "anti-replay session binding mismatch", (att_id,))
     if nonce is None:
         return GuardResult(UNRESOLVED, "anti-replay nonce unavailable", (att_id,))
