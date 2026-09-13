@@ -58,6 +58,7 @@ Expired or not-yet-valid attestations produce `STOP`.
 
 The host MUST compare the attestation against the current decision context using exact bindings for the fields declared by the profile:
 
+- `case_id`
 - `scope_id`
 - `purpose_id`
 - `resource_id`
@@ -83,14 +84,16 @@ A negative revalidation MUST invalidate any cached host authorization derived fr
 
 An attestation MUST be bound to the current decision by at least one accepted anti-replay mechanism:
 
-1. exact `decision_id` binding; or
+1. exact `decision_id` binding where that decision ID has not previously been finalized/consumed; or
 2. exact `session_id` binding plus a nonce that has not previously been consumed.
+
+Decision IDs used for anti-replay MUST be unique within the host trust domain and MUST NOT be reused for a later decision.
 
 If neither mechanism is available, replay resistance is `UNRESOLVED`.
 
-A reused nonce produces `STOP`.
+A reused decision ID or nonce produces `STOP`.
 
-Nonce consumption MUST be committed atomically with the decision that uses it.
+Decision-ID/nonce consumption MUST be committed atomically with the decision that uses it.
 
 ### 3.5 Authenticity and issuer trust
 
@@ -116,6 +119,8 @@ For a set of attestations to satisfy an independence requirement, the host MUST 
 - `root_id`
 
 Known equality of either failure domain or root across attestations means the set MUST NOT be treated as independent and produces `STOP` for an independence requirement.
+
+The same `attestation_id` MUST NOT be counted more than once in an independence set. Duplicate record identity produces `STOP` for the independence claim.
 
 Missing or unresolved failure-domain/root information produces `UNRESOLVED`.
 
@@ -189,14 +194,16 @@ The profile is acceptable for pilot use only if all of the following hold:
 2. not-yet-valid attestation -> `STOP`
 3. wrong-scope/purpose/resource/audience attestation -> `STOP`
 4. revoked-before-expiry attestation -> `STOP`
-5. replayed nonce -> `STOP`
-6. no usable anti-replay binding -> `UNRESOLVED`
-7. two attestations sharing one failure domain -> not independent
-8. two attestations sharing one root -> not independent
-9. unknown root/failure-domain relation -> `UNRESOLVED`
-10. known compromised root -> `STOP`
-11. failed revalidation invalidates cached host authorization
-12. valid/current/right-scope attestation -> only `ELIGIBLE_FOR_ANCHOR`; final closure still depends on the frozen controller and all remaining closure conditions
+5. wrong-case attestation -> `STOP`
+6. replayed decision ID or nonce -> `STOP`
+7. no usable anti-replay binding -> `UNRESOLVED`
+8. duplicate `attestation_id` cannot count twice toward independence
+9. two attestations sharing one failure domain -> not independent
+10. two attestations sharing one root -> not independent
+11. unknown root/failure-domain relation -> `UNRESOLVED`
+12. known compromised root -> `STOP`
+13. failed revalidation invalidates cached host authorization
+14. valid/current/right-scope attestation -> only `ELIGIBLE_FOR_ANCHOR`; final closure still depends on the frozen controller and all remaining closure conditions
 
 ## 8. Publication language
 
