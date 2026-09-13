@@ -6,6 +6,7 @@ from attestation_lifecycle_guard import (
     UNRESOLVED,
     apply_revalidation_result,
     commit_nonce_consumption,
+    commit_replay_state,
     validate_attestation,
     validate_independence_set,
 )
@@ -16,6 +17,7 @@ def context():
         "decision_time": "2026-09-13T20:17:00+01:00",
         "decision_id": "DEC-001",
         "session_id": "SESSION-A",
+        "case_id": "CASE-42",
         "scope_id": "scope-A",
         "purpose_id": "independence-check",
         "resource_id": "resource-42",
@@ -33,6 +35,7 @@ def attestation(**changes):
         "valid_from": "2026-09-13T18:00:00+01:00",
         "valid_to": "2026-09-13T22:00:00+01:00",
         "ttl_seconds": 14400,
+        "case_id": "CASE-42",
         "scope_id": "scope-A",
         "purpose_id": "independence-check",
         "resource_id": "resource-42",
@@ -178,6 +181,32 @@ class AttestationLifecycleTests(unittest.TestCase):
         self.assertEqual(STOP, failed.status)
         apply_revalidation_result(failed, cache)
         self.assertNotIn("ATT-A", cache)
+
+    def test_T21_decision_bound_replay_stops_after_commit(self):
+        consumed_nonces = set()
+        consumed_decisions = set()
+        a = attestation()
+        first = validate_attestation(a, context(), consumed_decision_ids=consumed_decisions)
+        self.assertEqual(ELIGIBLE, first.status)
+        commit_replay_state(first, consumed_nonces, consumed_decisions)
+        second = validate_attestation(a, context(), consumed_decision_ids=consumed_decisions)
+        self.assertEqual(STOP, second.status)
+
+    def test_T22_duplicate_attestation_id_cannot_count_twice(self):
+        a = attestation(attestation_id="ATT-X", root_id="ROOT-A", failure_domain_id="FD-A")
+        b = attestation(
+            attestation_id="ATT-X",
+            issuer_id="issuer-B",
+            root_id="ROOT-B",
+            failure_domain_id="FD-B",
+            nonce="NONCE-B",
+        )
+        result = validate_independence_set([a, b], context())
+        self.assertEqual(STOP, result.status)
+
+    def test_T23_wrong_case_stops(self):
+        result = validate_attestation(attestation(case_id="CASE-OTHER"), context())
+        self.assertEqual(STOP, result.status)
 
 
 if __name__ == "__main__":
