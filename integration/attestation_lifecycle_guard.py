@@ -21,6 +21,7 @@ class GuardResult:
     reason: str
     attestation_ids: tuple[str, ...] = ()
     nonces_to_consume: tuple[str, ...] = ()
+    decision_ids_to_consume: tuple[str, ...] = ()
 
 
 def _dt(value: Any) -> datetime | None:
@@ -50,6 +51,7 @@ def validate_attestation(
     context: Mapping[str, Any],
     *,
     consumed_nonces: Iterable[str] = (),
+    consumed_decision_ids: Iterable[str] = (),
     compromised_roots: Iterable[str] = (),
 ) -> GuardResult:
     """Validate one attestation for current host-side eligibility."""
@@ -67,6 +69,8 @@ def validate_attestation(
 
     assert issued_at is not None and valid_from is not None and valid_to is not None and decision_time is not None
 
+    if issued_at > decision_time:
+        return GuardResult(STOP, "attestation issued after decision_time", (att_id,))
     if valid_from > valid_to:
         return GuardResult(STOP, "invalid validity interval", (att_id,))
     if decision_time < valid_from:
@@ -81,7 +85,7 @@ def validate_attestation(
         if decision_time > issued_at + timedelta(seconds=ttl_seconds):
             return GuardResult(STOP, "attestation TTL expired before decision_time", (att_id,))
 
-    for field in ("scope_id", "purpose_id", "resource_id", "audience_id"):
+    for field in ("case_id", "scope_id", "purpose_id", "resource_id", "audience_id"):
         expected = _required_text(context, field)
         actual = _required_text(attestation, field)
         if expected is None:
@@ -138,7 +142,15 @@ def validate_attestation(
     decision_id = _required_text(context, "decision_id")
     bound_decision_id = _required_text(attestation, "decision_id")
     if decision_id is not None and bound_decision_id == decision_id:
-        return GuardResult(ELIGIBLE, "decision-bound attestation is current and eligible", (att_id,))
+        if decision_id in set(consumed_decision_ids):
+            return GuardResult(STOP, "replayed decision-bound attestation", (att_id,))
+        return GuardResult(
+            ELIGIBLE,
+            "decision-bound attestation is current and eligible; decision_id must be consumed atomically",
+            (att_id,),
+            (),
+            (decision_id,),
+        )
 
     session_id = _required_text(context, "session_id")
     bound_session_id = _required_text(attestation, "session_id")
@@ -165,6 +177,7 @@ def validate_independence_set(
     context: Mapping[str, Any],
     *,
     consumed_nonces: Iterable[str] = (),
+    consumed_decision_ids: Iterable[str] = (),
     compromised_roots: Iterable[str] = (),
     required_independent_supports: int = 2,
 ) -> GuardResult:
@@ -179,12 +192,14 @@ def validate_independence_set(
     domains: list[str] = []
     ids: list[str] = []
     nonces: list[str] = []
+    decision_ids: list[str] = []
 
     for attestation in attestations:
         result = validate_attestation(
             attestation,
             context,
             consumed_nonces=consumed_nonces,
+            consumed_decision_ids=consumed_decision_ids,
             compromised_roots=compromised_roots,
         )
         if result.status != ELIGIBLE:
@@ -199,7 +214,12 @@ def validate_independence_set(
         roots.append(root_id)
         domains.append(domain_id)
         nonces.extend(result.nonces_to_consume)
+        decision_ids.extend(result.decision_ids_to_consume)
 
+    if len(set(ids)) != len(ids):
+        return GuardResult(STOP, "duplicate attestation_id cannot establish independence", tuple(ids))
+    if nonces and len(set(nonces)) != len(nonces):
+        return GuardResult(STOP, "duplicate anti-replay nonce across attestation set", tuple(ids))
     if len(set(domains)) != len(domains):
         return GuardResult(STOP, "attestations share a source failure domain and are not independent", tuple(ids))
     if len(set(roots)) != len(roots):
@@ -213,7 +233,27 @@ def validate_independence_set(
         "attestation set is current, bound, and independently rooted for host-side eligibility",
         tuple(ids),
         tuple(nonces),
+        tuple(sorted(set(decision_ids))),
     )
+
+
+def commit_replay_state(
+    result: GuardResult,
+    consumed_nonces: MutableSet[str],
+    consumed_decision_ids: MutableSet[str],
+) -> None:
+    """Atomically commit replay-prevention tokens for an eligible decision."""
+
+    if result.status != ELIGIBLE:
+        raise ValueError("cannot consume replay state for a non-eligible result")
+    for nonce in set(result.nonces_to_consume):
+        if nonce in consumed_nonces:
+            raise ValueError(f"nonce already consumed: {nonce}")
+    for decision_id in set(result.decision_ids_to_consume):
+        if decision_id in consumed_decision_ids:
+            raise ValueError(f"decision_id already consumed: {decision_id}")
+    consumed_nonces.update(result.nonces_to_consume)
+    consumed_decision_ids.update(result.decision_ids_to_consume)
 
 
 def commit_nonce_consumption(result: GuardResult, consumed_nonces: MutableSet[str]) -> None:
