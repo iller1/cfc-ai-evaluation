@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Can AI be certain yet? — HAWM + CFC Human Tester</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">HAWM + CFC Human Tester v0.1</div>
+    <div class="lang">
+      <button id="enBtn" class="active" onclick="setLang('en')">EN</button>
+      <button id="plBtn" onclick="setLang('pl')">PL</button>
+    </div>
+  </div>
+
+  <section id="start" class="card">
+    <h1 data-en="Can you tell when AI has enough evidence to be certain?" data-pl="Czy potrafisz rozpoznać, kiedy AI ma wystarczające dowody, by być pewne?"></h1>
+    <p class="lead" data-en="10 short situations. No technical knowledge needed. About 5 minutes." data-pl="10 krótkich sytuacji. Nie potrzebujesz wiedzy technicznej. Około 5 minut."></p>
+    <div class="notice">
+      <p data-en="Your job is simple: decide what the AI is actually justified in saying." data-pl="Twoje zadanie jest proste: zdecyduj, co AI naprawdę ma podstawy powiedzieć."></p>
+    </div>
+    <button class="btn primary" onclick="startQuiz()" data-en="Start" data-pl="Start"></button>
+    <p class="small" style="margin-top:14px" data-en="No login. Nothing is uploaded. This version runs entirely in your browser." data-pl="Bez logowania. Nic nie jest wysyłane. Ta wersja działa całkowicie w Twojej przeglądarce."></p>
+    <details style="margin-top:18px">
+      <summary data-en="What is this?" data-pl="Co to jest?"></summary>
+      <p class="small" data-en="This is a human-understanding demonstrator for evidence-bound decision closure. It does not run, modify, repair, or reinterpret the frozen CFC controller." data-pl="To demonstrator sprawdzający ludzkie rozumienie domykania decyzji na podstawie dowodów. Nie uruchamia, nie modyfikuje, nie naprawia ani nie reinterpretuje zamrożonego kontrolera CFC."></p>
+    </details>
+  </section>
+
+  <section id="quiz" class="card hidden">
+    <div class="progressline"><div id="progress" class="progressbar"></div></div>
+    <div class="meta"><span id="counter"></span><span id="caseid"></span></div>
+    <h2 id="title"></h2>
+    <div id="scenario" class="scenario"></div>
+    <p id="question" style="font-weight:750"></p>
+    <div id="options" class="options"></div>
+    <button id="checkBtn" class="btn primary" onclick="checkAnswer()" disabled data-en="Check my answer" data-pl="Sprawdź odpowiedź"></button>
+    <div id="feedback" class="feedback hidden"></div>
+    <div class="navrow">
+      <button id="nextBtn" class="btn primary hidden" onclick="nextCase()" data-en="Next" data-pl="Dalej"></button>
+    </div>
+  </section>
+
+  <section id="result" class="card hidden">
+    <p class="small" data-en="YOUR RESULT" data-pl="TWÓJ WYNIK"></p>
+    <div id="score" class="score"></div>
+    <p id="resultText" class="lead"></p>
+    <div class="stats">
+      <div class="stat"><b id="correctStat">0</b><span data-en="justified decisions" data-pl="uzasadnionych decyzji"></span></div>
+      <div class="stat"><b id="earlyStat">0</b><span data-en="too certain too early" data-pl="zbyt wczesnych pewnych wniosków"></span></div>
+      <div class="stat"><b id="cautiousStat">0</b><span data-en="unnecessarily cautious" data-pl="niepotrzebnie ostrożnych"></span></div>
+    </div>
+    <div class="quote" data-en="The goal isn't to say “I don't know” all the time. It's to be certain only when the evidence earns it." data-pl="Celem nie jest ciągłe mówienie „nie wiem”. Celem jest pewność tylko wtedy, gdy dowody naprawdę na nią pozwalają."></div>
+    <button class="btn primary" onclick="copyResult()" data-en="Copy my result" data-pl="Kopiuj mój wynik"></button>
+    <button class="btn secondary" style="margin-top:10px" onclick="restart()" data-en="Try again" data-pl="Spróbuj ponownie"></button>
+    <details style="margin-top:20px">
+      <summary data-en="Technical / source note" data-pl="Informacja techniczna / źródłowa"></summary>
+      <p class="small" data-en="Cases 9–10 are adapted directly from HAWM Test R in the supplied HAWM + CFC Combined Demonstrator v0.1. Cases 1–8 are synthetic teaching cases created for this human tester; they are not claimed as outputs of the frozen CFC controller." data-pl="Przypadki 9–10 są bezpośrednio zaadaptowane z HAWM Test R z dostarczonego HAWM + CFC Combined Demonstrator v0.1. Przypadki 1–8 to syntetyczne przykłady edukacyjne stworzone dla tego testera; nie są przedstawiane jako wyniki zamrożonego kontrolera CFC."></p>
+      <p class="small">Source ZIP SHA-256:<br><code>d9e794eeca39e7a963c80cb86a01c168e98b4473761c125c3786db566294cbd3</code></p>
+    </details>
+  </section>
+
+  <div class="footer">
+    <span data-en="Public demonstrator · no account · no data collection in v0.1" data-pl="Publiczny demonstrator · bez konta · bez zbierania danych w v0.1"></span>
+  </div>
+</div>
+
+<script src="cases.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
