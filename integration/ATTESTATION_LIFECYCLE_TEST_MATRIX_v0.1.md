@@ -34,6 +34,9 @@ Reason-string differences alone do not count.
 | ATL-018 | current, right-scope, non-revoked, replay-safe, trusted | no lifecycle fault | ELIGIBLE_FOR_ANCHOR only | integration gate |
 | ATL-019 | two current attestations, distinct roots and failure domains | no known common-mode relation | ELIGIBLE_FOR_ANCHOR only | independence gate |
 | ATL-020 | failed revalidation after earlier success | host attempts to continue using cached permission | STOP and cached permission invalidated | host orchestration |
+| ATL-021 | decision-bound attestation reused after decision ID was finalized | attacker replays a previously accepted decision-bound credential | STOP | integration anti-replay |
+| ATL-022 | same `attestation_id` supplied twice with apparent distinct lineage | attacker duplicates one logical credential to satisfy a count threshold | STOP for independence claim | identity / independence mapping |
+| ATL-023 | case mismatch | attacker moves a valid attestation into another case | STOP | mapping/integration |
 
 ## Required result record
 
