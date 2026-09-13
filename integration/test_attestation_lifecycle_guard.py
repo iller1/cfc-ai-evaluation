@@ -167,8 +167,7 @@ class AttestationLifecycleTests(unittest.TestCase):
         c.pop("decision_id")
         a = attestation(decision_id=None, session_id=None, nonce=None)
         result = validate_attestation(a, c)
-        self.assertIn(result.status, {STOP, UNRESOLVED})
-        self.assertNotEqual(ELIGIBLE, result.status)
+        self.assertEqual(UNRESOLVED, result.status)
 
     def test_T20_failed_revalidation_removes_cached_eligibility(self):
         cache = set()
