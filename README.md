@@ -61,6 +61,25 @@ This integration layer is **not part of the frozen CFC Anchor**. External usabil
 
 See [integration/](integration/) for the RC status and claim boundary.
 
+## HAWM + CFC Chat Prototype v0.4.2 — external reviewer package
+
+A separate experimental HAWM + CFC chat prototype is available for a bounded independent replay. It is a state-aware conversation shell around an unchanged frozen CFC Anchor checkpoint.
+
+The reviewer package includes the hardened prototype, setup/verification instructions, scope and non-claims, identity manifest, checksums, and a review result form.
+
+- [Reviewer package page](HAWM_CFC_v0.4.2_EXTERNAL_REVIEWER_PACKAGE.zip)
+- [Direct ZIP download](https://raw.githubusercontent.com/iller1/cfc-ai-evaluation/main/HAWM_CFC_v0.4.2_EXTERNAL_REVIEWER_PACKAGE.zip)
+
+External reviewer package SHA-256:
+
+`b6c5777cc95ed483ee2cd5e79476a550faeeca51be759fc91b94673150efb374`
+
+Contained hardened prototype SHA-256:
+
+`2ceb687004485c8aeef93150f80a0a6675185e403767a3163c1de51177d95a09`
+
+The package is intended for a short independent replay of a bounded wrapper/integration checkpoint. It does **not** claim production readiness, arbitrary natural-language semantic mapping, real-world source independence, universal correctness, or independent validation until an outside reviewer actually performs and reports the replay.
+
 ## Validation boundary
 
 Internal engineering evidence, controlled causal evidence, independent review, external replication, and product usability are separate evidence classes and must not be conflated.
