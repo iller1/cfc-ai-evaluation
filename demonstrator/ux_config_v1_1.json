@@ -1,0 +1,27 @@
+{
+  "version": "1.1-candidate",
+  "question": "Does the available evidence actually justify closing the AI decision?",
+  "cta": "Run the 60-second review",
+  "path": [
+    "CASE_01_UNRESOLVED_POSITIVE",
+    "CASE_03_ACTIVE_CONFLICT_NO_RESOLUTION",
+    "CASE_09_INACTIVE_UNBOUND_RESOLUTION",
+    "CASE_10_INCOMPLETE_REQUIRED_CHECKS",
+    "CASE_07_VALID_POSITIVE_CLOSURE"
+  ],
+  "human_explanations": {
+    "CASE_01_UNRESOLVED_POSITIVE": "The model reaches a positive conclusion, but the supporting evidence is not yet epistemically available at the audit point, so the decision cannot be closed.",
+    "CASE_03_ACTIVE_CONFLICT_NO_RESOLUTION": "The evidence directly contradicts itself. CFC preserves the conflict instead of choosing a side and stops closure.",
+    "CASE_09_INACTIVE_UNBOUND_RESOLUTION": "A resolution exists and is verified, but it is not bound to this exact decision context, so it cannot authorize closure.",
+    "CASE_10_INCOMPLETE_REQUIRED_CHECKS": "The claim has real support, but one qualifying support cannot satisfy a policy requiring two independent supports. SUPPORTED is not VERIFIED.",
+    "CASE_07_VALID_POSITIVE_CLOSURE": "The evidence is current, trusted and sufficient for the frozen policy, so the decision is allowed to close."
+  },
+  "labels": {
+    "ALLOW": "Closure justified",
+    "STOP": "Do not close",
+    "UNRESOLVED": "Required evidence state is unresolved",
+    "QUARANTINED": "Conflicting evidence is quarantined",
+    "SUPPORTED": "Evidence supports the claim, but closure requirements remain incomplete",
+    "VERIFIED": "Closure support policy is satisfied"
+  }
+}
