@@ -89,7 +89,7 @@ def run_case(case_id):
 class Handler(SimpleHTTPRequestHandler):
     def translate_path(self,path):
         path=urlparse(path).path
-        if path=='/': path='/index.html'
+        if path=='/': path='/review_60s.html'
         return str(ROOT/path.lstrip('/'))
     def send_json(self,obj,status=200):
         data=json.dumps(obj,ensure_ascii=False,indent=2).encode()
