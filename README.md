@@ -6,6 +6,29 @@ CFC is an experimental framework focused on one narrow reliability question:
 
 It is not presented as a general AI-safety system, a production-ready enterprise control layer, or a replacement for model evaluation, factuality testing, or domain review.
 
+## CFC Minimal Commit Invariant — Technical Note v1.0
+
+A short technical note formalising the minimal CFC state-transition rule is now published on Zenodo.
+
+Core comparison:
+
+`Δ_t := Diff(C_t, V_{t-1})`
+
+Core commit invariant:
+
+`¬A_t ⇒ ¬Commit(C_t)`
+
+Minimal verified-state update:
+
+`V_t = C_t` when `A_t = 1`; otherwise `V_t = V_{t-1}`.
+
+Operationally, a generated candidate does not by itself authorize a change to verified state. If the required authorization condition is not established, the previous verified state is preserved.
+
+- DOI: [10.5281/zenodo.22819553](https://doi.org/10.5281/zenodo.22819553)
+- Zenodo record: [CFC Minimal Commit Invariant: A Technical Note on State Transition and Unsupported Closure](https://zenodo.org/records/22819553)
+
+The logical implication itself is elementary and is not presented as a claim of mathematical novelty. The contribution of the note is its explicit role as a compact architectural state-control invariant within CFC.
+
 ## CFC Demonstrator v1.0
 
 The final public Demonstrator v1.0 release is published over the frozen CFC execution track.
