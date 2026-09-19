@@ -18,10 +18,10 @@ SESSION_COOKIE = "CFC_HAWM_WEB_SID"
 SESSION_TTL = 4 * 60 * 60
 
 MODES = {
-    "YES_NO": "Odpowiedz możliwie krótko. Pierwsza linia ma być jedną z: TAK, NIE, NIE MOŻNA JESZCZE USTALIĆ. Nie udawaj pewności.",
-    "MINIMUM": "Odpowiedz krótko i konkretnie. Maksymalnie kilka zdań.",
-    "STANDARD": "Odpowiedz normalnie, jasno i rzeczowo.",
-    "EXPANDED": "Odpowiedz szerzej, z uzasadnieniem, ograniczeniami i istotnymi szczegółami.",
+    "YES_NO": "Answer as briefly as possible. The first line must be exactly one of: YES, NO, NOT ENOUGH INFORMATION YET. Do not pretend certainty.",
+    "MINIMUM": "Answer briefly and directly. Use at most a few sentences.",
+    "STANDARD": "Answer clearly, directly, and at a normal level of detail.",
+    "EXPANDED": "Answer in more detail, including reasoning, limitations, and relevant details.",
 }
 
 @dataclass
@@ -35,12 +35,12 @@ class Session:
     mode: str = "STANDARD"
     history: list[dict] = field(default_factory=list)
     hawm: dict = field(default_factory=lambda: {
-        "GOAL": "Pomagaj użytkownikowi w bieżącej rozmowie bez wymyślania brakujących informacji.",
+        "GOAL": "Help the user with the current conversation without inventing missing information.",
         "CURRENT_TASK": "",
         "CURRENT_BRANCH": "main",
         "CLAIMS": [],
         "EVIDENCE": [],
-        "CONSTRAINTS": ["Nie zamieniaj UNRESOLVED na TRUE/FALSE bez podstawy."],
+        "CONSTRAINTS": ["Do not turn UNRESOLVED into TRUE/FALSE without sufficient basis."],
         "DECISIONS": [],
         "UNRESOLVED": [],
         "NEXT_ACTION": "",
@@ -106,7 +106,7 @@ def gemini_call(s: Session, text: str):
         raise RuntimeError("EMPTY_MODEL_RESPONSE")
 
 INDEX = r"""<!doctype html>
-<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CFC + HAWM</title>
 <style>
 :root{font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;color:#172033;background:#f5f7fb}
@@ -122,16 +122,16 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:12px;border-ra
 </style></head><body><div class="wrap">
 <div class="top"><h1>CFC + HAWM</h1><span class="tag">Public Web Alpha</span></div>
 <div class="modes">
-<button data-mode="YES_NO">TAK / NIE</button><button data-mode="MINIMUM">MINIMUM</button><button data-mode="STANDARD" class="active">STANDARD</button><button data-mode="EXPANDED">ROZSZERZONY</button>
+<button data-mode="YES_NO">YES / NO</button><button data-mode="MINIMUM">MINIMUM</button><button data-mode="STANDARD" class="active">STANDARD</button><button data-mode="EXPANDED">EXPANDED</button>
 </div>
-<div class="chat" id="chat"><div class="a msg">Cześć. To jest publiczny chat CFC + HAWM. Zwykła rozmowa pozostaje <b>MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2</b>. Przygotowany przykład CFC uruchamia prawdziwy zamrożony kontroler osobno.</div></div>
-<div class="entry"><textarea id="text" placeholder="Napisz wiadomość..."></textarea><button class="primary" id="send">Wyślij</button></div>
-<div class="row" style="margin-top:10px"><button id="new">Nowa rozmowa</button><button id="cfc">Uruchom przygotowany przykład CFC</button><button id="opts">Opcje i szczegóły techniczne</button></div>
+<div class="chat" id="chat"><div class="a msg">Welcome. This is the public CFC + HAWM chat. Ordinary conversation remains <b>MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2</b>. The prepared CFC example runs the real frozen controller separately.</div></div>
+<div class="entry"><textarea id="text" placeholder="Type a message..."></textarea><button class="primary" id="send">Send</button></div>
+<div class="row" style="margin-top:10px"><button id="new">New chat</button><button id="cfc">Run prepared CFC example</button><button id="opts">Options and technical details</button></div>
 <div class="panel hidden" id="panel">
-<div class="row"><select id="provider"><option value="gemini">Gemini</option></select><input id="model" value="gemini-3.8-flash"><input id="key" type="password" placeholder="Gemini API key"><button id="connect">Połącz model</button></div>
-<div class="status" id="status">Klucz jest przechowywany tylko w pamięci tej sesji serwera i nie jest zapisywany do plików aplikacji.</div>
-<div class="warn"><b>Granica:</b> zwykłe odpowiedzi modelu nie są automatycznie autoryzowane przez CFC. Przygotowany przykład CFC to osobna ścieżka strukturalna.</div>
-<pre id="tech">Ładowanie...</pre>
+<div class="row"><select id="provider"><option value="gemini">Gemini</option></select><input id="model" value="gemini-3.8-flash"><input id="key" type="password" placeholder="Gemini API key"><button id="connect">Connect model</button></div>
+<div class="status" id="status">The API key is kept only in server memory for this session and is not written to application files.</div>
+<div class="warn"><b>Boundary:</b> ordinary model replies are not automatically authorized by CFC. The prepared CFC example is a separate structured path.</div>
+<pre id="tech">Loading...</pre>
 </div>
 </div>
 <script>
@@ -140,10 +140,10 @@ const q=s=>document.querySelector(s), chat=q("#chat");
 function add(role,text,meta=""){const d=document.createElement("div");d.className="msg "+(role==="user"?"u":"a");d.textContent=text;if(meta){const m=document.createElement("div");m.className="meta";m.textContent=meta;d.appendChild(m)}chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
 async function api(path,opt={}){const r=await fetch(path,{headers:{"Content-Type":"application/json"},...opt});const j=await r.json();if(!r.ok)throw new Error(j.error||j.code||r.status);return j}
 document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.remove("active"));b.classList.add("active")});
-q("#send").onclick=async()=>{const t=q("#text").value.trim();if(!t)return;q("#text").value="";add("user",t);try{const j=await api("/api/chat",{method:"POST",body:JSON.stringify({text:t,mode})});add("assistant",j.text,j.authority+" / CFC "+j.cfc_status)}catch(e){add("assistant","Błąd: "+e.message)}};
-q("#connect").onclick=async()=>{try{const j=await api("/api/connect",{method:"POST",body:JSON.stringify({provider:q("#provider").value,model:q("#model").value,api_key:q("#key").value})});q("#key").value="";q("#status").textContent="Połączono: "+j.provider+" / "+j.model+" — klucz tylko w tej sesji."}catch(e){q("#status").textContent="Błąd: "+e.message}};
-q("#cfc").onclick=async()=>{add("assistant","Uruchamiam zamrożony przykład CFC...");try{const j=await api("/api/cfc",{method:"POST",body:"{}"});add("assistant","CFC: "+j.presentation.claim_state+"\nDECISION: "+j.presentation.decision+"\nREASON: "+j.presentation.reason,"frozen cfc-anchor 0.2.90rc1")}catch(e){add("assistant","Błąd CFC: "+e.message)}};
-q("#new").onclick=async()=>{await api("/api/new",{method:"POST",body:"{}"});chat.innerHTML="";add("assistant","Nowa rozmowa rozpoczęta.")};
+q("#send").onclick=async()=>{const t=q("#text").value.trim();if(!t)return;q("#text").value="";add("user",t);try{const j=await api("/api/chat",{method:"POST",body:JSON.stringify({text:t,mode})});add("assistant",j.text,j.authority+" / CFC "+j.cfc_status)}catch(e){add("assistant","Error: "+e.message)}};
+q("#connect").onclick=async()=>{try{const j=await api("/api/connect",{method:"POST",body:JSON.stringify({provider:q("#provider").value,model:q("#model").value,api_key:q("#key").value})});q("#key").value="";q("#status").textContent="Connected: "+j.provider+" / "+j.model+" — key kept only for this session."}catch(e){q("#status").textContent="Error: "+e.message}};
+q("#cfc").onclick=async()=>{add("assistant","Running the frozen CFC example...");try{const j=await api("/api/cfc",{method:"POST",body:"{}"});add("assistant","CFC: "+j.presentation.claim_state+"\nDECISION: "+j.presentation.decision+"\nREASON: "+j.presentation.reason,"frozen cfc-anchor 0.2.90rc1")}catch(e){add("assistant","CFC error: "+e.message)}};
+q("#new").onclick=async()=>{await api("/api/new",{method:"POST",body:"{}"});chat.innerHTML="";add("assistant","New chat started.")};
 q("#opts").onclick=async()=>{q("#panel").classList.toggle("hidden");try{q("#tech").textContent=JSON.stringify(await api("/api/status"),null,2)}catch(e){q("#tech").textContent=e.message}};
 q("#text").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();q("#send").click()}});
 </script></body></html>"""
