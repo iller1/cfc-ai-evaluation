@@ -1,0 +1,221 @@
+from __future__ import annotations
+import json, os, sys, threading, time, uuid
+from dataclasses import dataclass, field
+from http import cookies
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import urlparse, quote
+from urllib.request import Request, urlopen
+
+ROOT = Path(__file__).resolve().parents[1]
+DEMO = ROOT / "demonstrator"
+sys.path.insert(0, str(DEMO))
+import server as cfc_demo
+
+HOST = "0.0.0.0"
+PORT = int(os.environ.get("PORT", "8080"))
+SESSION_COOKIE = "CFC_HAWM_WEB_SID"
+SESSION_TTL = 4 * 60 * 60
+
+MODES = {
+    "YES_NO": "Odpowiedz możliwie krótko. Pierwsza linia ma być jedną z: TAK, NIE, NIE MOŻNA JESZCZE USTALIĆ. Nie udawaj pewności.",
+    "MINIMUM": "Odpowiedz krótko i konkretnie. Maksymalnie kilka zdań.",
+    "STANDARD": "Odpowiedz normalnie, jasno i rzeczowo.",
+    "EXPANDED": "Odpowiedz szerzej, z uzasadnieniem, ograniczeniami i istotnymi szczegółami.",
+}
+
+@dataclass
+class Session:
+    sid: str
+    created: float = field(default_factory=time.time)
+    seen: float = field(default_factory=time.time)
+    provider: str | None = None
+    model: str = "gemini-3.8-flash"
+    api_key: str | None = None
+    mode: str = "STANDARD"
+    history: list[dict] = field(default_factory=list)
+    hawm: dict = field(default_factory=lambda: {
+        "GOAL": "Pomagaj użytkownikowi w bieżącej rozmowie bez wymyślania brakujących informacji.",
+        "CURRENT_TASK": "",
+        "CURRENT_BRANCH": "main",
+        "CLAIMS": [],
+        "EVIDENCE": [],
+        "CONSTRAINTS": ["Nie zamieniaj UNRESOLVED na TRUE/FALSE bez podstawy."],
+        "DECISIONS": [],
+        "UNRESOLVED": [],
+        "NEXT_ACTION": "",
+        "LAST_VERIFIED_STATE": "session_created",
+    })
+
+SESSIONS: dict[str, Session] = {}
+LOCK = threading.RLock()
+
+def cleanup():
+    now = time.time()
+    with LOCK:
+        for sid in list(SESSIONS):
+            if now - SESSIONS[sid].seen > SESSION_TTL:
+                SESSIONS[sid].api_key = None
+                del SESSIONS[sid]
+
+def new_session():
+    s = Session(uuid.uuid4().hex + uuid.uuid4().hex)
+    with LOCK:
+        SESSIONS[s.sid] = s
+    return s
+
+def get_session(sid):
+    cleanup()
+    if not sid:
+        return None
+    with LOCK:
+        s = SESSIONS.get(sid)
+        if s:
+            s.seen = time.time()
+        return s
+
+def gemini_call(s: Session, text: str):
+    if not s.api_key:
+        raise RuntimeError("API_KEY_REQUIRED")
+    model = s.model or "gemini-3.8-flash"
+    system = (
+        "You are the model inside a CFC+HAWM public evaluation chat. "
+        "The ordinary natural-language reply is NOT CFC-authorized. "
+        "Respect the following HAWM state and do not invent missing evidence.\n\n"
+        + json.dumps(s.hawm, ensure_ascii=False)
+        + "\n\n"
+        + MODES.get(s.mode, MODES["STANDARD"])
+    )
+    contents = []
+    for row in s.history[-20:]:
+        role = "model" if row["role"] == "assistant" else "user"
+        contents.append({"role": role, "parts": [{"text": row["content"]}]})
+    contents.append({"role": "user", "parts": [{"text": text}]})
+    body = json.dumps({
+        "systemInstruction": {"parts": [{"text": system}]},
+        "contents": contents,
+        "generationConfig": {"maxOutputTokens": {"YES_NO":256,"MINIMUM":384,"STANDARD":768,"EXPANDED":1536}[s.mode]}
+    }).encode("utf-8")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{quote(model)}:generateContent?key={quote(s.api_key)}"
+    req = Request(url, data=body, headers={"Content-Type":"application/json"}, method="POST")
+    with urlopen(req, timeout=40) as r:
+        data = json.loads(r.read().decode("utf-8"))
+    try:
+        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    except Exception:
+        raise RuntimeError("EMPTY_MODEL_RESPONSE")
+
+INDEX = r"""<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CFC + HAWM</title>
+<style>
+:root{font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;color:#172033;background:#f5f7fb}
+*{box-sizing:border-box} body{margin:0}.wrap{max-width:980px;margin:auto;padding:18px}.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+h1{font-size:22px;margin:0}.tag{font-size:12px;background:#e8eefc;padding:6px 9px;border-radius:999px}.modes{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0}
+button{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:650;background:#e7ebf3;color:#182033}
+button.active,button.primary{background:#2457ff;color:white}.chat{background:white;border:1px solid #dfe5ef;border-radius:16px;min-height:440px;padding:18px;box-shadow:0 8px 28px #20305010}
+.msg{max-width:82%;padding:11px 13px;border-radius:14px;margin:9px 0;white-space:pre-wrap;line-height:1.42}.u{margin-left:auto;background:#2457ff;color:white}.a{background:#f0f3f8}.meta{font-size:11px;opacity:.7;margin-top:6px}
+.entry{display:flex;gap:8px;margin-top:12px}.entry textarea{flex:1;resize:vertical;min-height:58px;border:1px solid #cfd7e5;border-radius:12px;padding:12px;font:inherit}
+.panel{margin-top:14px;background:white;border:1px solid #dfe5ef;border-radius:14px;padding:14px}.hidden{display:none}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select{padding:9px 10px;border:1px solid #cfd7e5;border-radius:9px}.status{font-size:12px;margin-top:8px}.warn{background:#fff7dd;border:1px solid #f1df9b;padding:10px;border-radius:10px;margin:10px 0}.ok{background:#eaf8ee;border:1px solid #bde2c7;padding:10px;border-radius:10px;margin:10px 0}
+pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:12px;border-radius:10px;overflow:auto}
+</style></head><body><div class="wrap">
+<div class="top"><h1>CFC + HAWM</h1><span class="tag">Public Web Alpha</span></div>
+<div class="modes">
+<button data-mode="YES_NO">TAK / NIE</button><button data-mode="MINIMUM">MINIMUM</button><button data-mode="STANDARD" class="active">STANDARD</button><button data-mode="EXPANDED">ROZSZERZONY</button>
+</div>
+<div class="chat" id="chat"><div class="a msg">Cześć. To jest publiczny chat CFC + HAWM. Zwykła rozmowa pozostaje <b>MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2</b>. Przygotowany przykład CFC uruchamia prawdziwy zamrożony kontroler osobno.</div></div>
+<div class="entry"><textarea id="text" placeholder="Napisz wiadomość..."></textarea><button class="primary" id="send">Wyślij</button></div>
+<div class="row" style="margin-top:10px"><button id="new">Nowa rozmowa</button><button id="cfc">Uruchom przygotowany przykład CFC</button><button id="opts">Opcje i szczegóły techniczne</button></div>
+<div class="panel hidden" id="panel">
+<div class="row"><select id="provider"><option value="gemini">Gemini</option></select><input id="model" value="gemini-3.8-flash"><input id="key" type="password" placeholder="Gemini API key"><button id="connect">Połącz model</button></div>
+<div class="status" id="status">Klucz jest przechowywany tylko w pamięci tej sesji serwera i nie jest zapisywany do plików aplikacji.</div>
+<div class="warn"><b>Granica:</b> zwykłe odpowiedzi modelu nie są automatycznie autoryzowane przez CFC. Przygotowany przykład CFC to osobna ścieżka strukturalna.</div>
+<pre id="tech">Ładowanie...</pre>
+</div>
+</div>
+<script>
+let mode="STANDARD";
+const q=s=>document.querySelector(s), chat=q("#chat");
+function add(role,text,meta=""){const d=document.createElement("div");d.className="msg "+(role==="user"?"u":"a");d.textContent=text;if(meta){const m=document.createElement("div");m.className="meta";m.textContent=meta;d.appendChild(m)}chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
+async function api(path,opt={}){const r=await fetch(path,{headers:{"Content-Type":"application/json"},...opt});const j=await r.json();if(!r.ok)throw new Error(j.error||j.code||r.status);return j}
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.remove("active"));b.classList.add("active")});
+q("#send").onclick=async()=>{const t=q("#text").value.trim();if(!t)return;q("#text").value="";add("user",t);try{const j=await api("/api/chat",{method:"POST",body:JSON.stringify({text:t,mode})});add("assistant",j.text,j.authority+" / CFC "+j.cfc_status)}catch(e){add("assistant","Błąd: "+e.message)}};
+q("#connect").onclick=async()=>{try{const j=await api("/api/connect",{method:"POST",body:JSON.stringify({provider:q("#provider").value,model:q("#model").value,api_key:q("#key").value})});q("#key").value="";q("#status").textContent="Połączono: "+j.provider+" / "+j.model+" — klucz tylko w tej sesji."}catch(e){q("#status").textContent="Błąd: "+e.message}};
+q("#cfc").onclick=async()=>{add("assistant","Uruchamiam zamrożony przykład CFC...");try{const j=await api("/api/cfc",{method:"POST",body:"{}"});add("assistant","CFC: "+j.presentation.claim_state+"\nDECISION: "+j.presentation.decision+"\nREASON: "+j.presentation.reason,"frozen cfc-anchor 0.2.90rc1")}catch(e){add("assistant","Błąd CFC: "+e.message)}};
+q("#new").onclick=async()=>{await api("/api/new",{method:"POST",body:"{}"});chat.innerHTML="";add("assistant","Nowa rozmowa rozpoczęta.")};
+q("#opts").onclick=async()=>{q("#panel").classList.toggle("hidden");try{q("#tech").textContent=JSON.stringify(await api("/api/status"),null,2)}catch(e){q("#tech").textContent=e.message}};
+q("#text").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();q("#send").click()}});
+</script></body></html>"""
+
+class Handler(BaseHTTPRequestHandler):
+    server_version = "CFCHAWMHostedAlpha/1.0"
+    def log_message(self, fmt, *args): print("[web]", fmt % args)
+    def _sid(self):
+        raw = self.headers.get("Cookie","")
+        jar = cookies.SimpleCookie()
+        try: jar.load(raw)
+        except Exception: return None
+        m = jar.get(SESSION_COOKIE)
+        return m.value if m else None
+    def _session(self):
+        s = get_session(self._sid())
+        self._set_cookie = False
+        if not s:
+            s = new_session(); self._set_cookie = True
+        return s
+    def _headers(self, ctype="application/json; charset=utf-8"):
+        self.send_header("Content-Type", ctype)
+        self.send_header("Cache-Control","no-store")
+        self.send_header("X-Content-Type-Options","nosniff")
+        self.send_header("X-Frame-Options","DENY")
+        self.send_header("Referrer-Policy","no-referrer")
+        if getattr(self,"_set_cookie",False):
+            self.send_header("Set-Cookie",f"{SESSION_COOKIE}={self.s.sid}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age={SESSION_TTL}")
+    def _json(self,obj,status=200):
+        raw=json.dumps(obj,ensure_ascii=False).encode("utf-8")
+        self.send_response(status); self._headers(); self.send_header("Content-Length",str(len(raw))); self.end_headers(); self.wfile.write(raw)
+    def _body(self):
+        n=min(int(self.headers.get("Content-Length","0") or 0),1_000_000)
+        return json.loads(self.rfile.read(n).decode("utf-8") or "{}")
+    def do_GET(self):
+        self.s=self._session(); p=urlparse(self.path).path
+        if p=="/healthz": self._json({"ok":True}); return
+        if p=="/":
+            raw=INDEX.encode("utf-8"); self.send_response(200); self._headers("text/html; charset=utf-8"); self.send_header("Content-Length",str(len(raw))); self.end_headers(); self.wfile.write(raw); return
+        if p=="/api/status":
+            self._json({"authority":"MODEL_REPLY_UNCHECKED","cfc_status":"NOT_CONNECTED_C2","mode":self.s.mode,"provider":self.s.provider,"model":self.s.model,"history_messages":len(self.s.history),"hawm":self.s.hawm,"frozen_cfc":{"anchor":"0.2.90rc1","wheel_sha256":cfc_demo.EXPECTED_WHEEL,"engine_sha256":cfc_demo.EXPECTED_ENGINE}}); return
+        self._json({"error":"NOT_FOUND"},404)
+    def do_POST(self):
+        self.s=self._session(); p=urlparse(self.path).path
+        try:
+            body=self._body()
+            if p=="/api/connect":
+                provider=str(body.get("provider") or "").lower(); model=str(body.get("model") or "").strip(); key=str(body.get("api_key") or "").strip()
+                if provider!="gemini": raise ValueError("HOSTED_ALPHA_SUPPORTS_GEMINI_ONLY")
+                if not model or not key: raise ValueError("MODEL_AND_API_KEY_REQUIRED")
+                self.s.provider=provider; self.s.model=model; self.s.api_key=key
+                self._json({"provider":provider,"model":model,"api_key_session_only":True}); return
+            if p=="/api/chat":
+                text=str(body.get("text") or "").strip(); mode=str(body.get("mode") or "STANDARD").upper()
+                if not text: raise ValueError("TEXT_REQUIRED")
+                if mode not in MODES: mode="STANDARD"
+                self.s.mode=mode; self.s.hawm["CURRENT_TASK"]=text; self.s.hawm["NEXT_ACTION"]="answer_current_user_message"
+                answer=gemini_call(self.s,text)
+                self.s.history.append({"role":"user","content":text}); self.s.history.append({"role":"assistant","content":answer})
+                self.s.hawm["LAST_VERIFIED_STATE"]="ordinary_model_reply_unchecked"
+                self._json({"text":answer,"authority":"MODEL_REPLY_UNCHECKED","cfc_status":"NOT_CONNECTED_C2","mode":mode}); return
+            if p=="/api/cfc":
+                out=cfc_demo.run_case("CASE_01_UNRESOLVED_POSITIVE")
+                self._json(out); return
+            if p=="/api/new":
+                self.s.history.clear(); self.s.hawm["CURRENT_TASK"]=""; self.s.hawm["NEXT_ACTION"]=""; self.s.hawm["LAST_VERIFIED_STATE"]="new_conversation"
+                self._json({"ok":True}); return
+            self._json({"error":"NOT_FOUND"},404)
+        except Exception as e:
+            self._json({"error":f"{type(e).__name__}: {e}"},400)
+
+if __name__=="__main__":
+    cfc_demo.ensure_runtime()
+    print(f"CFC+HAWM Hosted Alpha listening on {HOST}:{PORT}")
+    ThreadingHTTPServer((HOST,PORT),Handler).serve_forever()
