@@ -501,7 +501,11 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertEqual(run_without["presentation"]["decision"], "STOP")
         self.assertFalse(run_without["controller_result"]["control_closure"])
         self.assertIn(
-            "source_independence_semantics_valid",
+            "claim_specific_support_policy_valid",
+            run_without["presentation"]["false_gates"],
+        )
+        self.assertIn(
+            "support_set_common_mode_coverage_valid",
             run_without["presentation"]["false_gates"],
         )
 
