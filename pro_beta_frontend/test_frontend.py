@@ -128,6 +128,30 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("/conversations", body)
         self.assertIn("/messages", body)
 
+    def test_structured_hawm_cfc_ui_is_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="hawm-cfc-conclusion"', body)
+        self.assertIn('id="hawm-cfc-required"', body)
+        self.assertIn('id="hawm-cfc-e1-polarity"', body)
+        self.assertIn('id="run-hawm-cfc"', body)
+        self.assertIn("Free-text HAWM fields are not interpreted", body)
+
+    def test_app_js_contains_hawm_cfc_bridge(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/cfc-from-hawm", body)
+        self.assertIn("cfc_structured", body)
+        self.assertIn("Structured HAWM", body)
+
     def test_cfc_prepared_ui_is_present(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
