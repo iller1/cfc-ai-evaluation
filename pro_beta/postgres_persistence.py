@@ -340,6 +340,35 @@ class PostgresPersistence:
             for r in rows
         ]
 
+    def list_cfc_runs(
+        self, user_id: str, conversation_id: str
+    ) -> list[CFCRun]:
+        self._assert_conversation_owned(user_id, conversation_id)
+        rows = self._all(
+            """
+            select run_id, conversation_id, case_id, controller_anchor,
+                   controller_result, presentation,
+                   replay_matches_reference, created_at::text
+            from cfc_runs
+            where conversation_id = %s
+            order by created_at, run_id
+            """,
+            (conversation_id,),
+        )
+        return [
+            CFCRun(
+                run_id=r[0],
+                conversation_id=r[1],
+                case_id=r[2],
+                controller_anchor=r[3],
+                controller_result=r[4],
+                presentation=r[5],
+                replay_matches_reference=r[6],
+                created_at=r[7],
+            )
+            for r in rows
+        ]
+
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun:
         self._assert_conversation_owned(user_id, run.conversation_id)
         self._execute(
