@@ -142,6 +142,15 @@
         <div id="hawm-cfc-result" class="boundary">No structured HAWM CFC run yet.</div>
       </section>
 
+      <section id="report-panel" class="panel">
+        <h2>Audit report export</h2>
+        <p class="meta">Exports the latest persisted HAWM snapshot and latest CFC run without reinterpreting free text or changing CFC output.</p>
+        <div class="row">
+          <button id="export-report">Export audit report (.md)</button>
+        </div>
+        <div id="report-status" class="boundary">No report exported yet.</div>
+      </section>
+
       <section id="cfc-panel" class="panel">
         <h2>CFC prepared check</h2>
         <p class="meta">Runs a preserved synthetic fixture through frozen CFC Anchor 0.2.90rc1. It does not analyze this conversation text.</p>
