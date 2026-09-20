@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CFC + HAWM Pro Beta</title>
+  <style>
+    :root { font-family: Inter, system-ui, Arial, sans-serif; color-scheme: dark; }
+    body { margin:0; min-height:100vh; background:#111827; color:#f9fafb; display:grid; place-items:center; }
+    main { width:min(760px,92vw); background:#1f2937; border:1px solid #374151; border-radius:18px; padding:28px; box-shadow:0 20px 60px rgba(0,0,0,.28); }
+    h1 { margin:0 0 8px; font-size:28px; }
+    p { color:#cbd5e1; line-height:1.5; }
+    .boundary { margin:18px 0; padding:12px 14px; border-radius:10px; background:#0f172a; font-family:ui-monospace,monospace; font-size:13px; }
+    #auth { margin-top:22px; min-height:240px; }
+    .error { color:#fca5a5; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>CFC + HAWM Pro Beta</h1>
+    <p>Private beta sign-in. HAWM stores working state; CFC remains a separate closure-control path.</p>
+    <div class="boundary">Ordinary model replies: MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2</div>
+    <div id="auth">Loading authentication…</div>
+  </main>
+
+  <script>
+    window.PRO_BETA_CLERK_KEY = "__CLERK_PUBLISHABLE_KEY__";
+    window.PRO_BETA_CLERK_READY = __CLERK_READY__;
+  </script>
+  <script type="module">
+    const target = document.getElementById("auth");
+    if (!window.PRO_BETA_CLERK_READY) {
+      target.innerHTML = '<p class="error">Authentication is not configured yet.</p>';
+    } else {
+      try {
+        const key = window.PRO_BETA_CLERK_KEY;
+        const clerkDomain = atob(key.split("_")[2]).slice(0, -1);
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = `https://${clerkDomain}/npm/@clerk/ui@1/dist/ui.browser.js`;
+          script.async = true;
+          script.crossOrigin = "anonymous";
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("Failed to load Clerk UI"));
+          document.head.appendChild(script);
+        });
+        const module = await import("https://esm.sh/@clerk/clerk-js@5");
+        const clerk = new module.Clerk(key);
+        await clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } });
+
+        target.innerHTML = "";
+        if (clerk.isSignedIn) {
+          const signedIn = document.createElement("div");
+          signedIn.innerHTML = "<p>Signed in.</p><div id='user-button'></div>";
+          target.appendChild(signedIn);
+          clerk.mountUserButton(document.getElementById("user-button"));
+        } else {
+          const signIn = document.createElement("div");
+          signIn.id = "sign-in";
+          target.appendChild(signIn);
+          clerk.mountSignIn(signIn);
+        }
+      } catch (error) {
+        target.innerHTML = '<p class="error">Authentication failed to initialize.</p>';
+      }
+    }
+  </script>
+</body>
+</html>
