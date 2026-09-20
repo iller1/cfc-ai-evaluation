@@ -37,6 +37,9 @@ class PersistencePort(Protocol):
         self, user_id: str, conversation_id: str
     ) -> list[HAWMSnapshot]: ...
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun: ...
+    def list_cfc_runs(
+        self, user_id: str, conversation_id: str
+    ) -> list[CFCRun]: ...
 
 
 @dataclass(frozen=True)
@@ -177,3 +180,11 @@ class ProBetaService:
             replay_matches_reference=replay_matches_reference,
         )
         return self.persistence.add_cfc_run(auth.user_id, run)
+
+    def latest_cfc_run(
+        self, auth: AuthContext, conversation_id: str
+    ) -> CFCRun | None:
+        runs = self.persistence.list_cfc_runs(
+            auth.user_id, conversation_id
+        )
+        return runs[-1] if runs else None
