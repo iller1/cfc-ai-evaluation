@@ -155,6 +155,29 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
             state = cur.fetchone()[0]
         self.assertEqual(state["UNRESOLVED"], ["claim-1"])
 
+    def test_postgres_lists_hawm_snapshots_in_order(self):
+        first = HAWMSnapshot(
+            snapshot_id="hawm_1",
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "first"},
+            last_verified_state="USER_WORKING_STATE",
+            created_at="2026-01-01T00:00:00+00:00",
+        )
+        second = HAWMSnapshot(
+            snapshot_id="hawm_2",
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "second"},
+            last_verified_state="USER_WORKING_STATE",
+            created_at="2026-01-01T00:00:01+00:00",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, first)
+        self.store.add_hawm_snapshot(self.user_a.user_id, second)
+        rows = self.store.list_hawm_snapshots(
+            self.user_a.user_id, self.conversation_a.conversation_id
+        )
+        self.assertEqual([r.snapshot_id for r in rows], ["hawm_1", "hawm_2"])
+        self.assertEqual(rows[-1].state["goal"], "second")
+
     def test_postgres_cfc_keeps_raw_result_separate_from_presentation(self):
         run = CFCRun(
             run_id=new_id("cfc"),
