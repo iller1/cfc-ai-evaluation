@@ -35,6 +35,12 @@ class FrontendTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertTrue(json.loads(body)["ok"])
 
+    def test_homepage_allows_query_string(self):
+        with patch.dict(os.environ, {}, clear=True):
+            status, body, _ = self.get("/?utm_source=chatgpt.com")
+        self.assertEqual(status, 200)
+        self.assertIn("CFC + HAWM Pro Beta", body)
+
     def test_page_preserves_cfc_boundary(self):
         with patch.dict(os.environ, {}, clear=True):
             status, body, _ = self.get("/")
