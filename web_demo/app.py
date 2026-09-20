@@ -151,7 +151,7 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:12px;border-ra
 <div class="row" style="margin-top:10px"><button id="new">New chat</button><button id="cfc">Run prepared CFC example</button><button id="opts">Options and technical details</button></div>
 <div class="panel hidden" id="panel">
 <div class="row"><select id="provider"><option value="gemini">Gemini</option></select><input id="model" value="gemini-3.8-flash"><input id="key" type="password" placeholder="Gemini API key"><button id="connect">Connect model</button><button id="getkey" type="button">Get Gemini API key</button></div>
-<div class="status" id="status">The API key is kept only in server memory for this session and is not written to application files.</div>
+<div class="status" id="status">The API key is kept in this browser tab's session storage and in server memory while connected. It is not written to application files.</div>
 <div class="warn"><b>Boundary:</b> ordinary model replies are not automatically authorized by CFC. The prepared CFC example is a separate structured path.</div>
 <pre id="tech">Loading...</pre>
 </div>
@@ -162,8 +162,39 @@ const q=s=>document.querySelector(s), chat=q("#chat");
 function add(role,text,meta=""){const d=document.createElement("div");d.className="msg "+(role==="user"?"u":"a");d.textContent=text;if(meta){const m=document.createElement("div");m.className="meta";m.textContent=meta;d.appendChild(m)}chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
 async function api(path,opt={}){const r=await fetch(path,{headers:{"Content-Type":"application/json"},...opt});const j=await r.json();if(!r.ok)throw new Error(j.error||j.code||r.status);return j}
 document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.remove("active"));b.classList.add("active")});
-q("#send").onclick=async()=>{const t=q("#text").value.trim();if(!t)return;q("#text").value="";add("user",t);try{const j=await api("/api/chat",{method:"POST",body:JSON.stringify({text:t,mode})});add("assistant",j.text,j.authority+" / CFC "+j.cfc_status)}catch(e){if(String(e.message).includes("API_KEY_REQUIRED")){q("#panel").classList.remove("hidden");add("assistant","To use ordinary chat, connect your own Gemini API key in Options. The prepared CFC example can be run without a model key.")}else{add("assistant","Error: "+e.message)}}};
-q("#connect").onclick=async()=>{try{const j=await api("/api/connect",{method:"POST",body:JSON.stringify({provider:q("#provider").value,model:q("#model").value,api_key:q("#key").value})});q("#key").value="";q("#status").textContent="Connected: "+j.provider+" / "+j.model+" — key kept only for this session."}catch(e){q("#status").textContent="Error: "+e.message}};q("#getkey").onclick=()=>window.open("https://aistudio.google.com/app/apikey","_blank","noopener,noreferrer");
+async function reconnectStoredKey(){
+  const key=sessionStorage.getItem("cfc_hawm_gemini_key");
+  if(!key)return false;
+  const provider=sessionStorage.getItem("cfc_hawm_provider")||"gemini";
+  const modelName=sessionStorage.getItem("cfc_hawm_model")||q("#model").value||"gemini-3.8-flash";
+  await api("/api/connect",{method:"POST",body:JSON.stringify({provider,model:modelName,api_key:key})});
+  q("#status").textContent="Connected: "+provider+" / "+modelName+" — restored for this browser session.";
+  return true;
+}
+async function sendChatMessage(t){
+  try{
+    const j=await api("/api/chat",{method:"POST",body:JSON.stringify({text:t,mode})});
+    add("assistant",j.text,j.authority+" / CFC "+j.cfc_status);
+  }catch(e){
+    if(String(e.message).includes("API_KEY_REQUIRED")){
+      try{
+        if(await reconnectStoredKey()){
+          const j=await api("/api/chat",{method:"POST",body:JSON.stringify({text:t,mode})});
+          add("assistant",j.text,j.authority+" / CFC "+j.cfc_status);
+          return;
+        }
+      }catch(reconnectError){
+        sessionStorage.removeItem("cfc_hawm_gemini_key");
+      }
+      q("#panel").classList.remove("hidden");
+      add("assistant","Gemini is not connected. Add your API key in Options to start chatting.");
+    }else{
+      add("assistant","Error: "+e.message);
+    }
+  }
+}
+q("#send").onclick=async()=>{const t=q("#text").value.trim();if(!t)return;q("#text").value="";add("user",t);await sendChatMessage(t)};
+q("#connect").onclick=async()=>{try{const provider=q("#provider").value,modelName=q("#model").value,rawKey=q("#key").value;const j=await api("/api/connect",{method:"POST",body:JSON.stringify({provider,model:modelName,api_key:rawKey})});sessionStorage.setItem("cfc_hawm_gemini_key",rawKey);sessionStorage.setItem("cfc_hawm_provider",j.provider);sessionStorage.setItem("cfc_hawm_model",j.model);q("#key").value="";q("#status").textContent="Connected: "+j.provider+" / "+j.model+" — key available for new chats in this browser tab."}catch(e){q("#status").textContent="Error: "+e.message}};q("#getkey").onclick=()=>window.open("https://aistudio.google.com/app/apikey","_blank","noopener,noreferrer");
 q("#cfc").onclick=async()=>{add("assistant","Running the frozen CFC example...");try{const j=await api("/api/cfc",{method:"POST",body:"{}"});add("assistant","CFC: "+j.presentation.claim_state+"\nDECISION: "+j.presentation.decision+"\nREASON: "+j.presentation.reason,"frozen cfc-anchor 0.2.90rc1")}catch(e){add("assistant","CFC error: "+e.message)}};
 q("#new").onclick=async()=>{await api("/api/new",{method:"POST",body:"{}"});chat.innerHTML="";add("assistant","New chat started.")};
 q("#opts").onclick=async()=>{q("#panel").classList.toggle("hidden");try{q("#tech").textContent=JSON.stringify(await api("/api/status"),null,2)}catch(e){q("#tech").textContent=e.message}};
