@@ -5,7 +5,7 @@ from http import cookies
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, quote
-from urllib.request import Request, urlopen
+from urllib.request import Request, urlopen\nfrom urllib.error import HTTPError, URLError
 
 ROOT = Path(__file__).resolve().parents[1]
 DEMO = ROOT / "demonstrator"
@@ -18,7 +18,7 @@ SESSION_COOKIE = "CFC_HAWM_WEB_SID"
 SESSION_TTL = 4 * 60 * 60
 
 MODES = {
-    "YES_NO": "Answer as briefly as possible. The first line must be exactly one of: YES, NO, NOT ENOUGH INFORMATION YET. Do not pretend certainty.",
+    "YES_NO": "If the user asks a yes/no or proposition-status question, the first line must be exactly one of: YES, NO, NOT ENOUGH INFORMATION YET, followed by at most one short sentence. If the message is a greeting, command, open-ended request, or otherwise not suitable for that tri-state contract, answer normally in one short sentence without adding a tri-state label. Do not pretend certainty.",
     "MINIMUM": "Answer briefly and directly. Use at most a few sentences.",
     "STANDARD": "Answer clearly, directly, and at a normal level of detail.",
     "EXPANDED": "Answer in more detail, including reasoning, limitations, and relevant details.",
@@ -98,12 +98,33 @@ def gemini_call(s: Session, text: str):
     }).encode("utf-8")
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{quote(model)}:generateContent?key={quote(s.api_key)}"
     req = Request(url, data=body, headers={"Content-Type":"application/json"}, method="POST")
-    with urlopen(req, timeout=40) as r:
-        data = json.loads(r.read().decode("utf-8"))
+    data = None
+    for attempt, delay in enumerate((0, 1.5, 4.0)):
+        if delay:
+            time.sleep(delay)
+        try:
+            with urlopen(req, timeout=40) as r:
+                data = json.loads(r.read().decode("utf-8"))
+            break
+        except HTTPError as e:
+            code = int(getattr(e, "code", 0) or 0)
+            if code in {500, 502, 503, 504} and attempt < 2:
+                continue
+            if code == 429:
+                raise RuntimeError("Gemini rate limit reached. Please try again shortly or check your API quota.")
+            if code == 503:
+                raise RuntimeError("Gemini is temporarily unavailable (503). Please try again in a moment.")
+            raise RuntimeError(f"Gemini API returned HTTP {code}.")
+        except URLError:
+            if attempt < 2:
+                continue
+            raise RuntimeError("Could not reach Gemini. Please check your connection and try again.")
+    if data is None:
+        raise RuntimeError("Gemini is temporarily unavailable. Please try again.")
     try:
         return data["candidates"][0]["content"]["parts"][0]["text"].strip()
     except Exception:
-        raise RuntimeError("EMPTY_MODEL_RESPONSE")
+        raise RuntimeError("Gemini returned an empty response. Please try again.")
 
 INDEX = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
