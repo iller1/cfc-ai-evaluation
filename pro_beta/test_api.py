@@ -194,6 +194,37 @@ class ProBetaAPITests(unittest.TestCase):
         )
         self.assertEqual([m["content"] for m in rows], ["hello"])
 
+    def test_hawm_snapshot_round_trip(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "HAWM"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "State"},
+        )
+        saved = self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {
+                    "goal": "finish task",
+                    "task": "test persistence",
+                    "unresolved": "one point",
+                    "next_action": "verify reload",
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        self.assertEqual(saved["state"]["goal"], "finish task")
+        latest = self.api.latest_hawm_snapshot(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(latest["snapshot_id"], saved["snapshot_id"])
+        self.assertEqual(
+            latest["last_verified_state"], "USER_WORKING_STATE"
+        )
+
     def test_cross_user_conversation_access_returns_403(self):
         workspace_b = self.api.create_workspace(
             "token-b", {"name": "B workspace"}
