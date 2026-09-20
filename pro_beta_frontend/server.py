@@ -5,6 +5,7 @@ import os
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 
 
 ROOT = Path(__file__).resolve().parent
@@ -34,7 +35,9 @@ class FrontendHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self) -> None:
-        if self.path == "/healthz":
+        path = urlsplit(self.path).path
+
+        if path == "/healthz":
             self._send(
                 HTTPStatus.OK,
                 b'{"ok":true,"app":"CFC + HAWM Pro Beta Frontend","version":"0.1.0"}',
@@ -42,7 +45,7 @@ class FrontendHandler(BaseHTTPRequestHandler):
             )
             return
 
-        if self.path == "/":
+        if path == "/":
             publishable_key = os.environ.get("CLERK_PUBLISHABLE_KEY", "").strip()
             clerk_ready = bool(publishable_key)
             body = (
