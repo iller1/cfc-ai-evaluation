@@ -46,7 +46,7 @@ class FrontendTests(unittest.TestCase):
             status, body, _ = self.get("/")
         self.assertEqual(status, 200)
         self.assertIn("MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2", body)
-        self.assertIn("Authentication is not configured yet", body)
+        self.assertIn('src="/app.js"', body)
 
     def test_publishable_key_is_injected_when_configured(self):
         with patch.dict(
@@ -57,7 +57,17 @@ class FrontendTests(unittest.TestCase):
             status, body, _ = self.get("/")
         self.assertEqual(status, 200)
         self.assertIn("pk_test_example", body)
-        self.assertIn("window.PRO_BETA_CLERK_READY = true", body)
+
+    def test_app_js_receives_publishable_key(self):
+        with patch.dict(
+            os.environ,
+            {"CLERK_PUBLISHABLE_KEY": "pk_test_example"},
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("pk_test_example", body)
+        self.assertIn("PRO_BETA_CLERK_KEY", body)
 
     def test_security_headers_present(self):
         _, _, headers = self.get("/healthz")
