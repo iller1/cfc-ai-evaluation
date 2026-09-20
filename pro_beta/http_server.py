@@ -128,6 +128,9 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
 
         if path == "/api/workspaces":
             credential = _bearer(self.headers)
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
             self._api_call(lambda api: api.list_workspaces(credential))
             return
 
@@ -138,10 +141,16 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
         credential = _bearer(self.headers)
 
         if path == "/api/onboard":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
             self._api_call(lambda api: api.provision_account(credential))
             return
 
         if path == "/api/workspaces":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
             payload = self._payload()
             self._api_call(lambda api: api.create_workspace(credential, payload))
             return
