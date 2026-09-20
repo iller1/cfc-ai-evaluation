@@ -124,7 +124,10 @@ def gemini_call(s: Session, text: str):
     if data is None:
         raise RuntimeError("Gemini is temporarily unavailable. Please try again.")
     try:
-        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        candidate = data["candidates"][0]
+        text_out = candidate["content"]["parts"][0]["text"].strip()
+        finish_reason = str(candidate.get("finishReason") or "")
+        return text_out, finish_reason
     except Exception:
         raise RuntimeError("Gemini returned an empty response. Please try again.")
 
@@ -143,7 +146,7 @@ button.active,button.primary{background:#2457ff;color:white}.chat{background:whi
 input,select{padding:9px 10px;border:1px solid #cfd7e5;border-radius:9px}.status{font-size:12px;margin-top:8px}.warn{background:#fff7dd;border:1px solid #f1df9b;padding:10px;border-radius:10px;margin:10px 0}.ok{background:#eaf8ee;border:1px solid #bde2c7;padding:10px;border-radius:10px;margin:10px 0}
 pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:12px;border-radius:10px;overflow:auto}
 </style></head><body><div class="wrap">
-<div class="top"><h1>CFC + HAWM</h1><span class="tag">Public Web Alpha · web 1.0.3</span></div>
+<div class="top"><h1>CFC + HAWM</h1><span class="tag">Public Web Alpha · web 1.0.4</span></div>
 <div class="modes">
 <button data-mode="YES_NO">YES / NO</button><button data-mode="MINIMUM">MINIMUM</button><button data-mode="STANDARD" class="active">STANDARD</button><button data-mode="EXPANDED">EXPANDED</button>
 </div>
@@ -151,8 +154,8 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:12px;border-ra
 <div class="entry"><textarea id="text" placeholder="Type a message..."></textarea><button class="primary" id="send">Send</button></div>
 <div class="row" style="margin-top:10px"><button id="new">New chat</button><button id="cfc">Run prepared CFC example</button><button id="opts">Options and technical details</button></div>
 <div class="panel hidden" id="panel">
-<div class="row"><select id="provider"><option value="gemini">Gemini</option></select><input id="model" value="gemini-3.8-flash"><input id="key" type="password" placeholder="Gemini API key"><button id="connect">Connect model</button><button id="getkey" type="button">Get Gemini API key</button></div>
-<div class="status" id="status">The API key is kept in this browser tab's session storage and in server memory while connected. It is not written to application files.</div>
+<div class="row"><select id="provider"><option value="gemini">Gemini</option></select><input id="model" value="gemini-3.8-flash"><input id="key" type="password" placeholder="Gemini API key"><button id="connect">Connect model</button><button id="disconnect">Disconnect</button><button id="getkey" type="button">Get Gemini API key</button></div>
+<div class="status" id="status"><b>DISCONNECTED</b> — add your Gemini API key to start chatting. The key is kept only in this browser tab's session storage and server memory while connected.</div>
 <div class="warn"><b>Boundary:</b> ordinary model replies are not automatically authorized by CFC. The prepared CFC example is a separate structured path.</div>
 <pre id="tech">Loading...</pre>
 </div>
@@ -163,25 +166,30 @@ const q=s=>document.querySelector(s), chat=q("#chat");
 function add(role,text,meta=""){const d=document.createElement("div");d.className="msg "+(role==="user"?"u":"a");d.textContent=text;if(meta){const m=document.createElement("div");m.className="meta";m.textContent=meta;d.appendChild(m)}chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
 async function api(path,opt={}){const r=await fetch(path,{headers:{"Content-Type":"application/json"},...opt});const j=await r.json();if(!r.ok)throw new Error(j.error||j.code||r.status);return j}
 document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.remove("active"));b.classList.add("active")});
+function setConnectionStatus(connected,provider="",modelName=""){
+  q("#status").innerHTML=connected
+    ? "<b>CONNECTED</b> — "+provider+" / "+modelName+" — key available for this browser tab."
+    : "<b>DISCONNECTED</b> — add your Gemini API key to start chatting.";
+}
 async function reconnectStoredKey(){
   const key=sessionStorage.getItem("cfc_hawm_gemini_key");
   if(!key)return false;
   const provider=sessionStorage.getItem("cfc_hawm_provider")||"gemini";
   const modelName=sessionStorage.getItem("cfc_hawm_model")||q("#model").value||"gemini-3.8-flash";
   await api("/api/connect",{method:"POST",body:JSON.stringify({provider,model:modelName,api_key:key})});
-  q("#status").textContent="Connected: "+provider+" / "+modelName+" — restored for this browser session.";
+  setConnectionStatus(true,provider,modelName);
   return true;
 }
 async function sendChatMessage(t){
   try{
     const j=await api("/api/chat",{method:"POST",body:JSON.stringify({text:t,mode})});
-    add("assistant",j.text,j.authority+" / CFC "+j.cfc_status);
+    add("assistant",j.text+(j.truncated?"\n\n[Response reached the model output limit.]":""),j.authority+" / CFC "+j.cfc_status);
   }catch(e){
     if(String(e.message).includes("API_KEY_REQUIRED")){
       try{
         if(await reconnectStoredKey()){
           const j=await api("/api/chat",{method:"POST",body:JSON.stringify({text:t,mode})});
-          add("assistant",j.text,j.authority+" / CFC "+j.cfc_status);
+          add("assistant",j.text+(j.truncated?"\n\n[Response reached the model output limit.]":""),j.authority+" / CFC "+j.cfc_status);
           return;
         }
       }catch(reconnectError){
@@ -195,14 +203,16 @@ async function sendChatMessage(t){
   }
 }
 q("#send").onclick=async()=>{const t=q("#text").value.trim();if(!t)return;q("#text").value="";add("user",t);await sendChatMessage(t)};
-q("#connect").onclick=async()=>{try{const provider=q("#provider").value,modelName=q("#model").value,rawKey=q("#key").value;const j=await api("/api/connect",{method:"POST",body:JSON.stringify({provider,model:modelName,api_key:rawKey})});sessionStorage.setItem("cfc_hawm_gemini_key",rawKey);sessionStorage.setItem("cfc_hawm_provider",j.provider);sessionStorage.setItem("cfc_hawm_model",j.model);q("#key").value="";q("#status").textContent="Connected: "+j.provider+" / "+j.model+" — key available for new chats in this browser tab."}catch(e){q("#status").textContent="Error: "+e.message}};q("#getkey").onclick=()=>window.open("https://aistudio.google.com/app/apikey","_blank","noopener,noreferrer");
+q("#connect").onclick=async()=>{try{const provider=q("#provider").value,modelName=q("#model").value,rawKey=q("#key").value;const j=await api("/api/connect",{method:"POST",body:JSON.stringify({provider,model:modelName,api_key:rawKey})});sessionStorage.setItem("cfc_hawm_gemini_key",rawKey);sessionStorage.setItem("cfc_hawm_provider",j.provider);sessionStorage.setItem("cfc_hawm_model",j.model);q("#key").value="";setConnectionStatus(true,j.provider,j.model)}catch(e){setConnectionStatus(false);add("assistant","Connection error: "+e.message)}};q("#disconnect").onclick=async()=>{try{await api("/api/disconnect",{method:"POST",body:"{}"})}catch(_e){}sessionStorage.removeItem("cfc_hawm_gemini_key");sessionStorage.removeItem("cfc_hawm_provider");sessionStorage.removeItem("cfc_hawm_model");q("#key").value="";setConnectionStatus(false);add("assistant","Gemini disconnected for this browser session.")};q("#getkey").onclick=()=>window.open("https://aistudio.google.com/app/apikey","_blank","noopener,noreferrer");
 q("#cfc").onclick=async()=>{add("assistant","Running the frozen CFC example...");try{const j=await api("/api/cfc",{method:"POST",body:"{}"});add("assistant","CFC: "+j.presentation.claim_state+"\nDECISION: "+j.presentation.decision+"\nREASON: "+j.presentation.reason,"frozen cfc-anchor 0.2.90rc1")}catch(e){add("assistant","CFC error: "+e.message)}};
 q("#new").onclick=async()=>{await api("/api/new",{method:"POST",body:"{}"});chat.innerHTML="";add("assistant","New chat started.")};
 q("#opts").onclick=async()=>{q("#panel").classList.toggle("hidden");try{q("#tech").textContent=JSON.stringify(await api("/api/status"),null,2)}catch(e){q("#tech").textContent=e.message}};
 (async()=>{
   try{
     const st=await api("/api/status");
-    if(!st.provider){
+    if(st.connected){setConnectionStatus(true,st.provider,st.model)}
+    else{
+      setConnectionStatus(false);
       try{await reconnectStoredKey()}catch(_e){}
     }
   }catch(_e){}
@@ -246,7 +256,7 @@ class Handler(BaseHTTPRequestHandler):
         if p=="/":
             raw=INDEX.encode("utf-8"); self.send_response(200); self._headers("text/html; charset=utf-8"); self.send_header("Content-Length",str(len(raw))); self.end_headers(); self.wfile.write(raw); return
         if p=="/api/status":
-            self._json({"authority":"MODEL_REPLY_UNCHECKED","cfc_status":"NOT_CONNECTED_C2","mode":self.s.mode,"provider":self.s.provider,"model":self.s.model,"history_messages":len(self.s.history),"hawm":self.s.hawm,"frozen_cfc":{"anchor":"0.2.90rc1","wheel_sha256":cfc_demo.EXPECTED_WHEEL,"engine_sha256":cfc_demo.EXPECTED_ENGINE}}); return
+            self._json({"authority":"MODEL_REPLY_UNCHECKED","cfc_status":"NOT_CONNECTED_C2","mode":self.s.mode,"connected":bool(self.s.api_key and self.s.provider),"provider":self.s.provider,"model":self.s.model,"history_messages":len(self.s.history),"hawm":self.s.hawm,"frozen_cfc":{"anchor":"0.2.90rc1","wheel_sha256":cfc_demo.EXPECTED_WHEEL,"engine_sha256":cfc_demo.EXPECTED_ENGINE}}); return
         self._json({"error":"NOT_FOUND"},404)
     def do_POST(self):
         self.s=self._session(); p=urlparse(self.path).path
@@ -258,15 +268,19 @@ class Handler(BaseHTTPRequestHandler):
                 if not model or not key: raise ValueError("MODEL_AND_API_KEY_REQUIRED")
                 self.s.provider=provider; self.s.model=model; self.s.api_key=key
                 self._json({"provider":provider,"model":model,"api_key_session_only":True}); return
+            if p=="/api/disconnect":
+                self.s.api_key=None; self.s.provider=None
+                self._json({"ok":True,"connected":False}); return
             if p=="/api/chat":
                 text=str(body.get("text") or "").strip(); mode=str(body.get("mode") or "STANDARD").upper()
                 if not text: raise ValueError("TEXT_REQUIRED")
                 if mode not in MODES: mode="STANDARD"
                 self.s.mode=mode; self.s.hawm["CURRENT_TASK"]=text; self.s.hawm["NEXT_ACTION"]="answer_current_user_message"
-                answer=gemini_call(self.s,text)
+                answer, finish_reason=gemini_call(self.s,text)
+                truncated=(finish_reason=="MAX_TOKENS")
                 self.s.history.append({"role":"user","content":text}); self.s.history.append({"role":"assistant","content":answer})
                 self.s.hawm["LAST_VERIFIED_STATE"]="ordinary_model_reply_unchecked"
-                self._json({"text":answer,"authority":"MODEL_REPLY_UNCHECKED","cfc_status":"NOT_CONNECTED_C2","mode":mode}); return
+                self._json({"text":answer,"authority":"MODEL_REPLY_UNCHECKED","cfc_status":"NOT_CONNECTED_C2","mode":mode,"finish_reason":finish_reason,"truncated":truncated}); return
             if p=="/api/cfc":
                 out=cfc_demo.run_case("CASE_01_UNRESOLVED_POSITIVE")
                 self._json(out); return
