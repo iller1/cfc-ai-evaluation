@@ -464,6 +464,64 @@ class ProBetaAPITests(unittest.TestCase):
             run["presentation"]["false_gates"],
         )
 
+    def test_structured_hawm_cfc_independence_authority_ab(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "HAWM CFC independence"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Independence A/B"},
+        )
+
+        base_state = {
+            "conclusion": "POSITIVE",
+            "required_independent_supports": 2,
+            "provenance_shape": "DISTINCT",
+            "scope": "EXPECTED",
+            "evidence": [
+                {"polarity": "POSITIVE", "validity": "CURRENT"},
+                {"polarity": "POSITIVE", "validity": "CURRENT"},
+            ],
+        }
+
+        without_authority = dict(base_state)
+        without_authority["independence_authority"] = "NONE"
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {"cfc_structured": without_authority},
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        run_without = self.api.run_structured_hawm_cfc(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(run_without["presentation"]["decision"], "STOP")
+        self.assertFalse(run_without["controller_result"]["control_closure"])
+        self.assertIn(
+            "source_independence_semantics_valid",
+            run_without["presentation"]["false_gates"],
+        )
+
+        with_authority = dict(base_state)
+        with_authority["independence_authority"] = "VERIFIED"
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {"cfc_structured": with_authority},
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        run_with = self.api.run_structured_hawm_cfc(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(run_with["presentation"]["claim_state"], "VERIFIED")
+        self.assertEqual(run_with["presentation"]["decision"], "ALLOW")
+        self.assertTrue(run_with["controller_result"]["control_closure"])
+
     def test_structured_hawm_cfc_requires_explicit_mapping(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "HAWM CFC missing"}
