@@ -10,6 +10,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
+APP_JS = (ROOT / "app.js").read_text(encoding="utf-8")
 
 
 class FrontendHandler(BaseHTTPRequestHandler):
@@ -47,19 +48,22 @@ class FrontendHandler(BaseHTTPRequestHandler):
 
         if path == "/":
             publishable_key = os.environ.get("CLERK_PUBLISHABLE_KEY", "").strip()
-            clerk_ready = bool(publishable_key)
-            body = (
-                INDEX.replace(
-                    "__CLERK_PUBLISHABLE_KEY__",
-                    html.escape(publishable_key, quote=True),
-                )
-                .replace(
-                    "__CLERK_READY__",
-                    "true" if clerk_ready else "false",
-                )
-                .encode("utf-8")
-            )
+            body = INDEX.replace(
+                "__CLERK_PUBLISHABLE_KEY__",
+                html.escape(publishable_key, quote=True),
+            ).encode("utf-8")
             self._send(HTTPStatus.OK, body, "text/html; charset=utf-8")
+            return
+
+        if path == "/app.js":
+            publishable_key = os.environ.get("CLERK_PUBLISHABLE_KEY", "").strip()
+            js = (
+                'window.PRO_BETA_CLERK_KEY = '
+                + repr(publishable_key)
+                + ";\n"
+                + APP_JS
+            ).encode("utf-8")
+            self._send(HTTPStatus.OK, js, "application/javascript; charset=utf-8")
             return
 
         self._send(
