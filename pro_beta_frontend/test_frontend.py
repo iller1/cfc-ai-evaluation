@@ -91,6 +91,28 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('id="create-conversation"', body)
         self.assertIn('id="send-message"', body)
 
+    def test_hawm_ui_is_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="hawm-panel"', body)
+        self.assertIn('id="hawm-goal"', body)
+        self.assertIn('id="hawm-unresolved"', body)
+        self.assertIn('id="save-hawm"', body)
+
+    def test_app_js_contains_hawm_route(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/hawm", body)
+        self.assertIn("USER_WORKING_STATE", body)
+
     def test_app_js_contains_persistence_routes(self):
         with patch.dict(
             os.environ,
