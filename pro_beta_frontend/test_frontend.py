@@ -84,6 +84,28 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("PRO_BETA_API_BASE", body)
         self.assertIn("/api/onboard", body)
 
+    def test_workspace_ui_is_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="create-workspace"', body)
+        self.assertIn('id="create-conversation"', body)
+        self.assertIn('id="send-message"', body)
+
+    def test_app_js_contains_persistence_routes(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/api/workspaces", body)
+        self.assertIn("/conversations", body)
+        self.assertIn("/messages", body)
+
     def test_csp_allows_clerk_captcha_hosts(self):
         _, _, headers = self.get("/")
         csp = headers.get("Content-Security-Policy", "")
