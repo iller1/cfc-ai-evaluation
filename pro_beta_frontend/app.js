@@ -36,6 +36,42 @@ window.addEventListener("load", async function () {
     }
   }
 
+  function hawmFields() {
+    return {
+      goal: document.getElementById("hawm-goal"),
+      task: document.getElementById("hawm-task"),
+      claims: document.getElementById("hawm-claims"),
+      evidence: document.getElementById("hawm-evidence"),
+      constraints: document.getElementById("hawm-constraints"),
+      unresolved: document.getElementById("hawm-unresolved"),
+      next_action: document.getElementById("hawm-next-action")
+    };
+  }
+
+  function clearHAWM() {
+    for (const field of Object.values(hawmFields())) field.value = "";
+    document.getElementById("hawm-status").textContent = "";
+  }
+
+  async function loadHAWM() {
+    clearHAWM();
+    const conversationId = conversationSelect.value;
+    if (!conversationId) return;
+    const snapshot = await api("/api/conversations/" + conversationId + "/hawm");
+    if (!snapshot) {
+      document.getElementById("hawm-status").textContent =
+        "No HAWM snapshot saved yet.";
+      return;
+    }
+    const fields = hawmFields();
+    const state = snapshot.state || {};
+    for (const [name, field] of Object.entries(fields)) {
+      field.value = state[name] || "";
+    }
+    document.getElementById("hawm-status").textContent =
+      "Loaded HAWM snapshot · " + snapshot.last_verified_state;
+  }
+
   async function loadMessages() {
     messages.innerHTML = "";
     const conversationId = conversationSelect.value;
@@ -65,6 +101,7 @@ window.addEventListener("load", async function () {
     const rows = await api("/api/workspaces/" + workspaceId + "/conversations");
     setOptions(conversationSelect, rows, "conversation_id", "title");
     await loadMessages();
+    await loadHAWM();
   }
 
   async function loadWorkspaces() {
@@ -122,7 +159,10 @@ window.addEventListener("load", async function () {
 
       document.getElementById("refresh-workspaces").addEventListener("click", loadWorkspaces);
       workspaceSelect.addEventListener("change", loadConversations);
-      conversationSelect.addEventListener("change", loadMessages);
+      conversationSelect.addEventListener("change", async () => {
+        await loadMessages();
+        await loadHAWM();
+      });
 
       document.getElementById("create-conversation").addEventListener("click", async () => {
         try {
@@ -138,6 +178,30 @@ window.addEventListener("load", async function () {
           await loadConversations();
         } catch (error) {
           status.textContent = "Conversation error: " + error.message;
+        }
+      });
+
+      document.getElementById("save-hawm").addEventListener("click", async () => {
+        const hawmStatus = document.getElementById("hawm-status");
+        try {
+          const conversationId = conversationSelect.value;
+          if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+          const fields = hawmFields();
+          const state = {};
+          for (const [name, field] of Object.entries(fields)) {
+            state[name] = field.value.trim();
+          }
+          await api("/api/conversations/" + conversationId + "/hawm", {
+            method: "POST",
+            body: JSON.stringify({
+              state,
+              last_verified_state: "USER_WORKING_STATE"
+            })
+          });
+          hawmStatus.textContent = "HAWM snapshot saved.";
+          await loadHAWM();
+        } catch (error) {
+          hawmStatus.textContent = "HAWM error: " + error.message;
         }
       });
 
