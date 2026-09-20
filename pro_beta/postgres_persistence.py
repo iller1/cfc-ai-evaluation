@@ -315,6 +315,31 @@ class PostgresPersistence:
         )
         return snapshot
 
+    def list_hawm_snapshots(
+        self, user_id: str, conversation_id: str
+    ) -> list[HAWMSnapshot]:
+        self._assert_conversation_owned(user_id, conversation_id)
+        rows = self._all(
+            """
+            select snapshot_id, conversation_id, state,
+                   last_verified_state, created_at::text
+            from hawm_snapshots
+            where conversation_id = %s
+            order by created_at, snapshot_id
+            """,
+            (conversation_id,),
+        )
+        return [
+            HAWMSnapshot(
+                snapshot_id=r[0],
+                conversation_id=r[1],
+                state=r[2],
+                last_verified_state=r[3],
+                created_at=r[4],
+            )
+            for r in rows
+        ]
+
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun:
         self._assert_conversation_owned(user_id, run.conversation_id)
         self._execute(
