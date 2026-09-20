@@ -162,6 +162,15 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             self._api_call(lambda api: api.latest_hawm_snapshot(credential, conversation_id))
             return
 
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "cfc":
+            credential = _bearer(self.headers)
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            conversation_id = parts[2]
+            self._api_call(lambda api: api.latest_cfc_run(credential, conversation_id))
+            return
+
         self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
 
     def do_POST(self) -> None:
@@ -219,6 +228,21 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             conversation_id = parts[2]
             self._api_call(
                 lambda api: api.save_hawm_snapshot(
+                    credential,
+                    conversation_id,
+                    payload,
+                )
+            )
+            return
+
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "cfc":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            payload = self._payload()
+            conversation_id = parts[2]
+            self._api_call(
+                lambda api: api.run_prepared_cfc_case(
                     credential,
                     conversation_id,
                     payload,
