@@ -48,9 +48,57 @@ window.addEventListener("load", async function () {
     };
   }
 
+  function structuredCFCState() {
+    const evidence = [
+      {
+        polarity: document.getElementById("hawm-cfc-e1-polarity").value,
+        validity: document.getElementById("hawm-cfc-e1-validity").value
+      }
+    ];
+    if (document.getElementById("hawm-cfc-e2-enabled").value === "YES") {
+      evidence.push({
+        polarity: document.getElementById("hawm-cfc-e2-polarity").value,
+        validity: document.getElementById("hawm-cfc-e2-validity").value
+      });
+    }
+    return {
+      conclusion: document.getElementById("hawm-cfc-conclusion").value,
+      required_independent_supports: Number(
+        document.getElementById("hawm-cfc-required").value
+      ),
+      provenance_shape: document.getElementById("hawm-cfc-provenance").value,
+      independence_authority: document.getElementById("hawm-cfc-independence").value,
+      scope: document.getElementById("hawm-cfc-scope").value,
+      evidence
+    };
+  }
+
+  function applyStructuredCFCState(value) {
+    const s = value || {};
+    document.getElementById("hawm-cfc-conclusion").value = s.conclusion || "POSITIVE";
+    document.getElementById("hawm-cfc-required").value =
+      String(s.required_independent_supports || 1);
+    document.getElementById("hawm-cfc-provenance").value =
+      s.provenance_shape || "DISTINCT";
+    document.getElementById("hawm-cfc-independence").value =
+      s.independence_authority || "NONE";
+    document.getElementById("hawm-cfc-scope").value = s.scope || "EXPECTED";
+    const evidence = Array.isArray(s.evidence) ? s.evidence : [];
+    const e1 = evidence[0] || {};
+    const e2 = evidence[1] || {};
+    document.getElementById("hawm-cfc-e1-polarity").value = e1.polarity || "POSITIVE";
+    document.getElementById("hawm-cfc-e1-validity").value = e1.validity || "CURRENT";
+    document.getElementById("hawm-cfc-e2-enabled").value = evidence.length > 1 ? "YES" : "NO";
+    document.getElementById("hawm-cfc-e2-polarity").value = e2.polarity || "POSITIVE";
+    document.getElementById("hawm-cfc-e2-validity").value = e2.validity || "CURRENT";
+  }
+
   function clearHAWM() {
     for (const field of Object.values(hawmFields())) field.value = "";
+    applyStructuredCFCState(null);
     document.getElementById("hawm-status").textContent = "";
+    document.getElementById("hawm-cfc-result").textContent =
+      "No structured HAWM CFC run yet.";
   }
 
   async function loadHAWM() {
@@ -68,19 +116,20 @@ window.addEventListener("load", async function () {
     for (const [name, field] of Object.entries(fields)) {
       field.value = state[name] || "";
     }
+    applyStructuredCFCState(state.cfc_structured);
     document.getElementById("hawm-status").textContent =
       "Loaded HAWM snapshot · " + snapshot.last_verified_state;
   }
 
-  function renderCFC(run) {
-    const target = document.getElementById("cfc-result");
+  function renderCFC(run, targetId = "cfc-result", label = "Prepared synthetic fixture") {
+    const target = document.getElementById(targetId);
     if (!run) {
       target.textContent = "No CFC run saved for this conversation yet.";
       return;
     }
     const p = run.presentation || {};
     target.textContent = [
-      "Prepared synthetic fixture",
+      label,
       "Case: " + run.case_id,
       "Anchor: " + run.controller_anchor,
       "Claim state: " + (p.claim_state || "NONE"),
@@ -94,10 +143,24 @@ window.addEventListener("load", async function () {
     const conversationId = conversationSelect.value;
     if (!conversationId) {
       renderCFC(null);
+      document.getElementById("hawm-cfc-result").textContent =
+        "No structured HAWM CFC run yet.";
       return;
     }
     const run = await api("/api/conversations/" + conversationId + "/cfc");
-    renderCFC(run);
+    if (run && run.case_id === "HAWM_STRUCTURED_CUSTOM") {
+      renderCFC(
+        run,
+        "hawm-cfc-result",
+        "Structured HAWM → frozen CFC"
+      );
+      document.getElementById("cfc-result").textContent =
+        "Latest CFC run is the structured HAWM path.";
+    } else {
+      renderCFC(run);
+      document.getElementById("hawm-cfc-result").textContent =
+        "No structured HAWM CFC run yet.";
+    }
   }
 
   async function loadMessages() {
@@ -221,6 +284,7 @@ window.addEventListener("load", async function () {
           for (const [name, field] of Object.entries(fields)) {
             state[name] = field.value.trim();
           }
+          state.cfc_structured = structuredCFCState();
           await api("/api/conversations/" + conversationId + "/hawm", {
             method: "POST",
             body: JSON.stringify({
@@ -232,6 +296,53 @@ window.addEventListener("load", async function () {
           await loadHAWM();
         } catch (error) {
           hawmStatus.textContent = "HAWM error: " + error.message;
+        }
+      });
+
+      document.getElementById("run-hawm-cfc").addEventListener("click", async () => {
+        const result = document.getElementById("hawm-cfc-result");
+        const hawmStatus = document.getElementById("hawm-status");
+        try {
+          const conversationId = conversationSelect.value;
+          if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+
+          const state = structuredCFCState();
+          if (
+            state.provenance_shape === "SHARED_LINEAGE" &&
+            state.independence_authority === "VERIFIED"
+          ) {
+            throw new Error("SHARED_LINEAGE_CANNOT_BE_VERIFIED_INDEPENDENT");
+          }
+
+          const fields = hawmFields();
+          const savedState = {};
+          for (const [name, field] of Object.entries(fields)) {
+            savedState[name] = field.value.trim();
+          }
+          savedState.cfc_structured = state;
+
+          await api("/api/conversations/" + conversationId + "/hawm", {
+            method: "POST",
+            body: JSON.stringify({
+              state: savedState,
+              last_verified_state: "USER_WORKING_STATE"
+            })
+          });
+
+          result.textContent = "Running structured HAWM through frozen CFC…";
+          const run = await api(
+            "/api/conversations/" + conversationId + "/cfc-from-hawm",
+            { method: "POST", body: "{}" }
+          );
+          renderCFC(
+            run,
+            "hawm-cfc-result",
+            "Structured HAWM → frozen CFC"
+          );
+          hawmStatus.textContent =
+            "HAWM snapshot saved and structured CFC check completed.";
+        } catch (error) {
+          result.textContent = "HAWM → CFC error: " + error.message;
         }
       });
 
