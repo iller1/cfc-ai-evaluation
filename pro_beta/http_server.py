@@ -134,6 +134,25 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             self._api_call(lambda api: api.list_workspaces(credential))
             return
 
+        parts = [part for part in path.split("/") if part]
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "workspaces" and parts[3] == "conversations":
+            credential = _bearer(self.headers)
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            workspace_id = parts[2]
+            self._api_call(lambda api: api.list_conversations(credential, workspace_id))
+            return
+
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "messages":
+            credential = _bearer(self.headers)
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            conversation_id = parts[2]
+            self._api_call(lambda api: api.list_messages(credential, conversation_id))
+            return
+
         self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
 
     def do_POST(self) -> None:
@@ -153,6 +172,34 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
                 return
             payload = self._payload()
             self._api_call(lambda api: api.create_workspace(credential, payload))
+            return
+
+        parts = [part for part in path.split("/") if part]
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "workspaces" and parts[3] == "conversations":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            payload = self._payload()
+            workspace_id = parts[2]
+            self._api_call(lambda api: api.create_conversation(credential, workspace_id, payload))
+            return
+
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "messages":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            payload = self._payload()
+            conversation_id = parts[2]
+            content = str(payload.get("content") or "")
+            mode = str(payload.get("mode") or "STANDARD")
+            self._api_call(
+                lambda api: api.persist_user_message(
+                    credential,
+                    conversation_id,
+                    content=content,
+                    mode=mode,
+                )
+            )
             return
 
         self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
