@@ -27,43 +27,42 @@
     window.PRO_BETA_CLERK_KEY = "__CLERK_PUBLISHABLE_KEY__";
     window.PRO_BETA_CLERK_READY = __CLERK_READY__;
   </script>
-  <script type="module">
-    const target = document.getElementById("auth");
-    if (!window.PRO_BETA_CLERK_READY) {
-      target.innerHTML = '<p class="error">Authentication is not configured yet.</p>';
-    } else {
+  <script
+    defer
+    crossorigin="anonymous"
+    src="https://alert-bear-8010.clerk.accounts.dev/npm/@clerk/ui@1/dist/ui.browser.js"
+    type="text/javascript"
+  ></script>
+  <script
+    defer
+    crossorigin="anonymous"
+    data-clerk-publishable-key="__CLERK_PUBLISHABLE_KEY__"
+    src="https://alert-bear-8010.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js"
+    type="text/javascript"
+  ></script>
+  <script>
+    window.addEventListener("load", async function () {
+      const target = document.getElementById("auth");
+      if (!window.PRO_BETA_CLERK_READY) {
+        target.innerHTML = '<p class="error">Authentication is not configured yet.</p>';
+        return;
+      }
       try {
-        const key = window.PRO_BETA_CLERK_KEY;
-        const clerkDomain = atob(key.split("_")[2]).slice(0, -1);
-        await new Promise((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = `https://${clerkDomain}/npm/@clerk/ui@1/dist/ui.browser.js`;
-          script.async = true;
-          script.crossOrigin = "anonymous";
-          script.onload = resolve;
-          script.onerror = () => reject(new Error("Failed to load Clerk UI"));
-          document.head.appendChild(script);
+        await Clerk.load({
+          ui: { ClerkUI: window.__internal_ClerkUICtor },
         });
-        const module = await import("https://esm.sh/@clerk/clerk-js@5");
-        const clerk = new module.Clerk(key);
-        await clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } });
-
         target.innerHTML = "";
-        if (clerk.isSignedIn) {
-          const signedIn = document.createElement("div");
-          signedIn.innerHTML = "<p>Signed in.</p><div id='user-button'></div>";
-          target.appendChild(signedIn);
-          clerk.mountUserButton(document.getElementById("user-button"));
+        if (Clerk.isSignedIn) {
+          target.innerHTML = "<p>Signed in.</p><div id='user-button'></div>";
+          Clerk.mountUserButton(document.getElementById("user-button"));
         } else {
-          const signIn = document.createElement("div");
-          signIn.id = "sign-in";
-          target.appendChild(signIn);
-          clerk.mountSignIn(signIn);
+          target.innerHTML = "<div id='sign-in'></div>";
+          Clerk.mountSignIn(document.getElementById("sign-in"));
         }
       } catch (error) {
         target.innerHTML = '<p class="error">Authentication failed to initialize.</p>';
       }
-    }
+    });
   </script>
 </body>
 </html>
