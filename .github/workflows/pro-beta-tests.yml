@@ -47,9 +47,10 @@ jobs:
       - name: Install PostgreSQL test adapter
         run: python -m pip install "psycopg[binary]>=3.2,<4"
 
-      - name: Run Pro Beta contract, reference persistence and PostgreSQL tests
+      - name: Run Pro Beta contract, auth, persistence and PostgreSQL tests
         run: >-
           python -m unittest -v
           pro_beta.test_contracts
+          pro_beta.test_auth_boundary
           pro_beta.test_persistence
           pro_beta.test_postgres_persistence
