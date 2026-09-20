@@ -95,7 +95,7 @@ def gemini_call(s: Session, text: str):
     body = json.dumps({
         "systemInstruction": {"parts": [{"text": system}]},
         "contents": contents,
-        "generationConfig": {"maxOutputTokens": {"YES_NO":256,"MINIMUM":384,"STANDARD":768,"EXPANDED":1536}[s.mode]}
+        "generationConfig": {"maxOutputTokens": {"YES_NO":384,"MINIMUM":768,"STANDARD":2048,"EXPANDED":4096}[s.mode]}
     }).encode("utf-8")
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{quote(model)}:generateContent?key={quote(s.api_key)}"
     req = Request(url, data=body, headers={"Content-Type":"application/json"}, method="POST")
