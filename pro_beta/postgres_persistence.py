@@ -71,6 +71,25 @@ class PostgresPersistence:
             created_at=row[3],
         )
 
+    def get_user_by_external_auth_subject(
+        self, external_auth_subject: str
+    ) -> UserAccount:
+        row = self._one(
+            """
+            select user_id, external_auth_subject, email, created_at::text
+            from users where external_auth_subject = %s
+            """,
+            (external_auth_subject,),
+        )
+        if row is None:
+            raise NotFoundError("AUTH_SUBJECT_NOT_FOUND")
+        return UserAccount(
+            user_id=row[0],
+            external_auth_subject=row[1],
+            email=row[2],
+            created_at=row[3],
+        )
+
     def _workspace_owner(self, workspace_id: str) -> str:
         row = self._one(
             "select user_id from workspaces where workspace_id = %s",
