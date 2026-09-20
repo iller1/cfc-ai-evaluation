@@ -346,6 +346,44 @@ window.addEventListener("load", async function () {
         }
       });
 
+      document.getElementById("export-report").addEventListener("click", async () => {
+        const reportStatus = document.getElementById("report-status");
+        try {
+          const conversationId = conversationSelect.value;
+          if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+          reportStatus.textContent = "Generating audit report…";
+          const payload = await api(
+            "/api/conversations/" + conversationId + "/report",
+            { method: "POST", body: "{}" }
+          );
+          const markdown = payload.markdown || "";
+          const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "cfc-hawm-audit-report-" + conversationId + ".md";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+
+          const record = payload.report_record || {};
+          const doc = payload.document || {};
+          const run = doc.cfc_run || {};
+          const presentation = run.presentation || {};
+          reportStatus.textContent = [
+            "Audit report generated",
+            "Report ID: " + (record.report_id || ""),
+            "Status: " + (record.status || ""),
+            "CFC anchor: " + (run.controller_anchor || "NONE"),
+            "Decision: " + (presentation.decision || "NONE"),
+            "Boundary: free-text HAWM and ordinary model replies are not CFC-verified"
+          ].join("\n");
+        } catch (error) {
+          reportStatus.textContent = "Report error: " + error.message;
+        }
+      });
+
       document.getElementById("run-cfc").addEventListener("click", async () => {
         const result = document.getElementById("cfc-result");
         try {
