@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 from pro_beta.contracts import (
+    AuditReportRecord,
     CFCRun,
     Conversation,
     HAWMSnapshot,
@@ -391,3 +392,35 @@ class PostgresPersistence:
             ),
         )
         return run
+
+
+    def add_audit_report(
+        self, user_id: str, report: AuditReportRecord
+    ) -> AuditReportRecord:
+        self._assert_conversation_owned(user_id, report.conversation_id)
+        if report.cfc_run_id is not None:
+            row = self._one(
+                "select conversation_id from cfc_runs where run_id = %s",
+                (report.cfc_run_id,),
+            )
+            if row is None:
+                raise NotFoundError("CFC_RUN_NOT_FOUND")
+            if row[0] != report.conversation_id:
+                raise OwnershipError("CFC_RUN_CONVERSATION_MISMATCH")
+        self._execute(
+            """
+            insert into audit_reports
+                (report_id, conversation_id, cfc_run_id, status,
+                 artifact_path, created_at)
+            values (%s, %s, %s, %s, %s, %s)
+            """,
+            (
+                report.report_id,
+                report.conversation_id,
+                report.cfc_run_id,
+                report.status,
+                report.artifact_path,
+                report.created_at,
+            ),
+        )
+        return report
