@@ -159,6 +159,41 @@ class ProBetaAPITests(unittest.TestCase):
         )
         self.assertEqual(created["user_id"], "usr_a")
 
+    def test_workspace_conversation_and_user_message_round_trip(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Project A"}
+        )
+        conversations = self.api.list_conversations(
+            "token-a", workspace["workspace_id"]
+        )
+        self.assertEqual(conversations, [])
+
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "First chat"},
+        )
+        conversations = self.api.list_conversations(
+            "token-a", workspace["workspace_id"]
+        )
+        self.assertEqual(
+            [c["conversation_id"] for c in conversations],
+            [conversation["conversation_id"]],
+        )
+
+        message = self.api.persist_user_message(
+            "token-a",
+            conversation["conversation_id"],
+            content="hello",
+            mode="STANDARD",
+        )
+        self.assertEqual(message["authority"], "USER_INPUT")
+        self.assertEqual(message["cfc_status"], "NOT_APPLICABLE")
+        rows = self.api.list_messages(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual([m["content"] for m in rows], ["hello"])
+
     def test_cross_user_conversation_access_returns_403(self):
         workspace_b = self.api.create_workspace(
             "token-b", {"name": "B workspace"}
