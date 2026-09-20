@@ -526,6 +526,47 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertEqual(run_with["presentation"]["decision"], "ALLOW")
         self.assertTrue(run_with["controller_result"]["control_closure"])
 
+    def test_structured_hawm_cfc_shared_lineage_blocks_two_supports(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "HAWM CFC shared lineage"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Shared lineage"},
+        )
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {
+                    "cfc_structured": {
+                        "conclusion": "POSITIVE",
+                        "required_independent_supports": 2,
+                        "provenance_shape": "SHARED_LINEAGE",
+                        "independence_authority": "NONE",
+                        "scope": "EXPECTED",
+                        "evidence": [
+                            {"polarity": "POSITIVE", "validity": "CURRENT"},
+                            {"polarity": "POSITIVE", "validity": "CURRENT"},
+                        ],
+                    }
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        run = self.api.run_structured_hawm_cfc(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(run["controller_anchor"], "0.2.90rc1")
+        self.assertEqual(run["presentation"]["claim_state"], "SUPPORTED")
+        self.assertEqual(run["presentation"]["decision"], "STOP")
+        self.assertFalse(run["controller_result"]["control_closure"])
+        self.assertIn(
+            "claim_specific_support_policy_valid",
+            run["presentation"]["false_gates"],
+        )
+
     def test_structured_hawm_cfc_requires_explicit_mapping(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "HAWM CFC missing"}
