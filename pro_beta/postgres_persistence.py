@@ -200,6 +200,31 @@ class PostgresPersistence:
         )
         return conversation
 
+    def list_conversations(
+        self, user_id: str, workspace_id: str
+    ) -> list[Conversation]:
+        self._assert_workspace_owned(user_id, workspace_id)
+        rows = self._all(
+            """
+            select conversation_id, workspace_id, title,
+                   created_at::text, updated_at::text
+            from conversations
+            where workspace_id = %s
+            order by created_at, conversation_id
+            """,
+            (workspace_id,),
+        )
+        return [
+            Conversation(
+                conversation_id=r[0],
+                workspace_id=r[1],
+                title=r[2],
+                created_at=r[3],
+                updated_at=r[4],
+            )
+            for r in rows
+        ]
+
     def get_conversation(
         self, user_id: str, conversation_id: str
     ) -> Conversation:
