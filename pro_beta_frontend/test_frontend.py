@@ -128,6 +128,28 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("/conversations", body)
         self.assertIn("/messages", body)
 
+    def test_cfc_prepared_ui_is_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="cfc-panel"', body)
+        self.assertIn('id="run-cfc"', body)
+        self.assertIn("does not analyze this conversation text", body)
+
+    def test_app_js_contains_cfc_route_and_boundary(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/cfc", body)
+        self.assertIn("Prepared synthetic fixture", body)
+        self.assertIn("0.2.90rc1", body)
+
     def test_csp_allows_clerk_captcha_hosts(self):
         _, _, headers = self.get("/")
         csp = headers.get("Content-Security-Policy", "")
