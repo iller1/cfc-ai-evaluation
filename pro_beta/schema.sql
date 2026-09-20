@@ -2,14 +2,14 @@
 -- PostgreSQL-oriented persistence contract.
 -- This file is not deployed by Web Alpha.
 
-create table users (
+create table if not exists users (
   user_id text primary key,
   external_auth_subject text not null unique,
   email text,
   created_at timestamptz not null default now()
 );
 
-create table workspaces (
+create table if not exists workspaces (
   workspace_id text primary key,
   user_id text not null references users(user_id) on delete cascade,
   name text not null,
@@ -17,7 +17,7 @@ create table workspaces (
   updated_at timestamptz not null default now()
 );
 
-create table conversations (
+create table if not exists conversations (
   conversation_id text primary key,
   workspace_id text not null references workspaces(workspace_id) on delete cascade,
   title text not null,
@@ -25,7 +25,7 @@ create table conversations (
   updated_at timestamptz not null default now()
 );
 
-create table messages (
+create table if not exists messages (
   message_id text primary key,
   conversation_id text not null references conversations(conversation_id) on delete cascade,
   role text not null check (role in ('user','assistant','system')),
@@ -36,7 +36,7 @@ create table messages (
   created_at timestamptz not null default now()
 );
 
-create table hawm_snapshots (
+create table if not exists hawm_snapshots (
   snapshot_id text primary key,
   conversation_id text not null references conversations(conversation_id) on delete cascade,
   state jsonb not null,
@@ -44,7 +44,7 @@ create table hawm_snapshots (
   created_at timestamptz not null default now()
 );
 
-create table cfc_runs (
+create table if not exists cfc_runs (
   run_id text primary key,
   conversation_id text not null references conversations(conversation_id) on delete cascade,
   case_id text not null,
@@ -55,7 +55,7 @@ create table cfc_runs (
   created_at timestamptz not null default now()
 );
 
-create table audit_reports (
+create table if not exists audit_reports (
   report_id text primary key,
   conversation_id text not null references conversations(conversation_id) on delete cascade,
   cfc_run_id text references cfc_runs(run_id) on delete set null,
@@ -64,7 +64,7 @@ create table audit_reports (
   created_at timestamptz not null default now()
 );
 
-create table usage_events (
+create table if not exists usage_events (
   event_id text primary key,
   user_id text not null references users(user_id) on delete cascade,
   event_type text not null,
@@ -72,11 +72,11 @@ create table usage_events (
   created_at timestamptz not null default now()
 );
 
-create index idx_workspaces_user on workspaces(user_id);
-create index idx_conversations_workspace on conversations(workspace_id);
-create index idx_messages_conversation_created on messages(conversation_id, created_at);
-create index idx_hawm_conversation_created on hawm_snapshots(conversation_id, created_at);
-create index idx_cfc_runs_conversation_created on cfc_runs(conversation_id, created_at);
-create index idx_usage_user_created on usage_events(user_id, created_at);
+create index if not exists idx_workspaces_user on workspaces(user_id);
+create index if not exists idx_conversations_workspace on conversations(workspace_id);
+create index if not exists idx_messages_conversation_created on messages(conversation_id, created_at);
+create index if not exists idx_hawm_conversation_created on hawm_snapshots(conversation_id, created_at);
+create index if not exists idx_cfc_runs_conversation_created on cfc_runs(conversation_id, created_at);
+create index if not exists idx_usage_user_created on usage_events(user_id, created_at);
 
 -- Intentionally absent: passwords, password hashes, provider API keys, access tokens.
