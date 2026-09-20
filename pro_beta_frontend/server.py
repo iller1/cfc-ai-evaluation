@@ -25,7 +25,7 @@ class FrontendHandler(BaseHTTPRequestHandler):
             "Content-Security-Policy",
             "default-src 'self'; "
             "script-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com https://*.protect.clerk.com; "
-            "connect-src 'self' https://*.clerk.accounts.dev https://*.protect.clerk.com; "
+            "connect-src 'self' https://*.clerk.accounts.dev https://*.protect.clerk.com https://cfc-hawm-pro-beta-api-production.up.railway.app; "
             "frame-src 'self' https://challenges.cloudflare.com https://*.protect.clerk.com; "
             "img-src 'self' data: https://img.clerk.com https:; "
             "worker-src 'self' blob:; "
@@ -58,9 +58,12 @@ class FrontendHandler(BaseHTTPRequestHandler):
 
         if path == "/app.js":
             publishable_key = os.environ.get("CLERK_PUBLISHABLE_KEY", "").strip()
+            api_base = os.environ.get("PRO_BETA_API_BASE", "").strip()
             js = (
                 'window.PRO_BETA_CLERK_KEY = '
                 + repr(publishable_key)
+                + ";\nwindow.PRO_BETA_API_BASE = "
+                + repr(api_base)
                 + ";\n"
                 + APP_JS
             ).encode("utf-8")
