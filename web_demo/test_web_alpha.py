@@ -3,9 +3,8 @@ from __future__ import annotations
 import json
 import threading
 import unittest
-from http.cookiejar import CookieJar
 from urllib.error import HTTPError
-from urllib.request import HTTPCookieProcessor, Request, build_opener
+from urllib.request import Request, build_opener
 
 from web_demo import app
 
@@ -33,8 +32,18 @@ class WebAlphaRegressionTests(unittest.TestCase):
     def setUp(self):
         with app.LOCK:
             app.SESSIONS.clear()
-        self.jar = CookieJar()
-        self.opener = build_opener(HTTPCookieProcessor(self.jar))
+        # The production cookie is intentionally Secure. urllib's CookieJar
+        # correctly refuses to resend a Secure cookie over this test harness's
+        # plain HTTP loopback connection, so the harness preserves only the
+        # returned SID pair and replays it explicitly on later loopback calls.
+        # Production cookie attributes are asserted separately below.
+        self.sid_cookie = None
+        self.opener = build_opener()
+
+    def _capture_sid(self, headers):
+        raw = headers.get("Set-Cookie")
+        if raw:
+            self.sid_cookie = raw.split(";", 1)[0]
 
     def _request(self, path, method="GET", body=None):
         data = None
@@ -42,6 +51,8 @@ class WebAlphaRegressionTests(unittest.TestCase):
         if body is not None:
             data = json.dumps(body).encode("utf-8")
             headers["Content-Type"] = "application/json"
+        if self.sid_cookie:
+            headers["Cookie"] = self.sid_cookie
         req = Request(
             f"http://127.0.0.1:{self.port}{path}",
             data=data,
@@ -50,9 +61,11 @@ class WebAlphaRegressionTests(unittest.TestCase):
         )
         try:
             with self.opener.open(req, timeout=5) as response:
+                self._capture_sid(response.headers)
                 raw = response.read().decode("utf-8")
                 return response.status, response.headers, raw
         except HTTPError as exc:
+            self._capture_sid(exc.headers)
             raw = exc.read().decode("utf-8")
             return exc.code, exc.headers, raw
 
@@ -68,6 +81,11 @@ class WebAlphaRegressionTests(unittest.TestCase):
         self.assertIn("Disconnect", raw)
         self.assertIn("Get Gemini API key", raw)
         self.assertEqual(headers.get("Cache-Control"), "no-store")
+
+        cookie = headers.get("Set-Cookie") or ""
+        self.assertIn("HttpOnly", cookie)
+        self.assertIn("SameSite=Lax", cookie)
+        self.assertIn("Secure", cookie)
 
     def test_status_starts_disconnected_and_preserves_cfc_boundary(self):
         status, _, payload = self._json("/api/status")
