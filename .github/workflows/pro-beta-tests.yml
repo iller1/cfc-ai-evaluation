@@ -53,6 +53,7 @@ jobs:
           pro_beta.test_contracts
           pro_beta.test_auth_boundary
           pro_beta.test_api
+          pro_beta.test_http_server
           pro_beta.test_persistence
           pro_beta.test_service
           pro_beta.test_postgres_persistence
