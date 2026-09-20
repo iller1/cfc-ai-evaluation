@@ -5,7 +5,8 @@ from http import cookies
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, quote
-from urllib.request import Request, urlopen\nfrom urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 
 ROOT = Path(__file__).resolve().parents[1]
 DEMO = ROOT / "demonstrator"
