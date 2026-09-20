@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from pro_beta.contracts import (
+    AuditReportRecord,
     CFCRun,
     Conversation,
     HAWMSnapshot,
@@ -233,6 +234,39 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
         )
         self.assertEqual([r.run_id for r in rows], ["cfc_1", "cfc_2"])
         self.assertEqual(rows[-1].presentation["decision"], "ALLOW")
+
+    def test_postgres_audit_report_metadata_round_trip(self):
+        run = CFCRun(
+            run_id=new_id("cfc"),
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="HAWM_STRUCTURED_CUSTOM",
+            controller_anchor="0.2.90rc1",
+            controller_result={"control_closure": True},
+            presentation={"claim_state": "VERIFIED", "decision": "ALLOW"},
+        )
+        self.store.add_cfc_run(self.user_a.user_id, run)
+        report = AuditReportRecord(
+            report_id=new_id("report"),
+            conversation_id=self.conversation_a.conversation_id,
+            cfc_run_id=run.run_id,
+            status="GENERATED_JSON_MARKDOWN",
+            artifact_path=None,
+        )
+        saved = self.store.add_audit_report(self.user_a.user_id, report)
+        self.assertEqual(saved.report_id, report.report_id)
+        with self.connection.cursor() as cur:
+            cur.execute(
+                """
+                select conversation_id, cfc_run_id, status, artifact_path
+                from audit_reports where report_id = %s
+                """,
+                (report.report_id,),
+            )
+            row = cur.fetchone()
+        self.assertEqual(row[0], self.conversation_a.conversation_id)
+        self.assertEqual(row[1], run.run_id)
+        self.assertEqual(row[2], "GENERATED_JSON_MARKDOWN")
+        self.assertIsNone(row[3])
 
     def test_postgres_user_lists_only_own_workspaces(self):
         rows = self.store.list_workspaces(self.user_a.user_id)
