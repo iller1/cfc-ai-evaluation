@@ -2,6 +2,8 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
+RUN python -m pip install --no-cache-dir "psycopg[binary]>=3.2,<4"
+
 COPY pro_beta /app/pro_beta
 
 ENV PYTHONDONTWRITEBYTECODE=1
