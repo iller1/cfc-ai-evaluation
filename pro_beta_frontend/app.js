@@ -72,6 +72,34 @@ window.addEventListener("load", async function () {
       "Loaded HAWM snapshot · " + snapshot.last_verified_state;
   }
 
+  function renderCFC(run) {
+    const target = document.getElementById("cfc-result");
+    if (!run) {
+      target.textContent = "No CFC run saved for this conversation yet.";
+      return;
+    }
+    const p = run.presentation || {};
+    target.textContent = [
+      "Prepared synthetic fixture",
+      "Case: " + run.case_id,
+      "Anchor: " + run.controller_anchor,
+      "Claim state: " + (p.claim_state || "NONE"),
+      "Decision: " + (p.decision || "UNKNOWN"),
+      "Reason: " + (p.reason || ""),
+      "Replay matches reference: " + String(run.replay_matches_reference)
+    ].join("\n");
+  }
+
+  async function loadCFC() {
+    const conversationId = conversationSelect.value;
+    if (!conversationId) {
+      renderCFC(null);
+      return;
+    }
+    const run = await api("/api/conversations/" + conversationId + "/cfc");
+    renderCFC(run);
+  }
+
   async function loadMessages() {
     messages.innerHTML = "";
     const conversationId = conversationSelect.value;
@@ -102,6 +130,7 @@ window.addEventListener("load", async function () {
     setOptions(conversationSelect, rows, "conversation_id", "title");
     await loadMessages();
     await loadHAWM();
+    await loadCFC();
   }
 
   async function loadWorkspaces() {
@@ -162,6 +191,7 @@ window.addEventListener("load", async function () {
       conversationSelect.addEventListener("change", async () => {
         await loadMessages();
         await loadHAWM();
+        await loadCFC();
       });
 
       document.getElementById("create-conversation").addEventListener("click", async () => {
@@ -202,6 +232,24 @@ window.addEventListener("load", async function () {
           await loadHAWM();
         } catch (error) {
           hawmStatus.textContent = "HAWM error: " + error.message;
+        }
+      });
+
+      document.getElementById("run-cfc").addEventListener("click", async () => {
+        const result = document.getElementById("cfc-result");
+        try {
+          const conversationId = conversationSelect.value;
+          if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+          result.textContent = "Running frozen CFC prepared fixture…";
+          const run = await api("/api/conversations/" + conversationId + "/cfc", {
+            method: "POST",
+            body: JSON.stringify({
+              case_id: document.getElementById("cfc-case").value
+            })
+          });
+          renderCFC(run);
+        } catch (error) {
+          result.textContent = "CFC error: " + error.message;
         }
       });
 
