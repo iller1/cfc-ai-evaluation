@@ -44,6 +44,12 @@ def run_structured_hawm_state(state: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(structured, dict):
         raise ValueError("HAWM_CFC_STRUCTURED_STATE_REQUIRED")
 
+    if (
+        structured.get("provenance_shape") == "SHARED_LINEAGE"
+        and structured.get("independence_authority") == "VERIFIED"
+    ):
+        raise ValueError("HAWM_CFC_CONTRADICTORY_INDEPENDENCE_STATE")
+
     cfg = {
         "conclusion": structured.get("conclusion", "POSITIVE"),
         "required_independent_supports": structured.get(
