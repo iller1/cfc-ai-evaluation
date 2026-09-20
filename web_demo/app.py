@@ -82,7 +82,8 @@ def gemini_call(s: Session, text: str):
     system = (
         "You are the model inside a CFC+HAWM public evaluation chat. "
         "The ordinary natural-language reply is NOT CFC-authorized. "
-        "Respect the following HAWM state and do not invent missing evidence.\n\n"
+        "Respect the following HAWM state and do not invent missing evidence. "
+        "Reply in the same language as the user unless the user explicitly asks for another language.\n\n"
         + json.dumps(s.hawm, ensure_ascii=False)
         + "\n\n"
         + MODES.get(s.mode, MODES["STANDARD"])
@@ -142,7 +143,7 @@ button.active,button.primary{background:#2457ff;color:white}.chat{background:whi
 input,select{padding:9px 10px;border:1px solid #cfd7e5;border-radius:9px}.status{font-size:12px;margin-top:8px}.warn{background:#fff7dd;border:1px solid #f1df9b;padding:10px;border-radius:10px;margin:10px 0}.ok{background:#eaf8ee;border:1px solid #bde2c7;padding:10px;border-radius:10px;margin:10px 0}
 pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:12px;border-radius:10px;overflow:auto}
 </style></head><body><div class="wrap">
-<div class="top"><h1>CFC + HAWM</h1><span class="tag">Public Web Alpha</span></div>
+<div class="top"><h1>CFC + HAWM</h1><span class="tag">Public Web Alpha · web 1.0.3</span></div>
 <div class="modes">
 <button data-mode="YES_NO">YES / NO</button><button data-mode="MINIMUM">MINIMUM</button><button data-mode="STANDARD" class="active">STANDARD</button><button data-mode="EXPANDED">EXPANDED</button>
 </div>
@@ -198,6 +199,14 @@ q("#connect").onclick=async()=>{try{const provider=q("#provider").value,modelNam
 q("#cfc").onclick=async()=>{add("assistant","Running the frozen CFC example...");try{const j=await api("/api/cfc",{method:"POST",body:"{}"});add("assistant","CFC: "+j.presentation.claim_state+"\nDECISION: "+j.presentation.decision+"\nREASON: "+j.presentation.reason,"frozen cfc-anchor 0.2.90rc1")}catch(e){add("assistant","CFC error: "+e.message)}};
 q("#new").onclick=async()=>{await api("/api/new",{method:"POST",body:"{}"});chat.innerHTML="";add("assistant","New chat started.")};
 q("#opts").onclick=async()=>{q("#panel").classList.toggle("hidden");try{q("#tech").textContent=JSON.stringify(await api("/api/status"),null,2)}catch(e){q("#tech").textContent=e.message}};
+(async()=>{
+  try{
+    const st=await api("/api/status");
+    if(!st.provider){
+      try{await reconnectStoredKey()}catch(_e){}
+    }
+  }catch(_e){}
+})();
 q("#text").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();q("#send").click()}});
 </script></body></html>"""
 
@@ -266,6 +275,9 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"ok":True}); return
             self._json({"error":"NOT_FOUND"},404)
         except Exception as e:
+            if str(e) == "API_KEY_REQUIRED":
+                self._json({"error":"Gemini is not connected. Add your API key in Options to start chatting.","code":"API_KEY_REQUIRED"},401)
+                return
             self._json({"error":f"{type(e).__name__}: {e}"},400)
 
 if __name__=="__main__":
