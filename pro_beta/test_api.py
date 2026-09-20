@@ -255,6 +255,75 @@ class ProBetaAPITests(unittest.TestCase):
             latest["case_id"], "CASE_01_UNRESOLVED_POSITIVE"
         )
 
+    def test_structured_hawm_cfc_bridge_uses_only_explicit_state(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "HAWM CFC"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Structured bridge"},
+        )
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {
+                    "goal": "free text ignored by CFC mapping",
+                    "claims": "also ignored",
+                    "cfc_structured": {
+                        "conclusion": "POSITIVE",
+                        "required_independent_supports": 1,
+                        "provenance_shape": "DISTINCT",
+                        "independence_authority": "NONE",
+                        "scope": "EXPECTED",
+                        "evidence": [
+                            {"polarity": "POSITIVE", "validity": "CURRENT"}
+                        ],
+                    },
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        run = self.api.run_structured_hawm_cfc(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(run["case_id"], "HAWM_STRUCTURED_CUSTOM")
+        self.assertEqual(run["controller_anchor"], "0.2.90rc1")
+        self.assertEqual(
+            run["boundary"],
+            "STRUCTURED_HAWM_FIELDS_ONLY_NO_NATURAL_LANGUAGE_INFERENCE",
+        )
+        self.assertEqual(run["mapped_input"]["conclusion"], "POSITIVE")
+        self.assertEqual(run["presentation"]["decision"], "ALLOW")
+        self.assertNotIn("goal", run["mapped_input"])
+        self.assertIsNone(run["replay_matches_reference"])
+
+    def test_structured_hawm_cfc_requires_explicit_mapping(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "HAWM CFC missing"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "No structured state"},
+        )
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {"goal": "free text only"},
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        with self.assertRaises(APIError) as ctx:
+            self.api.run_structured_hawm_cfc(
+                "token-a", conversation["conversation_id"]
+            )
+        self.assertEqual(
+            ctx.exception.code, "HAWM_CFC_STRUCTURED_STATE_REQUIRED"
+        )
+
     def test_cross_user_conversation_access_returns_403(self):
         workspace_b = self.api.create_workspace(
             "token-b", {"name": "B workspace"}
