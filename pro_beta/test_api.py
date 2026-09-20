@@ -339,6 +339,51 @@ class ProBetaAPITests(unittest.TestCase):
             run["presentation"]["false_gates"],
         )
 
+    def test_structured_hawm_cfc_quarantines_active_conflict(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "HAWM CFC conflict"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Active conflict"},
+        )
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {
+                    "cfc_structured": {
+                        "conclusion": "POSITIVE",
+                        "required_independent_supports": 1,
+                        "provenance_shape": "DISTINCT",
+                        "independence_authority": "NONE",
+                        "scope": "EXPECTED",
+                        "evidence": [
+                            {"polarity": "POSITIVE", "validity": "CURRENT"},
+                            {"polarity": "NEGATIVE", "validity": "CURRENT"},
+                        ],
+                    }
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        run = self.api.run_structured_hawm_cfc(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(run["controller_anchor"], "0.2.90rc1")
+        self.assertEqual(run["presentation"]["claim_state"], "QUARANTINED")
+        self.assertEqual(run["presentation"]["decision"], "STOP")
+        self.assertFalse(run["controller_result"]["control_closure"])
+        self.assertIn(
+            "global_consistency_valid",
+            run["presentation"]["false_gates"],
+        )
+        self.assertEqual(
+            run["presentation"]["reason"],
+            "direct contradiction",
+        )
+
     def test_structured_hawm_cfc_requires_explicit_mapping(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "HAWM CFC missing"}
