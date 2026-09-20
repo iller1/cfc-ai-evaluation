@@ -299,6 +299,46 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertNotIn("goal", run["mapped_input"])
         self.assertIsNone(run["replay_matches_reference"])
 
+    def test_structured_hawm_cfc_blocks_when_required_support_is_missing(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "HAWM CFC negative"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Insufficient support"},
+        )
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {
+                    "cfc_structured": {
+                        "conclusion": "POSITIVE",
+                        "required_independent_supports": 2,
+                        "provenance_shape": "DISTINCT",
+                        "independence_authority": "NONE",
+                        "scope": "EXPECTED",
+                        "evidence": [
+                            {"polarity": "POSITIVE", "validity": "CURRENT"}
+                        ],
+                    }
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        run = self.api.run_structured_hawm_cfc(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(run["controller_anchor"], "0.2.90rc1")
+        self.assertEqual(run["presentation"]["claim_state"], "SUPPORTED")
+        self.assertEqual(run["presentation"]["decision"], "STOP")
+        self.assertFalse(run["controller_result"]["control_closure"])
+        self.assertIn(
+            "claim_specific_support_policy_valid",
+            run["presentation"]["false_gates"],
+        )
+
     def test_structured_hawm_cfc_requires_explicit_mapping(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "HAWM CFC missing"}
