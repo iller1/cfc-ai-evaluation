@@ -148,7 +148,7 @@ class FrontendTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("/cfc", body)
         self.assertIn("Prepared synthetic fixture", body)
-        self.assertIn("0.2.90rc1", body)
+        self.assertIn("run.controller_anchor", body)
 
     def test_csp_allows_clerk_captcha_hosts(self):
         _, _, headers = self.get("/")
