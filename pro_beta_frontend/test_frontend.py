@@ -152,6 +152,28 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("cfc_structured", body)
         self.assertIn("Structured HAWM", body)
 
+    def test_audit_report_export_ui_is_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="report-panel"', body)
+        self.assertIn('id="export-report"', body)
+        self.assertIn("Audit report export", body)
+
+    def test_app_js_contains_audit_report_export_route(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/report", body)
+        self.assertIn("text/markdown", body)
+        self.assertIn("MODEL_REPLY_UNCHECKED", body)
+
     def test_cfc_prepared_ui_is_present(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
