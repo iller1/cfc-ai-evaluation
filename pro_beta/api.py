@@ -10,6 +10,7 @@ from pro_beta.auth_boundary import (
 )
 from pro_beta.persistence import NotFoundError, OwnershipError
 from pro_beta.service import ProBetaService
+from pro_beta.contracts import UserAccount, new_id
 
 
 class IdentityVerifier(Protocol):
@@ -61,6 +62,43 @@ class ProBetaAPI:
             return self.auth_boundary.resolve(identity)
         except AuthenticationError as exc:
             raise APIError(401, str(exc)) from exc
+
+    def provision_account(self, credential: str) -> dict:
+        """Explicit first-login provisioning.
+
+        Normal authenticated operations remain fail-closed for unknown subjects.
+        This endpoint is the one deliberate path that may create an account
+        after the external identity has been cryptographically verified.
+        """
+        if not credential:
+            raise APIError(401, "AUTH_CREDENTIAL_REQUIRED")
+        try:
+            identity = self.verifier.verify(credential)
+        except AuthenticationError as exc:
+            raise APIError(401, str(exc)) from exc
+
+        if not identity.provider_verified:
+            raise APIError(401, "IDENTITY_NOT_VERIFIED")
+        if identity.issuer != self.auth_boundary.expected_issuer:
+            raise APIError(401, "IDENTITY_ISSUER_MISMATCH")
+        if identity.audience != self.auth_boundary.expected_audience:
+            raise APIError(401, "IDENTITY_AUDIENCE_MISMATCH")
+
+        try:
+            account = self.auth_boundary.accounts.get_user_by_external_auth_subject(
+                identity.subject
+            )
+            created = False
+        except NotFoundError:
+            account = UserAccount(
+                user_id=new_id("usr"),
+                external_auth_subject=identity.subject,
+                email=identity.email if identity.email_verified else None,
+            )
+            self.auth_boundary.accounts.create_user(account)
+            created = True
+
+        return {"account": asdict(account), "created": created}
 
     def create_workspace(self, credential: str, payload: dict[str, Any]) -> dict:
         auth = self._auth(credential)
