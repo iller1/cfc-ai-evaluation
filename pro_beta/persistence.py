@@ -60,6 +60,14 @@ class InMemoryPersistence:
         except KeyError as exc:
             raise NotFoundError("USER_NOT_FOUND") from exc
 
+    def get_user_by_external_auth_subject(
+        self, external_auth_subject: str
+    ) -> UserAccount:
+        for account in self.users.values():
+            if account.external_auth_subject == external_auth_subject:
+                return account
+        raise NotFoundError("AUTH_SUBJECT_NOT_FOUND")
+
     # ---------- ownership helpers ----------
 
     def _owned_workspace(self, user_id: str, workspace_id: str) -> Workspace:
