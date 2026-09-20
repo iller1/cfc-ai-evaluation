@@ -185,6 +185,46 @@ class ProBetaAPI:
             raise APIError(403, str(exc)) from exc
         return asdict(message)
 
+    def save_hawm_snapshot(
+        self,
+        credential: str,
+        conversation_id: str,
+        payload: dict[str, Any],
+    ) -> dict:
+        auth = self._auth(credential)
+        state = payload.get("state")
+        if not isinstance(state, dict):
+            raise APIError(400, "HAWM_STATE_REQUIRED")
+        last_verified_state = str(
+            payload.get("last_verified_state") or "UNVERIFIED"
+        )
+        try:
+            snapshot = self.service.save_hawm_snapshot(
+                auth,
+                conversation_id,
+                state,
+                last_verified_state,
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return asdict(snapshot)
+
+    def latest_hawm_snapshot(
+        self, credential: str, conversation_id: str
+    ) -> dict | None:
+        auth = self._auth(credential)
+        try:
+            snapshot = self.service.latest_hawm_snapshot(
+                auth, conversation_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return asdict(snapshot) if snapshot is not None else None
+
     def persist_model_reply(
         self,
         credential: str,
