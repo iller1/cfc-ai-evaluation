@@ -313,6 +313,50 @@ class ProBetaAPI:
             raise APIError(403, str(exc)) from exc
         return asdict(run) if run is not None else None
 
+    def create_audit_report(
+        self,
+        credential: str,
+        conversation_id: str,
+    ) -> dict:
+        auth = self._auth(credential)
+        try:
+            conversation = self.service.get_conversation(
+                auth, conversation_id
+            )
+            hawm_snapshot = self.service.latest_hawm_snapshot(
+                auth, conversation_id
+            )
+            cfc_run = self.service.latest_cfc_run(
+                auth, conversation_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        if hawm_snapshot is None and cfc_run is None:
+            raise APIError(400, "HAWM_OR_CFC_REQUIRED")
+
+        from pro_beta.audit_report import build_audit_document, render_markdown
+
+        document = build_audit_document(
+            conversation=conversation,
+            hawm_snapshot=hawm_snapshot,
+            cfc_run=cfc_run,
+        )
+        report = self.service.save_audit_report(
+            auth,
+            conversation_id,
+            cfc_run_id=cfc_run.run_id if cfc_run is not None else None,
+            status="GENERATED_JSON_MARKDOWN",
+            artifact_path=None,
+        )
+        return {
+            "report_record": asdict(report),
+            "document": document,
+            "markdown": render_markdown(document),
+        }
+
     def persist_model_reply(
         self,
         credential: str,
