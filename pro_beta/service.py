@@ -5,6 +5,7 @@ from typing import Protocol
 
 from pro_beta.auth_boundary import AuthContext
 from pro_beta.contracts import (
+    AuditReportRecord,
     CFCRun,
     Conversation,
     HAWMSnapshot,
@@ -40,6 +41,9 @@ class PersistencePort(Protocol):
     def list_cfc_runs(
         self, user_id: str, conversation_id: str
     ) -> list[CFCRun]: ...
+    def add_audit_report(
+        self, user_id: str, report: AuditReportRecord
+    ) -> AuditReportRecord: ...
 
 
 @dataclass(frozen=True)
@@ -188,3 +192,22 @@ class ProBetaService:
             auth.user_id, conversation_id
         )
         return runs[-1] if runs else None
+
+
+    def save_audit_report(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        *,
+        cfc_run_id: str | None,
+        status: str,
+        artifact_path: str | None = None,
+    ) -> AuditReportRecord:
+        report = AuditReportRecord(
+            report_id=new_id("report"),
+            conversation_id=conversation_id,
+            cfc_run_id=cfc_run_id,
+            status=status,
+            artifact_path=artifact_path,
+        )
+        return self.persistence.add_audit_report(auth.user_id, report)
