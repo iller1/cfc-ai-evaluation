@@ -4,33 +4,116 @@ import json
 import os
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Callable
+from urllib.parse import urlsplit
 
 
 APP_NAME = "CFC + HAWM Pro Beta"
 APP_VERSION = "0.1.0"
 
 
+def _bearer(headers) -> str:
+    raw = headers.get("Authorization", "")
+    if not raw.startswith("Bearer "):
+        return ""
+    return raw[7:].strip()
+
+
+def _allowed_origin() -> str:
+    return os.environ.get("PRO_BETA_FRONTEND_ORIGIN", "").strip()
+
+
+def _build_api():
+    import psycopg
+
+    from pro_beta.api import ProBetaAPI
+    from pro_beta.auth_boundary import AuthBoundary
+    from pro_beta.postgres_persistence import PostgresPersistence
+    from pro_beta.runtime_auth import build_identity_verifier_from_environment
+    from pro_beta.service import ProBetaService
+
+    database_url = os.environ["DATABASE_URL"]
+    connection = psycopg.connect(database_url)
+    persistence = PostgresPersistence(connection)
+    issuer = os.environ.get("CLERK_ISSUER", "").strip()
+    api = ProBetaAPI(
+        verifier=build_identity_verifier_from_environment(),
+        auth_boundary=AuthBoundary(
+            persistence,
+            expected_issuer=issuer,
+            expected_audience="cfc-hawm-pro-beta",
+        ),
+        service=ProBetaService(persistence),
+    )
+    return api, connection
+
+
 class ProBetaHTTPHandler(BaseHTTPRequestHandler):
-    """Minimal transport layer.
-
-    Only health metadata is unauthenticated. Product endpoints are deliberately
-    not wired until a real external identity verifier is configured.
-    """
-
     server_version = "CFC-HAWM-Pro-Beta/0.1"
 
-    def _json(self, status: int, payload: dict) -> None:
+    def _cors_headers(self) -> None:
+        origin = self.headers.get("Origin", "")
+        allowed = _allowed_origin()
+        if allowed and origin == allowed:
+            self.send_header("Access-Control-Allow-Origin", allowed)
+            self.send_header("Vary", "Origin")
+            self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+
+    def _json(self, status: int, payload) -> None:
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        self._cors_headers()
         self.end_headers()
         self.wfile.write(body)
 
+    def _payload(self) -> dict:
+        raw_len = self.headers.get("Content-Length", "0")
+        try:
+            length = int(raw_len)
+        except ValueError:
+            length = 0
+        if length <= 0:
+            return {}
+        raw = self.rfile.read(length)
+        if not raw:
+            return {}
+        try:
+            value = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return {}
+        return value if isinstance(value, dict) else {}
+
+    def _api_call(self, fn):
+        from pro_beta.api import APIError
+
+        api = connection = None
+        try:
+            api, connection = _build_api()
+            result = fn(api)
+            self._json(HTTPStatus.OK, result)
+        except APIError as exc:
+            self._json(exc.status, {"error": exc.code})
+        except KeyError as exc:
+            self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": f"CONFIG_MISSING:{exc.args[0]}"})
+        finally:
+            if connection is not None:
+                connection.close()
+
+    def do_OPTIONS(self) -> None:
+        if urlsplit(self.path).path.startswith("/api/"):
+            self.send_response(HTTPStatus.NO_CONTENT)
+            self._cors_headers()
+            self.end_headers()
+            return
+        self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
+
     def do_GET(self) -> None:
-        if self.path == "/healthz":
+        path = urlsplit(self.path).path
+
+        if path == "/healthz":
             self._json(
                 HTTPStatus.OK,
                 {
@@ -43,32 +126,29 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             )
             return
 
-        if self.path.startswith("/api/"):
-            self._json(
-                HTTPStatus.SERVICE_UNAVAILABLE,
-                {
-                    "error": "AUTH_PROVIDER_NOT_CONFIGURED",
-                    "message": "Pro Beta API is fail-closed until external identity verification is configured.",
-                },
-            )
+        if path == "/api/workspaces":
+            credential = _bearer(self.headers)
+            self._api_call(lambda api: api.list_workspaces(credential))
             return
 
         self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
 
     def do_POST(self) -> None:
-        if self.path.startswith("/api/"):
-            self._json(
-                HTTPStatus.SERVICE_UNAVAILABLE,
-                {
-                    "error": "AUTH_PROVIDER_NOT_CONFIGURED",
-                    "message": "Pro Beta API is fail-closed until external identity verification is configured.",
-                },
-            )
+        path = urlsplit(self.path).path
+        credential = _bearer(self.headers)
+
+        if path == "/api/onboard":
+            self._api_call(lambda api: api.provision_account(credential))
             return
+
+        if path == "/api/workspaces":
+            payload = self._payload()
+            self._api_call(lambda api: api.create_workspace(credential, payload))
+            return
+
         self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
 
     def log_message(self, format: str, *args) -> None:
-        # Keep default access logging out of unit tests and avoid leaking headers.
         return
 
 
@@ -84,14 +164,9 @@ def main() -> None:
     from pro_beta.db_bootstrap import bootstrap_from_environment
 
     tables = bootstrap_from_environment()
-    print(
-        "PRO_BETA_DATABASE_READY tables="
-        + ",".join(tables),
-        flush=True,
-    )
+    print("PRO_BETA_DATABASE_READY tables=" + ",".join(tables), flush=True)
     port = int(os.environ.get("PORT", "8080"))
-    server = make_server(port=port)
-    server.serve_forever()
+    make_server(port=port).serve_forever()
 
 
 if __name__ == "__main__":
