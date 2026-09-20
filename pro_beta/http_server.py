@@ -81,6 +81,9 @@ def make_server(
 
 
 def main() -> None:
+    from pro_beta.db_bootstrap import bootstrap_from_environment
+
+    bootstrap_from_environment()
     port = int(os.environ.get("PORT", "8080"))
     server = make_server(port=port)
     server.serve_forever()
