@@ -225,6 +225,36 @@ class ProBetaAPITests(unittest.TestCase):
             latest["last_verified_state"], "USER_WORKING_STATE"
         )
 
+    def test_prepared_cfc_run_is_separate_and_persisted(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "CFC"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Prepared"},
+        )
+        run = self.api.run_prepared_cfc_case(
+            "token-a",
+            conversation["conversation_id"],
+            {"case_id": "CASE_01_UNRESOLVED_POSITIVE"},
+        )
+        self.assertEqual(run["controller_anchor"], "0.2.90rc1")
+        self.assertEqual(
+            run["boundary"],
+            "PREPARED_SYNTHETIC_FIXTURE_NOT_CONVERSATION_ANALYSIS",
+        )
+        self.assertEqual(run["presentation"]["decision"], "STOP")
+        self.assertTrue(run["replay_matches_reference"])
+
+        latest = self.api.latest_cfc_run(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(latest["run_id"], run["run_id"])
+        self.assertEqual(
+            latest["case_id"], "CASE_01_UNRESOLVED_POSITIVE"
+        )
+
     def test_cross_user_conversation_access_returns_403(self):
         workspace_b = self.api.create_workspace(
             "token-b", {"name": "B workspace"}
