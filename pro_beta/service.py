@@ -20,6 +20,9 @@ class PersistencePort(Protocol):
     def create_conversation(
         self, user_id: str, conversation: Conversation
     ) -> Conversation: ...
+    def list_conversations(
+        self, user_id: str, workspace_id: str
+    ) -> list[Conversation]: ...
     def get_conversation(
         self, user_id: str, conversation_id: str
     ) -> Conversation: ...
@@ -69,6 +72,11 @@ class ProBetaService:
         return self.persistence.create_conversation(
             auth.user_id, conversation
         )
+
+    def list_conversations(
+        self, auth: AuthContext, workspace_id: str
+    ) -> list[Conversation]:
+        return self.persistence.list_conversations(auth.user_id, workspace_id)
 
     def get_conversation(
         self, auth: AuthContext, conversation_id: str
