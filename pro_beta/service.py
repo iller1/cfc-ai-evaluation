@@ -33,6 +33,9 @@ class PersistencePort(Protocol):
     def add_hawm_snapshot(
         self, user_id: str, snapshot: HAWMSnapshot
     ) -> HAWMSnapshot: ...
+    def list_hawm_snapshots(
+        self, user_id: str, conversation_id: str
+    ) -> list[HAWMSnapshot]: ...
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun: ...
 
 
@@ -144,6 +147,14 @@ class ProBetaService:
         return self.persistence.add_hawm_snapshot(
             auth.user_id, snapshot
         )
+
+    def latest_hawm_snapshot(
+        self, auth: AuthContext, conversation_id: str
+    ) -> HAWMSnapshot | None:
+        snapshots = self.persistence.list_hawm_snapshots(
+            auth.user_id, conversation_id
+        )
+        return snapshots[-1] if snapshots else None
 
     def save_cfc_run(
         self,
