@@ -26,8 +26,22 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
         if not dsn:
             raise unittest.SkipTest("PRO_BETA_TEST_DATABASE_URL is not set")
 
-        ensure_schema(dsn)
-        ensure_schema(dsn)
+        first = ensure_schema(dsn)
+        second = ensure_schema(dsn)
+        self.assertEqual(first, second)
+        self.assertEqual(
+            set(first),
+            {
+                "users",
+                "workspaces",
+                "conversations",
+                "messages",
+                "hawm_snapshots",
+                "cfc_runs",
+                "audit_reports",
+                "usage_events",
+            },
+        )
 
         with psycopg.connect(dsn) as conn:
             with conn.cursor() as cur:
