@@ -64,10 +64,82 @@
         <div class="row"><textarea id="hawm-constraints" rows="2" style="flex:1" placeholder="Constraints"></textarea></div>
         <div class="row"><textarea id="hawm-unresolved" rows="2" style="flex:1" placeholder="Unresolved"></textarea></div>
         <div class="row"><input id="hawm-next-action" style="flex:1" placeholder="Next action"></div>
+        <h3>Structured CFC input</h3>
+        <p class="meta">These explicit fields are the only HAWM values mapped into CFC. Free-text HAWM fields are not interpreted.</p>
+        <div class="row">
+          <label>Conclusion
+            <select id="hawm-cfc-conclusion">
+              <option value="POSITIVE">POSITIVE</option>
+              <option value="NEGATIVE">NEGATIVE</option>
+            </select>
+          </label>
+          <label>Required supports
+            <select id="hawm-cfc-required">
+              <option value="1">1</option>
+              <option value="2">2</option>
+            </select>
+          </label>
+          <label>Scope
+            <select id="hawm-cfc-scope">
+              <option value="EXPECTED">EXPECTED</option>
+              <option value="WRONG">WRONG</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Provenance
+            <select id="hawm-cfc-provenance">
+              <option value="DISTINCT">DISTINCT</option>
+              <option value="SHARED_LINEAGE">SHARED_LINEAGE</option>
+            </select>
+          </label>
+          <label>Independence authority
+            <select id="hawm-cfc-independence">
+              <option value="NONE">NONE</option>
+              <option value="VERIFIED">VERIFIED</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Evidence 1 polarity
+            <select id="hawm-cfc-e1-polarity">
+              <option value="POSITIVE">POSITIVE</option>
+              <option value="NEGATIVE">NEGATIVE</option>
+            </select>
+          </label>
+          <label>Evidence 1 validity
+            <select id="hawm-cfc-e1-validity">
+              <option value="CURRENT">CURRENT</option>
+              <option value="STALE">STALE</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Evidence 2
+            <select id="hawm-cfc-e2-enabled">
+              <option value="NO">OMIT</option>
+              <option value="YES">INCLUDE</option>
+            </select>
+          </label>
+          <label>Evidence 2 polarity
+            <select id="hawm-cfc-e2-polarity">
+              <option value="POSITIVE">POSITIVE</option>
+              <option value="NEGATIVE">NEGATIVE</option>
+            </select>
+          </label>
+          <label>Evidence 2 validity
+            <select id="hawm-cfc-e2-validity">
+              <option value="CURRENT">CURRENT</option>
+              <option value="STALE">STALE</option>
+            </select>
+          </label>
+        </div>
         <div class="row">
           <button id="save-hawm">Save HAWM snapshot</button>
+          <button id="run-hawm-cfc">Check structured HAWM with CFC</button>
         </div>
         <p id="hawm-status"></p>
+        <div id="hawm-cfc-result" class="boundary">No structured HAWM CFC run yet.</div>
       </section>
 
       <section id="cfc-panel" class="panel">
