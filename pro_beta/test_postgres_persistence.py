@@ -205,6 +205,35 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
         self.assertEqual(presentation["decision"], "STOP")
         self.assertNotEqual(raw, presentation)
 
+    def test_postgres_lists_cfc_runs_in_order(self):
+        first = CFCRun(
+            run_id="cfc_1",
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="CASE_01_UNRESOLVED_POSITIVE",
+            controller_anchor="0.2.90rc1",
+            controller_result={"control_closure": False},
+            presentation={"decision": "STOP"},
+            replay_matches_reference=True,
+            created_at="2026-01-01T00:00:00+00:00",
+        )
+        second = CFCRun(
+            run_id="cfc_2",
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="CASE_07_VALID_POSITIVE_CLOSURE",
+            controller_anchor="0.2.90rc1",
+            controller_result={"control_closure": True},
+            presentation={"decision": "ALLOW"},
+            replay_matches_reference=True,
+            created_at="2026-01-01T00:00:01+00:00",
+        )
+        self.store.add_cfc_run(self.user_a.user_id, first)
+        self.store.add_cfc_run(self.user_a.user_id, second)
+        rows = self.store.list_cfc_runs(
+            self.user_a.user_id, self.conversation_a.conversation_id
+        )
+        self.assertEqual([r.run_id for r in rows], ["cfc_1", "cfc_2"])
+        self.assertEqual(rows[-1].presentation["decision"], "ALLOW")
+
     def test_postgres_user_lists_only_own_workspaces(self):
         rows = self.store.list_workspaces(self.user_a.user_id)
         self.assertEqual([w.workspace_id for w in rows], [self.workspace_a.workspace_id])
