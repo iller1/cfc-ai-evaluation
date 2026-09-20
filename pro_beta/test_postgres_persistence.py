@@ -90,6 +90,36 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
         with self.assertRaises(OwnershipError):
             self.store.append_message(self.user_a.user_id, msg)
 
+    def test_postgres_lists_only_owned_workspace_conversations(self):
+        rows = self.store.list_conversations(
+            self.user_a.user_id, self.workspace_a.workspace_id
+        )
+        self.assertEqual(
+            [c.conversation_id for c in rows],
+            [self.conversation_a.conversation_id],
+        )
+        with self.assertRaises(OwnershipError):
+            self.store.list_conversations(
+                self.user_a.user_id, self.workspace_b.workspace_id
+            )
+
+    def test_postgres_user_message_round_trip_preserves_boundary(self):
+        msg = Message(
+            message_id=new_id("msg"),
+            conversation_id=self.conversation_a.conversation_id,
+            role="user",
+            content="hello",
+            authority="USER_INPUT",
+            cfc_status="NOT_APPLICABLE",
+            mode="STANDARD",
+        )
+        self.store.append_message(self.user_a.user_id, msg)
+        rows = self.store.list_messages(
+            self.user_a.user_id, self.conversation_a.conversation_id
+        )
+        self.assertEqual(rows[0].authority, "USER_INPUT")
+        self.assertEqual(rows[0].cfc_status, "NOT_APPLICABLE")
+
     def test_postgres_message_round_trip_preserves_boundary(self):
         msg = Message(
             message_id=new_id("msg"),
