@@ -250,6 +250,19 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "cfc-from-hawm":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            conversation_id = parts[2]
+            self._api_call(
+                lambda api: api.run_structured_hawm_cfc(
+                    credential,
+                    conversation_id,
+                )
+            )
+            return
+
         self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
 
     def log_message(self, format: str, *args) -> None:
