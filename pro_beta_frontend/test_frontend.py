@@ -69,6 +69,13 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("pk_test_example", body)
         self.assertIn("PRO_BETA_CLERK_KEY", body)
 
+    def test_csp_allows_clerk_captcha_hosts(self):
+        _, _, headers = self.get("/")
+        csp = headers.get("Content-Security-Policy", "")
+        self.assertIn("https://challenges.cloudflare.com", csp)
+        self.assertIn("https://*.protect.clerk.com", csp)
+        self.assertIn("worker-src 'self' blob:", csp)
+
     def test_security_headers_present(self):
         _, _, headers = self.get("/healthz")
         self.assertIn("Content-Security-Policy", headers)
