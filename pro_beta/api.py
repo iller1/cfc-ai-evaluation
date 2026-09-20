@@ -261,6 +261,46 @@ class ProBetaAPI:
         response["boundary"] = executed["boundary"]
         return response
 
+    def run_structured_hawm_cfc(
+        self,
+        credential: str,
+        conversation_id: str,
+    ) -> dict:
+        auth = self._auth(credential)
+        try:
+            snapshot = self.service.latest_hawm_snapshot(
+                auth, conversation_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        if snapshot is None:
+            raise APIError(400, "HAWM_SNAPSHOT_REQUIRED")
+
+        try:
+            from pro_beta.cfc_execution import run_structured_hawm_state
+            executed = run_structured_hawm_state(snapshot.state)
+        except ValueError as exc:
+            raise APIError(400, str(exc)) from exc
+        except Exception as exc:
+            raise APIError(500, "CFC_EXECUTION_FAILED") from exc
+
+        run = self.service.save_cfc_run(
+            auth,
+            conversation_id,
+            case_id=executed["case_id"],
+            controller_anchor=executed["controller_anchor"],
+            controller_result=executed["controller_result"],
+            presentation=executed["presentation"],
+            replay_matches_reference=executed["replay_matches_reference"],
+        )
+        response = asdict(run)
+        response["boundary"] = executed["boundary"]
+        response["mapped_input"] = executed["mapped_input"]
+        response["hawm_snapshot_id"] = snapshot.snapshot_id
+        return response
+
     def latest_cfc_run(
         self, credential: str, conversation_id: str
     ) -> dict | None:
