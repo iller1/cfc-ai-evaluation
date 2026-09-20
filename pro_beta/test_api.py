@@ -62,6 +62,14 @@ class ProBetaAPITests(unittest.TestCase):
                     audience=AUDIENCE,
                     provider_verified=True,
                 ),
+                "token-new": VerifiedExternalIdentity(
+                    subject="provider|new",
+                    issuer=ISSUER,
+                    audience=AUDIENCE,
+                    email="new@example.com",
+                    email_verified=True,
+                    provider_verified=True,
+                ),
             }
         )
         boundary = AuthBoundary(
@@ -104,6 +112,45 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertEqual(
             ctx.exception.code, "IDENTITY_VERIFIER_NOT_CONFIGURED"
         )
+
+    def test_explicit_provisioning_creates_verified_account(self):
+        result = self.api.provision_account("token-new")
+        self.assertTrue(result["created"])
+        self.assertEqual(
+            result["account"]["external_auth_subject"], "provider|new"
+        )
+        self.assertEqual(result["account"]["email"], "new@example.com")
+
+        second = self.api.provision_account("token-new")
+        self.assertFalse(second["created"])
+        self.assertEqual(
+            second["account"]["user_id"], result["account"]["user_id"]
+        )
+
+    def test_normal_api_still_rejects_unknown_subject_until_provisioned(self):
+        fresh = InMemoryPersistence()
+        verifier = FakeVerifier(
+            {
+                "token-new": VerifiedExternalIdentity(
+                    subject="provider|new",
+                    issuer=ISSUER,
+                    audience=AUDIENCE,
+                    provider_verified=True,
+                )
+            }
+        )
+        api = ProBetaAPI(
+            verifier=verifier,
+            auth_boundary=AuthBoundary(
+                fresh,
+                expected_issuer=ISSUER,
+                expected_audience=AUDIENCE,
+            ),
+            service=ProBetaService(fresh),
+        )
+        with self.assertRaises(APIError) as ctx:
+            api.list_workspaces("token-new")
+        self.assertEqual(ctx.exception.code, "ACCOUNT_NOT_PROVISIONED")
 
     def test_user_cannot_select_another_user_by_payload(self):
         created = self.api.create_workspace(
