@@ -172,7 +172,7 @@ class FrontendTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("/report", body)
         self.assertIn("text/markdown", body)
-        self.assertIn("MODEL_REPLY_UNCHECKED", body)
+        self.assertIn("free-text HAWM and ordinary model replies are not CFC-verified", body)
 
     def test_cfc_prepared_ui_is_present(self):
         status, body, _ = self.get("/")
