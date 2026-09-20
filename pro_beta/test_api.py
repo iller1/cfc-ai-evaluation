@@ -592,6 +592,90 @@ class ProBetaAPITests(unittest.TestCase):
             ctx.exception.code, "HAWM_CFC_STRUCTURED_STATE_REQUIRED"
         )
 
+    def test_audit_report_export_preserves_boundaries(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Audit"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Audit conversation"},
+        )
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {
+                    "goal": "preserve state",
+                    "cfc_structured": {
+                        "conclusion": "POSITIVE",
+                        "required_independent_supports": 1,
+                        "provenance_shape": "DISTINCT",
+                        "independence_authority": "NONE",
+                        "scope": "EXPECTED",
+                        "evidence": [
+                            {"polarity": "POSITIVE", "validity": "CURRENT"}
+                        ],
+                    },
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        self.api.run_structured_hawm_cfc(
+            "token-a", conversation["conversation_id"]
+        )
+
+        exported = self.api.create_audit_report(
+            "token-a", conversation["conversation_id"]
+        )
+        record = exported["report_record"]
+        document = exported["document"]
+        markdown = exported["markdown"]
+
+        self.assertEqual(record["status"], "GENERATED_JSON_MARKDOWN")
+        self.assertIsNone(record["artifact_path"])
+        self.assertEqual(
+            document["report_version"], "HAWM_CFC_AUDIT_REPORT_V1"
+        )
+        self.assertEqual(
+            document["boundaries"]["ordinary_model_reply"],
+            "MODEL_REPLY_UNCHECKED",
+        )
+        self.assertEqual(
+            document["boundaries"]["ordinary_model_cfc"],
+            "NOT_CONNECTED_C2",
+        )
+        self.assertEqual(
+            document["boundaries"]["cfc_bridge"],
+            "STRUCTURED_HAWM_FIELDS_ONLY_NO_NATURAL_LANGUAGE_INFERENCE",
+        )
+        self.assertEqual(
+            document["hawm_snapshot"]["state"]["goal"],
+            "preserve state",
+        )
+        self.assertEqual(
+            document["cfc_run"]["presentation"]["decision"],
+            "ALLOW",
+        )
+        self.assertIn("Raw frozen-controller result", markdown)
+        self.assertIn("MODEL_REPLY_UNCHECKED", markdown)
+        self.assertIn("does not turn free-text HAWM content", markdown)
+
+    def test_audit_report_requires_hawm_or_cfc(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Empty audit"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Empty"},
+        )
+        with self.assertRaises(APIError) as ctx:
+            self.api.create_audit_report(
+                "token-a", conversation["conversation_id"]
+            )
+        self.assertEqual(ctx.exception.code, "HAWM_OR_CFC_REQUIRED")
+
     def test_cross_user_conversation_access_returns_403(self):
         workspace_b = self.api.create_workspace(
             "token-b", {"name": "B workspace"}
