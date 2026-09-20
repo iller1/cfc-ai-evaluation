@@ -24,13 +24,14 @@ class FrontendHandler(BaseHTTPRequestHandler):
         self.send_header(
             "Content-Security-Policy",
             "default-src 'self'; "
-            "script-src 'self' https://*.clerk.accounts.dev; "
-            "connect-src 'self' https://*.clerk.accounts.dev; "
-            "frame-src https://*.clerk.accounts.dev; "
-            "img-src 'self' data: https:; "
+            "script-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com https://*.protect.clerk.com; "
+            "connect-src 'self' https://*.clerk.accounts.dev https://*.protect.clerk.com; "
+            "frame-src 'self' https://challenges.cloudflare.com https://*.protect.clerk.com; "
+            "img-src 'self' data: https://img.clerk.com https:; "
+            "worker-src 'self' blob:; "
             "style-src 'self' 'unsafe-inline'; "
             "font-src 'self' data: https:; "
-            "base-uri 'self'; form-action 'self' https://*.clerk.accounts.dev"
+            "base-uri 'self'; form-action 'self'"
         )
         self.end_headers()
         self.wfile.write(body)
