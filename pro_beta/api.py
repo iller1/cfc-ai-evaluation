@@ -225,6 +225,54 @@ class ProBetaAPI:
             raise APIError(403, str(exc)) from exc
         return asdict(snapshot) if snapshot is not None else None
 
+    def run_prepared_cfc_case(
+        self,
+        credential: str,
+        conversation_id: str,
+        payload: dict[str, Any],
+    ) -> dict:
+        auth = self._auth(credential)
+        case_id = str(payload.get("case_id") or "")
+        try:
+            self.service.get_conversation(auth, conversation_id)
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        try:
+            from pro_beta.cfc_execution import run_prepared_case
+            executed = run_prepared_case(case_id)
+        except ValueError as exc:
+            raise APIError(400, str(exc)) from exc
+        except Exception as exc:
+            raise APIError(500, "CFC_EXECUTION_FAILED") from exc
+
+        run = self.service.save_cfc_run(
+            auth,
+            conversation_id,
+            case_id=executed["case_id"],
+            controller_anchor=executed["controller_anchor"],
+            controller_result=executed["controller_result"],
+            presentation=executed["presentation"],
+            replay_matches_reference=executed["replay_matches_reference"],
+        )
+        response = asdict(run)
+        response["boundary"] = executed["boundary"]
+        return response
+
+    def latest_cfc_run(
+        self, credential: str, conversation_id: str
+    ) -> dict | None:
+        auth = self._auth(credential)
+        try:
+            run = self.service.latest_cfc_run(auth, conversation_id)
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return asdict(run) if run is not None else None
+
     def persist_model_reply(
         self,
         credential: str,
