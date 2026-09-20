@@ -128,6 +128,18 @@ class ProBetaAPI:
             raise APIError(403, str(exc)) from exc
         return asdict(conversation)
 
+    def list_conversations(
+        self, credential: str, workspace_id: str
+    ) -> list[dict]:
+        auth = self._auth(credential)
+        try:
+            conversations = self.service.list_conversations(auth, workspace_id)
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return [asdict(c) for c in conversations]
+
     def get_conversation(
         self, credential: str, conversation_id: str
     ) -> dict:
@@ -153,6 +165,25 @@ class ProBetaAPI:
         except OwnershipError as exc:
             raise APIError(403, str(exc)) from exc
         return [asdict(m) for m in messages]
+
+    def persist_user_message(
+        self,
+        credential: str,
+        conversation_id: str,
+        *,
+        content: str,
+        mode: str,
+    ) -> dict:
+        auth = self._auth(credential)
+        try:
+            message = self.service.save_user_message(
+                auth, conversation_id, content, mode
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return asdict(message)
 
     def persist_model_reply(
         self,
