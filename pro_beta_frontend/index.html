@@ -69,6 +69,21 @@
         </div>
         <p id="hawm-status"></p>
       </section>
+
+      <section id="cfc-panel" class="panel">
+        <h2>CFC prepared check</h2>
+        <p class="meta">Runs a preserved synthetic fixture through frozen CFC Anchor 0.2.90rc1. It does not analyze this conversation text.</p>
+        <div class="row">
+          <select id="cfc-case">
+            <option value="CASE_01_UNRESOLVED_POSITIVE">Unresolved positive</option>
+            <option value="CASE_03_ACTIVE_CONFLICT_NO_RESOLUTION">Active conflict</option>
+            <option value="CASE_07_VALID_POSITIVE_CLOSURE">Valid positive closure</option>
+            <option value="CASE_10_INCOMPLETE_REQUIRED_CHECKS">Incomplete required checks</option>
+          </select>
+          <button id="run-cfc">Run prepared CFC check</button>
+        </div>
+        <div id="cfc-result" class="boundary">No CFC run saved for this conversation yet.</div>
+      </section>
     </section>
   </main>
 
