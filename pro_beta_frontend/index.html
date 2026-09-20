@@ -53,6 +53,22 @@
         <button id="send-message">Save message</button>
       </div>
       <p id="workspace-status"></p>
+
+      <section id="hawm-panel" class="panel">
+        <h2>HAWM working state</h2>
+        <p class="meta">Saved working state for the selected conversation. This does not run CFC.</p>
+        <div class="row"><input id="hawm-goal" style="flex:1" placeholder="Goal"></div>
+        <div class="row"><input id="hawm-task" style="flex:1" placeholder="Current task"></div>
+        <div class="row"><textarea id="hawm-claims" rows="2" style="flex:1" placeholder="Claims / assumptions"></textarea></div>
+        <div class="row"><textarea id="hawm-evidence" rows="2" style="flex:1" placeholder="Evidence"></textarea></div>
+        <div class="row"><textarea id="hawm-constraints" rows="2" style="flex:1" placeholder="Constraints"></textarea></div>
+        <div class="row"><textarea id="hawm-unresolved" rows="2" style="flex:1" placeholder="Unresolved"></textarea></div>
+        <div class="row"><input id="hawm-next-action" style="flex:1" placeholder="Next action"></div>
+        <div class="row">
+          <button id="save-hawm">Save HAWM snapshot</button>
+        </div>
+        <p id="hawm-status"></p>
+      </section>
     </section>
   </main>
 
