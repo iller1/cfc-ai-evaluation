@@ -223,6 +223,32 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("api_key_persisted", body)
         self.assertIn("MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2", body)
 
+    def test_three_model_comparison_ui_is_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="compare-models"', body)
+        self.assertIn('id="compare-status"', body)
+        self.assertIn("same prompt", body.lower())
+        self.assertIn("MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2", body)
+
+    def test_app_js_contains_three_model_comparison_route(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/compare-models", body)
+        self.assertIn("CONNECT_ALL_THREE_PROVIDER_KEYS_FIRST", body)
+        self.assertIn("gemini_api_key", body)
+        self.assertIn("claude_api_key", body)
+        self.assertIn("openai_api_key", body)
+        self.assertIn("SAME_PROMPT", body)
+
     def test_message_metadata_renders_provider_and_model(self):
         with patch.dict(
             os.environ,
