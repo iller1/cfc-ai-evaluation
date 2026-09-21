@@ -220,6 +220,21 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "claude-chat":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            payload = self._payload()
+            conversation_id = parts[2]
+            self._api_call(
+                lambda api: api.chat_with_claude(
+                    credential,
+                    conversation_id,
+                    payload,
+                )
+            )
+            return
+
         if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "gemini-chat":
             if not credential:
                 self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
