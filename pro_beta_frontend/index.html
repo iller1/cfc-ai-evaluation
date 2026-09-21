@@ -84,6 +84,13 @@
           <button id="get-openai-key" type="button">Get OpenAI API key</button>
         </div>
         <div id="openai-status" class="boundary">OpenAI disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</div>
+        <hr>
+        <h3>3-model comparison</h3>
+        <p class="meta">Sends the same prompt, same conversation history and same HAWM working state to Gemini, Claude and OpenAI. All three replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</p>
+        <div class="row">
+          <button id="compare-models">Compare Gemini + Claude + OpenAI</button>
+        </div>
+        <div id="compare-status" class="boundary">No comparison run yet.</div>
       </section>
       <div id="messages"></div>
       <div class="row">
