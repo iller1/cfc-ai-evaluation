@@ -866,6 +866,144 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertEqual(call["api_key"], "secret-test-key")
         self.assertEqual(call["hawm_state"]["goal"], "answer carefully")
 
+    def test_compare_models_uses_same_context_and_persists_one_prompt(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Compare"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Three models"},
+        )
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {"goal": "compare fairly"},
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+
+        gemini_result = {
+            "text": "gemini answer",
+            "finish_reason": "STOP",
+            "truncated": False,
+            "provider": "gemini",
+            "model": "gemini-3.8-flash",
+            "mode": "STANDARD",
+            "authority": "MODEL_REPLY_UNCHECKED",
+            "cfc_status": "NOT_CONNECTED_C2",
+        }
+        claude_result = {
+            "text": "claude answer",
+            "finish_reason": "STOP",
+            "truncated": False,
+            "provider": "claude",
+            "model": "claude-sonnet-4-5",
+            "mode": "STANDARD",
+            "authority": "MODEL_REPLY_UNCHECKED",
+            "cfc_status": "NOT_CONNECTED_C2",
+        }
+        openai_result = {
+            "text": "openai answer",
+            "finish_reason": "completed",
+            "truncated": False,
+            "provider": "openai",
+            "model": "gpt-5.6-terra",
+            "mode": "STANDARD",
+            "authority": "MODEL_REPLY_UNCHECKED",
+            "cfc_status": "NOT_CONNECTED_C2",
+        }
+
+        with patch(
+            "pro_beta.model_provider.gemini_call",
+            return_value=gemini_result,
+        ) as gemini_mock, patch(
+            "pro_beta.model_provider.claude_call",
+            return_value=claude_result,
+        ) as claude_mock, patch(
+            "pro_beta.model_provider.openai_call",
+            return_value=openai_result,
+        ) as openai_mock:
+            result = self.api.compare_models(
+                "token-a",
+                conversation["conversation_id"],
+                {
+                    "text": "same prompt",
+                    "mode": "STANDARD",
+                    "gemini_api_key": "g-key",
+                    "claude_api_key": "c-key",
+                    "openai_api_key": "o-key",
+                    "gemini_model": "gemini-3.8-flash",
+                    "claude_model": "claude-sonnet-4-5",
+                    "openai_model": "gpt-5.6-terra",
+                },
+            )
+
+        self.assertEqual(
+            result["benchmark_type"],
+            "SAME_PROMPT_SAME_HISTORY_SAME_HAWM",
+        )
+        self.assertFalse(result["api_keys_persisted"])
+        self.assertEqual(result["authority"], "MODEL_REPLY_UNCHECKED")
+        self.assertEqual(result["cfc_status"], "NOT_CONNECTED_C2")
+        self.assertEqual(
+            [row["provider"] for row in result["results"]],
+            ["gemini", "claude", "openai"],
+        )
+        for row in result["results"]:
+            self.assertIn("elapsed_ms", row)
+
+        rows = self.api.list_messages(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(
+            [row["content"] for row in rows],
+            ["same prompt", "gemini answer", "claude answer", "openai answer"],
+        )
+        self.assertEqual(
+            [row["provider"] for row in rows[1:]],
+            ["gemini", "claude", "openai"],
+        )
+        self.assertNotIn("g-key", repr(rows))
+        self.assertNotIn("c-key", repr(rows))
+        self.assertNotIn("o-key", repr(rows))
+
+        calls = [
+            gemini_mock.call_args.kwargs,
+            claude_mock.call_args.kwargs,
+            openai_mock.call_args.kwargs,
+        ]
+        for call in calls:
+            self.assertEqual(call["text"], "same prompt")
+            self.assertEqual(call["mode"], "STANDARD")
+            self.assertEqual(call["history"], [])
+            self.assertEqual(call["hawm_state"]["goal"], "compare fairly")
+
+    def test_compare_models_requires_all_three_keys(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Compare missing"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Missing key"},
+        )
+        with self.assertRaises(APIError) as ctx:
+            self.api.compare_models(
+                "token-a",
+                conversation["conversation_id"],
+                {
+                    "text": "same prompt",
+                    "gemini_api_key": "g-key",
+                    "claude_api_key": "c-key",
+                },
+            )
+        self.assertEqual(
+            ctx.exception.code,
+            "COMPARE_API_KEYS_REQUIRED_OPENAI",
+        )
+
     def test_byok_openai_chat_requires_key(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "BYOK missing key"}
