@@ -132,6 +132,8 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
             authority="MODEL_REPLY_UNCHECKED",
             cfc_status="NOT_CONNECTED_C2",
             mode="STANDARD",
+            provider="claude",
+            model="claude-sonnet-4-5",
         )
         self.store.append_message(self.user_a.user_id, msg)
         rows = self.store.list_messages(
