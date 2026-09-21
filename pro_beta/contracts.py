@@ -55,6 +55,8 @@ class Message:
     authority: str
     cfc_status: str
     mode: str
+    provider: str | None = None
+    model: str | None = None
     created_at: str = field(default_factory=utc_now_iso)
 
 
