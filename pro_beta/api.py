@@ -621,67 +621,29 @@ class ProBetaAPI:
         allowed = {"CONSISTENT", "AMBIGUOUS", "PREMATURE_CLOSURE"}
         if label not in allowed:
             raise APIError(400, "BENCHMARK_LABEL_INVALID")
-        try:
-            runs = self.service.persistence.list_benchmark_runs(
-                auth.user_id,
-                self.service.persistence._owned_conversation(
-                    auth.user_id,
-                    next(
-                        run.conversation_id
-                        for run in self.service.persistence.benchmark_runs.values()
-                        if run.benchmark_run_id == benchmark_run_id
-                    ),
-                ).conversation_id,
-            ) if False else None
-        except Exception:
-            runs = None
+        if not provider:
+            raise APIError(400, "BENCHMARK_PROVIDER_REQUIRED")
 
         try:
-            # Ownership is enforced by the persistence layer when labels are read.
-            existing_labels = self.service.list_benchmark_manual_labels(
-                auth, benchmark_run_id
-            )
-            del existing_labels
-            run = next(
-                (
-                    row
-                    for conversation in self.service.list_workspaces(auth)
-                    for row in []
-                ),
-                None,
-            )
+            run = self.service.get_benchmark_run(auth, benchmark_run_id)
         except NotFoundError as exc:
             raise APIError(404, str(exc)) from exc
         except OwnershipError as exc:
             raise APIError(403, str(exc)) from exc
 
-        # Resolve provider/model from the persisted benchmark result; callers
-        # cannot invent a provider that did not successfully answer the run.
-        try:
-            store = self.service.persistence
-            if hasattr(store, "benchmark_runs"):
-                persisted_run = store.benchmark_runs[benchmark_run_id]
-            else:
-                row = store._one(
-                    """
-                    select results
-                    from benchmark_runs
-                    where benchmark_run_id = %s
-                    """,
-                    (benchmark_run_id,),
-                )
-                if row is None:
-                    raise NotFoundError("BENCHMARK_RUN_NOT_FOUND")
-                persisted_run = type("_Run", (), {"results": row[0]})()
-            result = next(
+        result = next(
+            (
                 item
-                for item in persisted_run.results
+                for item in run.results
                 if str(item.get("provider") or "").lower() == provider
+            ),
+            None,
+        )
+        if result is None:
+            raise APIError(
+                400,
+                "BENCHMARK_PROVIDER_NOT_IN_SUCCESSFUL_RESULTS",
             )
-        except (KeyError, StopIteration):
-            raise APIError(400, "BENCHMARK_PROVIDER_NOT_IN_SUCCESSFUL_RESULTS")
-        except NotFoundError as exc:
-            raise APIError(404, str(exc)) from exc
 
         saved = self.service.save_benchmark_manual_label(
             auth,
