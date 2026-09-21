@@ -67,6 +67,25 @@ create table if not exists audit_reports (
   created_at timestamptz not null default now()
 );
 
+create table if not exists benchmark_runs (
+  benchmark_run_id text primary key,
+  conversation_id text not null references conversations(conversation_id) on delete cascade,
+  benchmark_version text not null,
+  case_id text not null,
+  benchmark_type text not null,
+  context_boundary text not null,
+  expected_control_state text not null,
+  invariant text not null,
+  mode text not null,
+  status text not null,
+  results jsonb not null,
+  failed_providers jsonb not null,
+  authority text not null,
+  cfc_status text not null,
+  automatic_semantic_scoring boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists usage_events (
   event_id text primary key,
   user_id text not null references users(user_id) on delete cascade,
@@ -80,6 +99,8 @@ create index if not exists idx_conversations_workspace on conversations(workspac
 create index if not exists idx_messages_conversation_created on messages(conversation_id, created_at);
 create index if not exists idx_hawm_conversation_created on hawm_snapshots(conversation_id, created_at);
 create index if not exists idx_cfc_runs_conversation_created on cfc_runs(conversation_id, created_at);
+create index if not exists idx_benchmark_runs_conversation_created on benchmark_runs(conversation_id, created_at);
+create index if not exists idx_benchmark_runs_case_created on benchmark_runs(case_id, created_at);
 create index if not exists idx_usage_user_created on usage_events(user_id, created_at);
 
 -- Intentionally absent: passwords, password hashes, provider API keys, access tokens.
