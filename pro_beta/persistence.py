@@ -229,6 +229,16 @@ class InMemoryPersistence:
             if r.conversation_id == conversation_id
         ]
 
+    def get_benchmark_run(
+        self, user_id: str, benchmark_run_id: str
+    ) -> BenchmarkRun:
+        try:
+            run = self.benchmark_runs[benchmark_run_id]
+        except KeyError as exc:
+            raise NotFoundError("BENCHMARK_RUN_NOT_FOUND") from exc
+        self._owned_conversation(user_id, run.conversation_id)
+        return run
+
     def upsert_benchmark_manual_label(
         self, user_id: str, label: BenchmarkManualLabel
     ) -> BenchmarkManualLabel:
