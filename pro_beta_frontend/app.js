@@ -203,7 +203,11 @@ window.addEventListener("load", async function () {
       content.textContent = row.content;
       const meta = document.createElement("div");
       meta.className = "meta";
-      meta.textContent = row.role + " · " + row.authority + " · " + row.cfc_status;
+      const providerModel = row.provider
+        ? " · " + row.provider + (row.model ? " · " + row.model : "")
+        : "";
+      meta.textContent =
+        row.role + providerModel + " · " + row.authority + " · " + row.cfc_status;
       el.appendChild(content);
       el.appendChild(meta);
       messages.appendChild(el);
