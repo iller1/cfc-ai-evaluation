@@ -16,6 +16,7 @@ from pro_beta.auth_boundary import (
 from pro_beta.contracts import UserAccount
 from pro_beta.persistence import InMemoryPersistence
 from pro_beta.service import ProBetaService
+from pro_beta.model_provider import ProviderError
 
 
 ISSUER = "https://identity.example/"
