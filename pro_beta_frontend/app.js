@@ -228,6 +228,56 @@ window.addEventListener("load", async function () {
     }
   }
 
+  async function loadBenchmarkHistory() {
+    const target = document.getElementById("benchmark-history");
+    const conversationId = conversationSelect.value;
+    if (!conversationId) {
+      target.textContent = "No conversation selected.";
+      return;
+    }
+    const rows = await api(
+      "/api/conversations/" + conversationId + "/benchmark-runs"
+    );
+    if (!rows.length) {
+      target.textContent = "No persisted benchmark runs yet.";
+      return;
+    }
+
+    const counts = {};
+    let providerFailures = 0;
+    for (const row of rows) {
+      counts[row.case_id] = (counts[row.case_id] || 0) + 1;
+      providerFailures += (row.failed_providers || []).length;
+    }
+    const summary = [
+      "Persisted runs: " + rows.length,
+      "Provider failures: " + providerFailures,
+      "Automatic semantic scoring: disabled"
+    ];
+    for (const caseId of Object.keys(counts).sort()) {
+      summary.push(caseId + ": " + counts[caseId] + " run(s)");
+    }
+    summary.push("");
+    for (const row of rows.slice().reverse()) {
+      const providers = (row.results || [])
+        .map((item) => item.provider + " · " + item.model)
+        .join(", ") || "no successful providers";
+      const failures = (row.failed_providers || [])
+        .map((item) => item.provider + ":" + item.error)
+        .join(", ");
+      summary.push(
+        [
+          row.case_id,
+          row.status,
+          providers,
+          failures ? "failed=" + failures : "failed=none",
+          row.created_at
+        ].join(" · ")
+      );
+    }
+    target.textContent = summary.join("\n");
+  }
+
   async function loadConversations() {
     const workspaceId = workspaceSelect.value;
     if (!workspaceId) {
@@ -240,6 +290,7 @@ window.addEventListener("load", async function () {
     await loadMessages();
     await loadHAWM();
     await loadCFC();
+    await loadBenchmarkHistory();
   }
 
   let benchmarkCases = [];
@@ -335,6 +386,18 @@ window.addEventListener("load", async function () {
           row.case_id + " loaded. Run the three-model comparison when ready.";
       });
 
+      document.getElementById("refresh-benchmark-history").addEventListener(
+        "click",
+        async () => {
+          try {
+            await loadBenchmarkHistory();
+          } catch (error) {
+            document.getElementById("benchmark-history").textContent =
+              "Benchmark history error: " + error.message;
+          }
+        }
+      );
+
       document.getElementById("create-workspace").addEventListener("click", async () => {
         try {
           const name = document.getElementById("workspace-name").value;
@@ -356,6 +419,7 @@ window.addEventListener("load", async function () {
         await loadMessages();
         await loadHAWM();
         await loadCFC();
+        await loadBenchmarkHistory();
       });
 
       document.getElementById("create-conversation").addEventListener("click", async () => {
@@ -827,6 +891,7 @@ window.addEventListener("load", async function () {
           }
           compareStatus.textContent = lines.join("\n");
           await loadMessages();
+          await loadBenchmarkHistory();
         } catch (error) {
           compareStatus.textContent = "Comparison error: " + error.message;
         }
