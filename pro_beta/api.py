@@ -641,6 +641,7 @@ class ProBetaAPI:
             "openai": openai_call,
         }
         completed: list[dict[str, Any]] = []
+        failed: list[dict[str, Any]] = []
         for name, api_key, model in providers:
             started = time.perf_counter()
             try:
@@ -654,13 +655,28 @@ class ProBetaAPI:
                         hawm_snapshot.state if hawm_snapshot is not None else None
                     ),
                 )
+                elapsed_ms = round((time.perf_counter() - started) * 1000)
+                completed.append({**result, "elapsed_ms": elapsed_ms})
             except ProviderError as exc:
-                raise APIError(502, f"COMPARE_{name.upper()}_{exc}") from exc
-            elapsed_ms = round((time.perf_counter() - started) * 1000)
-            completed.append({**result, "elapsed_ms": elapsed_ms})
+                elapsed_ms = round((time.perf_counter() - started) * 1000)
+                failed.append(
+                    {
+                        "provider": name,
+                        "model": model,
+                        "error": str(exc),
+                        "elapsed_ms": elapsed_ms,
+                    }
+                )
 
+        if not completed:
+            joined = "_".join(
+                f"{row['provider'].upper()}_{row['error']}" for row in failed
+            )
+            raise APIError(502, "COMPARE_ALL_PROVIDERS_FAILED_" + joined)
+
+        persisted_mode = completed[0]["mode"]
         user_message = self.service.save_user_message(
-            auth, conversation_id, text, completed[0]["mode"]
+            auth, conversation_id, text, persisted_mode
         )
         model_messages = []
         for result in completed:
@@ -676,9 +692,11 @@ class ProBetaAPI:
 
         return {
             "benchmark_type": "SAME_PROMPT_SAME_HISTORY_SAME_HAWM",
+            "benchmark_status": "COMPLETE" if not failed else "PARTIAL_PROVIDER_FAILURE",
             "user_message": asdict(user_message),
             "model_messages": model_messages,
             "results": completed,
+            "failed_providers": failed,
             "authority": "MODEL_REPLY_UNCHECKED",
             "cfc_status": "NOT_CONNECTED_C2",
             "api_keys_persisted": False,
