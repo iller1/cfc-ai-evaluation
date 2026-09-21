@@ -782,7 +782,12 @@ window.addEventListener("load", async function () {
                 openai_api_key: openaiKey,
                 gemini_model: geminiModel,
                 claude_model: claudeModel,
-                openai_model: openaiModel
+                openai_model: openaiModel,
+                benchmark_case_id: (
+                  selectedBenchmarkCase()
+                    ? selectedBenchmarkCase().case_id
+                    : ""
+                )
               })
             }
           );
@@ -791,6 +796,18 @@ window.addEventListener("load", async function () {
           const lines = [
             result.benchmark_type,
             "Status: " + (result.benchmark_status || "COMPLETE"),
+            result.benchmark_case_id
+              ? "Case: " + result.benchmark_case_id
+              : "Case: custom prompt",
+            result.benchmark_version
+              ? "Benchmark: " + result.benchmark_version
+              : "Benchmark: none",
+            result.benchmark_context_boundary
+              ? "Context: " + result.benchmark_context_boundary
+              : "",
+            result.benchmark_expected_control_state
+              ? "Expected: " + result.benchmark_expected_control_state
+              : "",
             "Authority: " + result.authority,
             "CFC: " + result.cfc_status,
             "API keys persisted: " + String(result.api_keys_persisted)
