@@ -489,6 +489,8 @@ class ProBetaAPI:
             conversation_id,
             result["text"],
             result["mode"],
+            provider=result["provider"],
+            model=result["model"],
         )
         return {
             "user_message": asdict(user_message),
