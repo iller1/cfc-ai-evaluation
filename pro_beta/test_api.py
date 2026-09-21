@@ -743,6 +743,8 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertEqual([row["content"] for row in rows], ["hello", "model answer"])
         self.assertEqual(rows[1]["authority"], "MODEL_REPLY_UNCHECKED")
         self.assertEqual(rows[1]["cfc_status"], "NOT_CONNECTED_C2")
+        self.assertEqual(rows[1]["provider"], "claude")
+        self.assertEqual(rows[1]["model"], "claude-sonnet-4-5")
         self.assertNotIn("secret-test-key", repr(rows))
         call = mocked.call_args.kwargs
         self.assertEqual(call["api_key"], "secret-test-key")
@@ -799,6 +801,8 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertEqual([row["content"] for row in rows], ["hello", "model answer"])
         self.assertEqual(rows[1]["authority"], "MODEL_REPLY_UNCHECKED")
         self.assertEqual(rows[1]["cfc_status"], "NOT_CONNECTED_C2")
+        self.assertEqual(rows[1]["provider"], "gemini")
+        self.assertEqual(rows[1]["model"], "gemini-3.8-flash")
         self.assertNotIn("secret-test-key", repr(rows))
         call = mocked.call_args.kwargs
         self.assertEqual(call["api_key"], "secret-test-key")
