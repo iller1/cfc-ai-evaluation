@@ -36,6 +36,9 @@ create table if not exists messages (
   created_at timestamptz not null default now()
 );
 
+alter table messages add column if not exists provider text;
+alter table messages add column if not exists model text;
+
 create table if not exists hawm_snapshots (
   snapshot_id text primary key,
   conversation_id text not null references conversations(conversation_id) on delete cascade,
