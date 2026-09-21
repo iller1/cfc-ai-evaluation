@@ -70,3 +70,10 @@ def benchmark_manifest() -> dict:
         "case_count": len(CASES),
         "cases": [dict(case) for case in CASES],
     }
+
+
+def get_benchmark_case(case_id: str) -> dict | None:
+    for case in CASES:
+        if case["case_id"] == case_id:
+            return dict(case)
+    return None
