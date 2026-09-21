@@ -5,6 +5,7 @@ from typing import Any
 
 from pro_beta.contracts import (
     AuditReportRecord,
+    BenchmarkRun,
     CFCRun,
     Conversation,
     HAWMSnapshot,
@@ -396,6 +397,82 @@ class PostgresPersistence:
             ),
         )
         return run
+
+
+    def add_benchmark_run(
+        self, user_id: str, run: BenchmarkRun
+    ) -> BenchmarkRun:
+        self._assert_conversation_owned(user_id, run.conversation_id)
+        self._execute(
+            """
+            insert into benchmark_runs
+                (benchmark_run_id, conversation_id, benchmark_version,
+                 case_id, benchmark_type, context_boundary,
+                 expected_control_state, invariant, mode, status,
+                 results, failed_providers, authority, cfc_status,
+                 automatic_semantic_scoring, created_at)
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                    %s::jsonb, %s::jsonb, %s, %s, %s, %s)
+            """,
+            (
+                run.benchmark_run_id,
+                run.conversation_id,
+                run.benchmark_version,
+                run.case_id,
+                run.benchmark_type,
+                run.context_boundary,
+                run.expected_control_state,
+                run.invariant,
+                run.mode,
+                run.status,
+                json.dumps(run.results, ensure_ascii=False),
+                json.dumps(run.failed_providers, ensure_ascii=False),
+                run.authority,
+                run.cfc_status,
+                run.automatic_semantic_scoring,
+                run.created_at,
+            ),
+        )
+        return run
+
+    def list_benchmark_runs(
+        self, user_id: str, conversation_id: str
+    ) -> list[BenchmarkRun]:
+        self._assert_conversation_owned(user_id, conversation_id)
+        rows = self._all(
+            """
+            select benchmark_run_id, conversation_id, benchmark_version,
+                   case_id, benchmark_type, context_boundary,
+                   expected_control_state, invariant, mode, status,
+                   results, failed_providers, authority, cfc_status,
+                   automatic_semantic_scoring, created_at::text
+            from benchmark_runs
+            where conversation_id = %s
+            order by created_at, benchmark_run_id
+            """,
+            (conversation_id,),
+        )
+        return [
+            BenchmarkRun(
+                benchmark_run_id=r[0],
+                conversation_id=r[1],
+                benchmark_version=r[2],
+                case_id=r[3],
+                benchmark_type=r[4],
+                context_boundary=r[5],
+                expected_control_state=r[6],
+                invariant=r[7],
+                mode=r[8],
+                status=r[9],
+                results=r[10],
+                failed_providers=r[11],
+                authority=r[12],
+                cfc_status=r[13],
+                automatic_semantic_scoring=r[14],
+                created_at=r[15],
+            )
+            for r in rows
+        ]
 
 
     def add_audit_report(
