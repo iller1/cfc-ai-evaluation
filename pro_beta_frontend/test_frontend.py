@@ -295,6 +295,28 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("Automatic semantic scoring: disabled", body)
         self.assertIn("Provider failures:", body)
 
+    def test_benchmark_scoreboard_ui_is_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="benchmark-scoreboard"', body)
+        self.assertIn("Aggregated by exact case, provider and model version", body)
+
+    def test_app_js_contains_benchmark_scoreboard_aggregation(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("successful_runs", body)
+        self.assertIn("provider_failures", body)
+        self.assertIn("premature_closure", body)
+        self.assertIn("Counts are observational and grouped by exact model string", body)
+
     def test_app_js_contains_manual_benchmark_label_controls(self):
         with patch.dict(
             os.environ,
