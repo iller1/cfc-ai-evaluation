@@ -505,6 +505,80 @@ class ProBetaAPI:
             "api_key_persisted": False,
         }
 
+    def chat_with_openai(
+        self,
+        credential: str,
+        conversation_id: str,
+        payload: dict[str, Any],
+    ) -> dict:
+        auth = self._auth(credential)
+        text = str(payload.get("text") or "").strip()
+        api_key = str(payload.get("api_key") or "").strip()
+        model = str(payload.get("model") or "gpt-5.6-terra").strip()
+        mode = str(payload.get("mode") or "STANDARD").upper()
+        if not text:
+            raise APIError(400, "TEXT_REQUIRED")
+        if not api_key:
+            raise APIError(400, "OPENAI_API_KEY_REQUIRED")
+
+        try:
+            self.service.get_conversation(auth, conversation_id)
+            history = [
+                asdict(message)
+                for message in self.service.list_messages(
+                    auth, conversation_id
+                )
+            ]
+            hawm_snapshot = self.service.latest_hawm_snapshot(
+                auth, conversation_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        try:
+            from pro_beta.model_provider import ProviderError, openai_call
+            result = openai_call(
+                api_key=api_key,
+                model=model,
+                text=text,
+                mode=mode,
+                history=history,
+                hawm_state=(
+                    hawm_snapshot.state if hawm_snapshot is not None else None
+                ),
+            )
+        except ProviderError as exc:
+            raise APIError(502, str(exc)) from exc
+
+        user_message = self.service.save_user_message(
+            auth,
+            conversation_id,
+            text,
+            result["mode"],
+        )
+        model_message = self.service.save_model_reply(
+            auth,
+            conversation_id,
+            result["text"],
+            result["mode"],
+            provider=result["provider"],
+            model=result["model"],
+        )
+        return {
+            "user_message": asdict(user_message),
+            "model_message": asdict(model_message),
+            "provider": result["provider"],
+            "model": result["model"],
+            "mode": result["mode"],
+            "finish_reason": result["finish_reason"],
+            "truncated": result["truncated"],
+            "authority": result["authority"],
+            "cfc_status": result["cfc_status"],
+            "api_key_persisted": False,
+        }
+
     def persist_model_reply(
         self,
         credential: str,
