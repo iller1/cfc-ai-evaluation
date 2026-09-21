@@ -1181,6 +1181,147 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertNotIn("c-key", repr(rows))
         self.assertNotIn("o-key", repr(rows))
 
+    def test_manual_benchmark_label_is_human_annotation_only(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Manual benchmark label"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "B09 labels"},
+        )
+        case = next(
+            row for row in self.api.list_benchmark_cases("token-a")["cases"]
+            if row["case_id"] == "B09_NATURAL_LANGUAGE_UNKNOWN_FRESHNESS"
+        )
+        base_result = {
+            "finish_reason": "STOP",
+            "truncated": False,
+            "mode": "STANDARD",
+            "authority": "MODEL_REPLY_UNCHECKED",
+            "cfc_status": "NOT_CONNECTED_C2",
+        }
+        with patch(
+            "pro_beta.model_provider.gemini_call",
+            return_value={
+                **base_result,
+                "text": "g",
+                "provider": "gemini",
+                "model": "gemini-3.8-flash",
+            },
+        ), patch(
+            "pro_beta.model_provider.claude_call",
+            return_value={
+                **base_result,
+                "text": "c",
+                "provider": "claude",
+                "model": "claude-sonnet-4-5",
+            },
+        ), patch(
+            "pro_beta.model_provider.openai_call",
+            return_value={
+                **base_result,
+                "text": "o",
+                "provider": "openai",
+                "model": "gpt-5.6-terra",
+            },
+        ):
+            compared = self.api.compare_models(
+                "token-a",
+                conversation["conversation_id"],
+                {
+                    "text": case["prompt"],
+                    "benchmark_case_id": case["case_id"],
+                    "gemini_api_key": "g-key",
+                    "claude_api_key": "c-key",
+                    "openai_api_key": "o-key",
+                },
+            )
+
+        run_id = compared["benchmark_run"]["benchmark_run_id"]
+        saved = self.api.save_benchmark_manual_label(
+            "token-a",
+            run_id,
+            {
+                "provider": "claude",
+                "label": "CONSISTENT",
+                "note": "manual review",
+            },
+        )
+        self.assertEqual(saved["label"], "CONSISTENT")
+        self.assertEqual(saved["provider"], "claude")
+        self.assertEqual(saved["model"], "claude-sonnet-4-5")
+        runs = self.api.list_benchmark_runs(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(runs[0]["manual_labels"][0]["label"], "CONSISTENT")
+        self.assertFalse(runs[0]["automatic_semantic_scoring"])
+        self.assertEqual(runs[0]["authority"], "MODEL_REPLY_UNCHECKED")
+        self.assertEqual(runs[0]["cfc_status"], "NOT_CONNECTED_C2")
+
+    def test_manual_benchmark_label_rejects_failed_or_missing_provider(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Manual label provider"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "B09 provider"},
+        )
+        case = next(
+            row for row in self.api.list_benchmark_cases("token-a")["cases"]
+            if row["case_id"] == "B09_NATURAL_LANGUAGE_UNKNOWN_FRESHNESS"
+        )
+        base_result = {
+            "finish_reason": "STOP",
+            "truncated": False,
+            "mode": "STANDARD",
+            "authority": "MODEL_REPLY_UNCHECKED",
+            "cfc_status": "NOT_CONNECTED_C2",
+        }
+        with patch(
+            "pro_beta.model_provider.gemini_call",
+            side_effect=ProviderError("GEMINI_RATE_LIMIT"),
+        ), patch(
+            "pro_beta.model_provider.claude_call",
+            return_value={
+                **base_result,
+                "text": "c",
+                "provider": "claude",
+                "model": "claude-sonnet-4-5",
+            },
+        ), patch(
+            "pro_beta.model_provider.openai_call",
+            return_value={
+                **base_result,
+                "text": "o",
+                "provider": "openai",
+                "model": "gpt-5.6-terra",
+            },
+        ):
+            compared = self.api.compare_models(
+                "token-a",
+                conversation["conversation_id"],
+                {
+                    "text": case["prompt"],
+                    "benchmark_case_id": case["case_id"],
+                    "gemini_api_key": "g-key",
+                    "claude_api_key": "c-key",
+                    "openai_api_key": "o-key",
+                },
+            )
+        run_id = compared["benchmark_run"]["benchmark_run_id"]
+        with self.assertRaises(APIError) as ctx:
+            self.api.save_benchmark_manual_label(
+                "token-a",
+                run_id,
+                {"provider": "gemini", "label": "CONSISTENT"},
+            )
+        self.assertEqual(
+            ctx.exception.code,
+            "BENCHMARK_PROVIDER_NOT_IN_SUCCESSFUL_RESULTS",
+        )
+
     def test_compare_models_keeps_partial_results_when_one_provider_fails(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "Compare partial"}
