@@ -881,11 +881,15 @@ class ProBetaAPITests(unittest.TestCase):
             manifest["scoring"],
             "NO_AUTOMATIC_SEMANTIC_PASS_FAIL_V1",
         )
-        self.assertEqual(manifest["case_count"], 8)
-        self.assertEqual(len(manifest["cases"]), 8)
+        self.assertEqual(manifest["case_count"], 9)
+        self.assertEqual(len(manifest["cases"]), 9)
         self.assertEqual(
             manifest["cases"][0]["expected_control_state"],
             "CLOSURE_BLOCKED_UNRESOLVED",
+        )
+        self.assertEqual(
+            manifest["cases"][-1]["case_id"],
+            "B09_NATURAL_LANGUAGE_UNKNOWN_FRESHNESS",
         )
 
     def test_compare_models_uses_same_context_and_persists_one_prompt(self):
