@@ -1115,6 +1115,72 @@ class ProBetaAPITests(unittest.TestCase):
             )
         self.assertEqual(ctx.exception.code, "BENCHMARK_PROMPT_MISMATCH")
 
+    def test_fixed_benchmark_run_is_persisted(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Benchmark persistence"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "B09"},
+        )
+        case = next(
+            row for row in self.api.list_benchmark_cases("token-a")["cases"]
+            if row["case_id"] == "B09_NATURAL_LANGUAGE_UNKNOWN_FRESHNESS"
+        )
+        base_result = {
+            "finish_reason": "STOP",
+            "truncated": False,
+            "mode": "STANDARD",
+            "authority": "MODEL_REPLY_UNCHECKED",
+            "cfc_status": "NOT_CONNECTED_C2",
+        }
+        with patch(
+            "pro_beta.model_provider.gemini_call",
+            side_effect=ProviderError("GEMINI_RATE_LIMIT"),
+        ), patch(
+            "pro_beta.model_provider.claude_call",
+            return_value={
+                **base_result,
+                "text": "claude unresolved",
+                "provider": "claude",
+                "model": "claude-sonnet-4-5",
+            },
+        ), patch(
+            "pro_beta.model_provider.openai_call",
+            return_value={
+                **base_result,
+                "text": "openai unresolved",
+                "provider": "openai",
+                "model": "gpt-5.6-terra",
+            },
+        ):
+            result = self.api.compare_models(
+                "token-a",
+                conversation["conversation_id"],
+                {
+                    "text": case["prompt"],
+                    "benchmark_case_id": case["case_id"],
+                    "gemini_api_key": "g-key",
+                    "claude_api_key": "c-key",
+                    "openai_api_key": "o-key",
+                },
+            )
+
+        self.assertEqual(result["benchmark_status"], "PARTIAL_PROVIDER_FAILURE")
+        self.assertIsNotNone(result["benchmark_run"])
+        self.assertFalse(result["benchmark_run"]["automatic_semantic_scoring"])
+        rows = self.api.list_benchmark_runs(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["case_id"], case["case_id"])
+        self.assertEqual(rows[0]["status"], "PARTIAL_PROVIDER_FAILURE")
+        self.assertEqual(rows[0]["failed_providers"][0]["provider"], "gemini")
+        self.assertNotIn("g-key", repr(rows))
+        self.assertNotIn("c-key", repr(rows))
+        self.assertNotIn("o-key", repr(rows))
+
     def test_compare_models_keeps_partial_results_when_one_provider_fails(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "Compare partial"}
