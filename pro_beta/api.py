@@ -598,6 +598,22 @@ class ProBetaAPI:
         if not text:
             raise APIError(400, "TEXT_REQUIRED")
 
+        benchmark_case_id = str(payload.get("benchmark_case_id") or "").strip()
+        benchmark_case = None
+        if benchmark_case_id:
+            from pro_beta.benchmark_cases import (
+                BENCHMARK_VERSION,
+                get_benchmark_case,
+            )
+
+            benchmark_case = get_benchmark_case(benchmark_case_id)
+            if benchmark_case is None:
+                raise APIError(400, "BENCHMARK_CASE_UNKNOWN")
+            if text != benchmark_case["prompt"]:
+                raise APIError(400, "BENCHMARK_PROMPT_MISMATCH")
+        else:
+            BENCHMARK_VERSION = None
+
         providers = [
             (
                 "gemini",
@@ -624,11 +640,15 @@ class ProBetaAPI:
 
         try:
             self.service.get_conversation(auth, conversation_id)
-            history = [
-                asdict(message)
-                for message in self.service.list_messages(auth, conversation_id)
-            ]
-            hawm_snapshot = self.service.latest_hawm_snapshot(auth, conversation_id)
+            if benchmark_case is None:
+                history = [
+                    asdict(message)
+                    for message in self.service.list_messages(auth, conversation_id)
+                ]
+                hawm_snapshot = self.service.latest_hawm_snapshot(auth, conversation_id)
+            else:
+                history = []
+                hawm_snapshot = None
         except NotFoundError as exc:
             raise APIError(404, str(exc)) from exc
         except OwnershipError as exc:
@@ -697,7 +717,28 @@ class ProBetaAPI:
             model_messages.append(asdict(saved))
 
         return {
-            "benchmark_type": "SAME_PROMPT_SAME_HISTORY_SAME_HAWM",
+            "benchmark_type": (
+                "FIXED_NL_BENCHMARK_ISOLATED"
+                if benchmark_case is not None
+                else "SAME_PROMPT_SAME_HISTORY_SAME_HAWM"
+            ),
+            "benchmark_case_id": benchmark_case_id or None,
+            "benchmark_version": BENCHMARK_VERSION,
+            "benchmark_expected_control_state": (
+                benchmark_case["expected_control_state"]
+                if benchmark_case is not None
+                else None
+            ),
+            "benchmark_invariant": (
+                benchmark_case["invariant"]
+                if benchmark_case is not None
+                else None
+            ),
+            "benchmark_context_boundary": (
+                "ISOLATED_NO_CONVERSATION_HISTORY_NO_HAWM"
+                if benchmark_case is not None
+                else "USES_CURRENT_CONVERSATION_HISTORY_AND_HAWM"
+            ),
             "benchmark_status": "COMPLETE" if not failed else "PARTIAL_PROVIDER_FAILURE",
             "user_message": asdict(user_message),
             "model_messages": model_messages,
