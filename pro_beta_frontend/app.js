@@ -12,6 +12,20 @@ window.addEventListener("load", async function () {
   const PRO_BETA_GEMINI_MODEL = "pro_beta_gemini_model";
   const PRO_BETA_CLAUDE_KEY = "pro_beta_claude_key";
   const PRO_BETA_CLAUDE_MODEL = "pro_beta_claude_model";
+  const PRO_BETA_OPENAI_KEY = "pro_beta_openai_key";
+  const PRO_BETA_OPENAI_MODEL = "pro_beta_openai_model";
+
+  function updateOpenAIStatus() {
+    const keyPresent = Boolean(sessionStorage.getItem(PRO_BETA_OPENAI_KEY));
+    const modelName =
+      sessionStorage.getItem(PRO_BETA_OPENAI_MODEL) ||
+      document.getElementById("openai-model").value ||
+      "gpt-5.6-terra";
+    document.getElementById("openai-status").textContent = keyPresent
+      ? "OpenAI ready in this browser tab · " + modelName +
+        " · MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2 · API key not persisted by Pro Beta"
+      : "OpenAI disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.";
+  }
 
   function updateClaudeStatus() {
     const keyPresent = Boolean(sessionStorage.getItem(PRO_BETA_CLAUDE_KEY));
@@ -372,6 +386,39 @@ window.addEventListener("load", async function () {
 
       updateClaudeStatus();
 
+      document.getElementById("connect-openai").addEventListener("click", () => {
+        const rawKey = document.getElementById("openai-key").value.trim();
+        const modelName =
+          document.getElementById("openai-model").value.trim() ||
+          "gpt-5.6-terra";
+        if (!rawKey) {
+          document.getElementById("openai-status").textContent =
+            "OpenAI key required.";
+          return;
+        }
+        sessionStorage.setItem(PRO_BETA_OPENAI_KEY, rawKey);
+        sessionStorage.setItem(PRO_BETA_OPENAI_MODEL, modelName);
+        document.getElementById("openai-key").value = "";
+        updateOpenAIStatus();
+      });
+
+      document.getElementById("disconnect-openai").addEventListener("click", () => {
+        sessionStorage.removeItem(PRO_BETA_OPENAI_KEY);
+        sessionStorage.removeItem(PRO_BETA_OPENAI_MODEL);
+        document.getElementById("openai-key").value = "";
+        updateOpenAIStatus();
+      });
+
+      document.getElementById("get-openai-key").addEventListener("click", () => {
+        window.open(
+          "https://platform.openai.com/api-keys",
+          "_blank",
+          "noopener,noreferrer"
+        );
+      });
+
+      updateOpenAIStatus();
+
       document.getElementById("save-hawm").addEventListener("click", async () => {
         const hawmStatus = document.getElementById("hawm-status");
         try {
@@ -587,6 +634,51 @@ window.addEventListener("load", async function () {
           await loadMessages();
         } catch (error) {
           claudeStatus.textContent = "Claude error: " + error.message;
+        }
+      });
+
+      document.getElementById("send-openai").addEventListener("click", async () => {
+        const openaiStatus = document.getElementById("openai-status");
+        try {
+          const conversationId = conversationSelect.value;
+          if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+          const input = document.getElementById("message-input");
+          const content = input.value.trim();
+          if (!content) throw new Error("MESSAGE_EMPTY");
+          const apiKey = sessionStorage.getItem(PRO_BETA_OPENAI_KEY) || "";
+          if (!apiKey) throw new Error("OPENAI_API_KEY_REQUIRED");
+          const modelName =
+            sessionStorage.getItem(PRO_BETA_OPENAI_MODEL) ||
+            document.getElementById("openai-model").value ||
+            "gpt-5.6-terra";
+          const mode = document.getElementById("gemini-mode").value;
+          openaiStatus.textContent =
+            "Calling OpenAI · ordinary reply remains MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2…";
+          const result = await api(
+            "/api/conversations/" + conversationId + "/openai-chat",
+            {
+              method: "POST",
+              body: JSON.stringify({
+                text: content,
+                mode,
+                model: modelName,
+                api_key: apiKey
+              })
+            }
+          );
+          input.value = "";
+          openaiStatus.textContent = [
+            "OpenAI reply saved",
+            "Provider: " + result.provider,
+            "Model: " + result.model,
+            "Authority: " + result.authority,
+            "CFC: " + result.cfc_status,
+            "API key persisted: " + String(result.api_key_persisted),
+            "Truncated: " + String(result.truncated)
+          ].join("\n");
+          await loadMessages();
+        } catch (error) {
+          openaiStatus.textContent = "OpenAI error: " + error.message;
         }
       });
 
