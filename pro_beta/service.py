@@ -119,6 +119,8 @@ class ProBetaService:
         conversation_id: str,
         content: str,
         mode: str,
+        provider: str | None = None,
+        model: str | None = None,
     ) -> Message:
         message = Message(
             message_id=new_id("msg"),
@@ -128,6 +130,8 @@ class ProBetaService:
             authority="MODEL_REPLY_UNCHECKED",
             cfc_status="NOT_CONNECTED_C2",
             mode=mode,
+            provider=provider,
+            model=model,
         )
         return self.persistence.append_message(auth.user_id, message)
 
