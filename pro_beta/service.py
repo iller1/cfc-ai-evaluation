@@ -6,6 +6,7 @@ from typing import Protocol
 from pro_beta.auth_boundary import AuthContext
 from pro_beta.contracts import (
     AuditReportRecord,
+    BenchmarkManualLabel,
     BenchmarkRun,
     CFCRun,
     Conversation,
@@ -51,6 +52,12 @@ class PersistencePort(Protocol):
     def list_benchmark_runs(
         self, user_id: str, conversation_id: str
     ) -> list[BenchmarkRun]: ...
+    def upsert_benchmark_manual_label(
+        self, user_id: str, label: BenchmarkManualLabel
+    ) -> BenchmarkManualLabel: ...
+    def list_benchmark_manual_labels(
+        self, user_id: str, benchmark_run_id: str
+    ) -> list[BenchmarkManualLabel]: ...
 
 
 @dataclass(frozen=True)
@@ -261,4 +268,34 @@ class ProBetaService:
     ) -> list[BenchmarkRun]:
         return self.persistence.list_benchmark_runs(
             auth.user_id, conversation_id
+        )
+
+
+    def save_benchmark_manual_label(
+        self,
+        auth: AuthContext,
+        benchmark_run_id: str,
+        *,
+        provider: str,
+        model: str,
+        label: str,
+        note: str | None = None,
+    ) -> BenchmarkManualLabel:
+        item = BenchmarkManualLabel(
+            label_id=new_id("benchlabel"),
+            benchmark_run_id=benchmark_run_id,
+            provider=provider,
+            model=model,
+            label=label,
+            note=note,
+        )
+        return self.persistence.upsert_benchmark_manual_label(
+            auth.user_id, item
+        )
+
+    def list_benchmark_manual_labels(
+        self, auth: AuthContext, benchmark_run_id: str
+    ) -> list[BenchmarkManualLabel]:
+        return self.persistence.list_benchmark_manual_labels(
+            auth.user_id, benchmark_run_id
         )
