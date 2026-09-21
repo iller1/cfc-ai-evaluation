@@ -177,6 +177,29 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("api_key_persisted", body)
         self.assertIn("MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2", body)
 
+    def test_byok_claude_ui_is_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="claude-key"', body)
+        self.assertIn('id="send-claude"', body)
+        self.assertIn("Claude BYOK", body)
+
+    def test_app_js_contains_byok_claude_route_and_session_only_key(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/claude-chat", body)
+        self.assertIn("pro_beta_claude_key", body)
+        self.assertIn("api_key_persisted", body)
+        self.assertIn("MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2", body)
+
     def test_audit_report_export_ui_is_present(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
