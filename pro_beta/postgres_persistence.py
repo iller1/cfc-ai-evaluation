@@ -476,6 +476,43 @@ class PostgresPersistence:
         ]
 
 
+    def get_benchmark_run(
+        self, user_id: str, benchmark_run_id: str
+    ) -> BenchmarkRun:
+        row = self._one(
+            """
+            select benchmark_run_id, conversation_id, benchmark_version,
+                   case_id, benchmark_type, context_boundary,
+                   expected_control_state, invariant, mode, status,
+                   results, failed_providers, authority, cfc_status,
+                   automatic_semantic_scoring, created_at::text
+            from benchmark_runs
+            where benchmark_run_id = %s
+            """,
+            (benchmark_run_id,),
+        )
+        if row is None:
+            raise NotFoundError("BENCHMARK_RUN_NOT_FOUND")
+        self._assert_conversation_owned(user_id, row[1])
+        return BenchmarkRun(
+            benchmark_run_id=row[0],
+            conversation_id=row[1],
+            benchmark_version=row[2],
+            case_id=row[3],
+            benchmark_type=row[4],
+            context_boundary=row[5],
+            expected_control_state=row[6],
+            invariant=row[7],
+            mode=row[8],
+            status=row[9],
+            results=row[10],
+            failed_providers=row[11],
+            authority=row[12],
+            cfc_status=row[13],
+            automatic_semantic_scoring=row[14],
+            created_at=row[15],
+        )
+
     def upsert_benchmark_manual_label(
         self, user_id: str, label: BenchmarkManualLabel
     ) -> BenchmarkManualLabel:
