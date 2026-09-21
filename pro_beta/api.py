@@ -586,6 +586,18 @@ class ProBetaAPI:
 
         return benchmark_manifest()
 
+    def list_benchmark_runs(
+        self, credential: str, conversation_id: str
+    ) -> list[dict]:
+        auth = self._auth(credential)
+        try:
+            runs = self.service.list_benchmark_runs(auth, conversation_id)
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return [asdict(run) for run in runs]
+
     def compare_models(
         self,
         credential: str,
@@ -716,6 +728,27 @@ class ProBetaAPI:
             )
             model_messages.append(asdict(saved))
 
+        benchmark_run = None
+        if benchmark_case is not None:
+            benchmark_run = self.service.save_benchmark_run(
+                auth,
+                conversation_id,
+                benchmark_version=BENCHMARK_VERSION,
+                case_id=benchmark_case_id,
+                benchmark_type="FIXED_NL_BENCHMARK_ISOLATED",
+                context_boundary="ISOLATED_NO_CONVERSATION_HISTORY_NO_HAWM",
+                expected_control_state=benchmark_case["expected_control_state"],
+                invariant=benchmark_case["invariant"],
+                mode=persisted_mode,
+                status=(
+                    "COMPLETE"
+                    if not failed
+                    else "PARTIAL_PROVIDER_FAILURE"
+                ),
+                results=completed,
+                failed_providers=failed,
+            )
+
         return {
             "benchmark_type": (
                 "FIXED_NL_BENCHMARK_ISOLATED"
@@ -740,6 +773,9 @@ class ProBetaAPI:
                 else "USES_CURRENT_CONVERSATION_HISTORY_AND_HAWM"
             ),
             "benchmark_status": "COMPLETE" if not failed else "PARTIAL_PROVIDER_FAILURE",
+            "benchmark_run": (
+                asdict(benchmark_run) if benchmark_run is not None else None
+            ),
             "user_message": asdict(user_message),
             "model_messages": model_messages,
             "results": completed,
