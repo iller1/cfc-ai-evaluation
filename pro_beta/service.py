@@ -52,6 +52,9 @@ class PersistencePort(Protocol):
     def list_benchmark_runs(
         self, user_id: str, conversation_id: str
     ) -> list[BenchmarkRun]: ...
+    def get_benchmark_run(
+        self, user_id: str, benchmark_run_id: str
+    ) -> BenchmarkRun: ...
     def upsert_benchmark_manual_label(
         self, user_id: str, label: BenchmarkManualLabel
     ) -> BenchmarkManualLabel: ...
@@ -297,5 +300,13 @@ class ProBetaService:
         self, auth: AuthContext, benchmark_run_id: str
     ) -> list[BenchmarkManualLabel]:
         return self.persistence.list_benchmark_manual_labels(
+            auth.user_id, benchmark_run_id
+        )
+
+
+    def get_benchmark_run(
+        self, auth: AuthContext, benchmark_run_id: str
+    ) -> BenchmarkRun:
+        return self.persistence.get_benchmark_run(
             auth.user_id, benchmark_run_id
         )
