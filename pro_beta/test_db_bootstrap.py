@@ -40,6 +40,7 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                 "cfc_runs",
                 "audit_reports",
                 "benchmark_runs",
+                "benchmark_manual_labels",
                 "usage_events",
             },
         )
