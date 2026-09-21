@@ -580,6 +580,12 @@ class ProBetaAPI:
             "api_key_persisted": False,
         }
 
+    def list_benchmark_cases(self, credential: str) -> dict:
+        self._auth(credential)
+        from pro_beta.benchmark_cases import benchmark_manifest
+
+        return benchmark_manifest()
+
     def compare_models(
         self,
         credential: str,
