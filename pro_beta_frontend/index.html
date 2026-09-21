@@ -64,12 +64,23 @@
           <button id="get-gemini-key" type="button">Get Gemini API key</button>
         </div>
         <div id="gemini-status" class="boundary">Gemini disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</div>
+        <hr>
+        <h3>Claude BYOK</h3>
+        <div class="row">
+          <input id="claude-key" type="password" placeholder="Claude API key">
+          <input id="claude-model" value="claude-sonnet-4-5" placeholder="Model">
+          <button id="connect-claude">Use Claude key in this tab</button>
+          <button id="disconnect-claude">Forget Claude key</button>
+          <button id="get-claude-key" type="button">Get Claude API key</button>
+        </div>
+        <div id="claude-status" class="boundary">Claude disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</div>
       </section>
       <div id="messages"></div>
       <div class="row">
         <textarea id="message-input" rows="3" style="flex:1" placeholder="Write a message"></textarea>
         <button id="send-message">Save message</button>
         <button id="send-gemini">Send to Gemini</button>
+        <button id="send-claude">Send to Claude</button>
       </div>
       <p id="workspace-status"></p>
 
