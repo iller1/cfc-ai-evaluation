@@ -5,6 +5,7 @@ from typing import Dict, List
 
 from pro_beta.contracts import (
     AuditReportRecord,
+    BenchmarkManualLabel,
     BenchmarkRun,
     CFCRun,
     Conversation,
@@ -41,6 +42,7 @@ class InMemoryPersistence:
         self.cfc_runs: Dict[str, CFCRun] = {}
         self.audit_reports: Dict[str, AuditReportRecord] = {}
         self.benchmark_runs: Dict[str, BenchmarkRun] = {}
+        self.benchmark_manual_labels: Dict[str, BenchmarkManualLabel] = {}
         self.usage_events: Dict[str, UsageEvent] = {}
 
     # ---------- user/account ----------
@@ -225,6 +227,41 @@ class InMemoryPersistence:
             r
             for r in self.benchmark_runs.values()
             if r.conversation_id == conversation_id
+        ]
+
+    def upsert_benchmark_manual_label(
+        self, user_id: str, label: BenchmarkManualLabel
+    ) -> BenchmarkManualLabel:
+        try:
+            run = self.benchmark_runs[label.benchmark_run_id]
+        except KeyError as exc:
+            raise NotFoundError("BENCHMARK_RUN_NOT_FOUND") from exc
+        self._owned_conversation(user_id, run.conversation_id)
+        existing_id = None
+        for label_id, current in self.benchmark_manual_labels.items():
+            if (
+                current.benchmark_run_id == label.benchmark_run_id
+                and current.provider == label.provider
+            ):
+                existing_id = label_id
+                break
+        if existing_id is not None:
+            self.benchmark_manual_labels.pop(existing_id)
+        self.benchmark_manual_labels[label.label_id] = label
+        return label
+
+    def list_benchmark_manual_labels(
+        self, user_id: str, benchmark_run_id: str
+    ) -> List[BenchmarkManualLabel]:
+        try:
+            run = self.benchmark_runs[benchmark_run_id]
+        except KeyError as exc:
+            raise NotFoundError("BENCHMARK_RUN_NOT_FOUND") from exc
+        self._owned_conversation(user_id, run.conversation_id)
+        return [
+            label
+            for label in self.benchmark_manual_labels.values()
+            if label.benchmark_run_id == benchmark_run_id
         ]
 
     # ---------- usage ----------
