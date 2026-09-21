@@ -980,6 +980,71 @@ class ProBetaAPITests(unittest.TestCase):
             self.assertEqual(call["history"], [])
             self.assertEqual(call["hawm_state"]["goal"], "compare fairly")
 
+    def test_compare_models_keeps_partial_results_when_one_provider_fails(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Compare partial"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Provider outage"},
+        )
+
+        with patch(
+            "pro_beta.model_provider.gemini_call",
+            side_effect=ProviderError("GEMINI_HTTP_503"),
+        ), patch(
+            "pro_beta.model_provider.claude_call",
+            return_value={
+                "text": "claude answer",
+                "finish_reason": "STOP",
+                "truncated": False,
+                "provider": "claude",
+                "model": "claude-sonnet-4-5",
+                "mode": "STANDARD",
+                "authority": "MODEL_REPLY_UNCHECKED",
+                "cfc_status": "NOT_CONNECTED_C2",
+            },
+        ), patch(
+            "pro_beta.model_provider.openai_call",
+            return_value={
+                "text": "openai answer",
+                "finish_reason": "completed",
+                "truncated": False,
+                "provider": "openai",
+                "model": "gpt-5.6-terra",
+                "mode": "STANDARD",
+                "authority": "MODEL_REPLY_UNCHECKED",
+                "cfc_status": "NOT_CONNECTED_C2",
+            },
+        ):
+            result = self.api.compare_models(
+                "token-a",
+                conversation["conversation_id"],
+                {
+                    "text": "same prompt",
+                    "mode": "STANDARD",
+                    "gemini_api_key": "g-key",
+                    "claude_api_key": "c-key",
+                    "openai_api_key": "o-key",
+                },
+            )
+
+        self.assertEqual(result["benchmark_status"], "PARTIAL_PROVIDER_FAILURE")
+        self.assertEqual(
+            [row["provider"] for row in result["results"]],
+            ["claude", "openai"],
+        )
+        self.assertEqual(result["failed_providers"][0]["provider"], "gemini")
+        self.assertEqual(result["failed_providers"][0]["error"], "GEMINI_HTTP_503")
+        rows = self.api.list_messages(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual(
+            [row["content"] for row in rows],
+            ["same prompt", "claude answer", "openai answer"],
+        )
+
     def test_compare_models_requires_all_three_keys(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "Compare missing"}
