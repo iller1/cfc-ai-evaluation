@@ -235,6 +235,21 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "compare-models":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            payload = self._payload()
+            conversation_id = parts[2]
+            self._api_call(
+                lambda api: api.compare_models(
+                    credential,
+                    conversation_id,
+                    payload,
+                )
+            )
+            return
+
         if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "openai-chat":
             if not credential:
                 self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
