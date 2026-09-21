@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from dataclasses import asdict
 from typing import Any, Protocol
 
@@ -577,6 +578,110 @@ class ProBetaAPI:
             "authority": result["authority"],
             "cfc_status": result["cfc_status"],
             "api_key_persisted": False,
+        }
+
+    def compare_models(
+        self,
+        credential: str,
+        conversation_id: str,
+        payload: dict[str, Any],
+    ) -> dict:
+        auth = self._auth(credential)
+        text = str(payload.get("text") or "").strip()
+        mode = str(payload.get("mode") or "STANDARD").upper()
+        if not text:
+            raise APIError(400, "TEXT_REQUIRED")
+
+        providers = [
+            (
+                "gemini",
+                str(payload.get("gemini_api_key") or "").strip(),
+                str(payload.get("gemini_model") or "gemini-3.8-flash").strip(),
+            ),
+            (
+                "claude",
+                str(payload.get("claude_api_key") or "").strip(),
+                str(payload.get("claude_model") or "claude-sonnet-4-5").strip(),
+            ),
+            (
+                "openai",
+                str(payload.get("openai_api_key") or "").strip(),
+                str(payload.get("openai_model") or "gpt-5.6-terra").strip(),
+            ),
+        ]
+        missing = [name for name, key, _ in providers if not key]
+        if missing:
+            raise APIError(
+                400,
+                "COMPARE_API_KEYS_REQUIRED_" + "_".join(name.upper() for name in missing),
+            )
+
+        try:
+            self.service.get_conversation(auth, conversation_id)
+            history = [
+                asdict(message)
+                for message in self.service.list_messages(auth, conversation_id)
+            ]
+            hawm_snapshot = self.service.latest_hawm_snapshot(auth, conversation_id)
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        from pro_beta.model_provider import (
+            ProviderError,
+            claude_call,
+            gemini_call,
+            openai_call,
+        )
+
+        calls = {
+            "gemini": gemini_call,
+            "claude": claude_call,
+            "openai": openai_call,
+        }
+        completed: list[dict[str, Any]] = []
+        for name, api_key, model in providers:
+            started = time.perf_counter()
+            try:
+                result = calls[name](
+                    api_key=api_key,
+                    model=model,
+                    text=text,
+                    mode=mode,
+                    history=history,
+                    hawm_state=(
+                        hawm_snapshot.state if hawm_snapshot is not None else None
+                    ),
+                )
+            except ProviderError as exc:
+                raise APIError(502, f"COMPARE_{name.upper()}_{exc}") from exc
+            elapsed_ms = round((time.perf_counter() - started) * 1000)
+            completed.append({**result, "elapsed_ms": elapsed_ms})
+
+        user_message = self.service.save_user_message(
+            auth, conversation_id, text, completed[0]["mode"]
+        )
+        model_messages = []
+        for result in completed:
+            saved = self.service.save_model_reply(
+                auth,
+                conversation_id,
+                result["text"],
+                result["mode"],
+                provider=result["provider"],
+                model=result["model"],
+            )
+            model_messages.append(asdict(saved))
+
+        return {
+            "benchmark_type": "SAME_PROMPT_SAME_HISTORY_SAME_HAWM",
+            "user_message": asdict(user_message),
+            "model_messages": model_messages,
+            "results": completed,
+            "authority": "MODEL_REPLY_UNCHECKED",
+            "cfc_status": "NOT_CONNECTED_C2",
+            "api_keys_persisted": False,
         }
 
     def persist_model_reply(
