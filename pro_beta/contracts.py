@@ -92,6 +92,26 @@ class AuditReportRecord:
 
 
 @dataclass(frozen=True)
+class BenchmarkRun:
+    benchmark_run_id: str
+    conversation_id: str
+    benchmark_version: str
+    case_id: str
+    benchmark_type: str
+    context_boundary: str
+    expected_control_state: str
+    invariant: str
+    mode: str
+    status: str
+    results: list[dict[str, Any]]
+    failed_providers: list[dict[str, Any]]
+    authority: str = "MODEL_REPLY_UNCHECKED"
+    cfc_status: str = "NOT_CONNECTED_C2"
+    automatic_semantic_scoring: bool = False
+    created_at: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(frozen=True)
 class UsageEvent:
     event_id: str
     user_id: str
