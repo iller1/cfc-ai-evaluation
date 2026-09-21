@@ -47,10 +47,29 @@
       <div class="row">
         <select id="conversation-select"></select>
       </div>
+      <section id="gemini-panel" class="panel">
+        <h2>Gemini BYOK chat</h2>
+        <p class="meta">Your Gemini API key is kept only in this browser tab session storage and sent with each model request. It is not stored in Pro Beta records.</p>
+        <div class="row">
+          <input id="gemini-key" type="password" placeholder="Gemini API key">
+          <input id="gemini-model" value="gemini-3.8-flash" placeholder="Model">
+          <select id="gemini-mode">
+            <option value="STANDARD">STANDARD</option>
+            <option value="MINIMUM">MINIMUM</option>
+            <option value="EXPANDED">EXPANDED</option>
+            <option value="YES_NO">YES / NO</option>
+          </select>
+          <button id="connect-gemini">Use key in this tab</button>
+          <button id="disconnect-gemini">Forget key</button>
+          <button id="get-gemini-key" type="button">Get Gemini API key</button>
+        </div>
+        <div id="gemini-status" class="boundary">Gemini disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</div>
+      </section>
       <div id="messages"></div>
       <div class="row">
         <textarea id="message-input" rows="3" style="flex:1" placeholder="Write a message"></textarea>
         <button id="send-message">Save message</button>
+        <button id="send-gemini">Send to Gemini</button>
       </div>
       <p id="workspace-status"></p>
 
