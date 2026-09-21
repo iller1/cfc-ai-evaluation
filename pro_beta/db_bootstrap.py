@@ -13,6 +13,7 @@ EXPECTED_TABLES = (
     "hawm_snapshots",
     "cfc_runs",
     "audit_reports",
+    "benchmark_runs",
     "usage_events",
 )
 
