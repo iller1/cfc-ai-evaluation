@@ -165,6 +165,21 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "benchmark-runs" and parts[3] == "label":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            payload = self._payload()
+            benchmark_run_id = parts[2]
+            self._api_call(
+                lambda api: api.save_benchmark_manual_label(
+                    credential,
+                    benchmark_run_id,
+                    payload,
+                )
+            )
+            return
+
         if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "messages":
             credential = _bearer(self.headers)
             if not credential:
