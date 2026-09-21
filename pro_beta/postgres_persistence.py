@@ -5,6 +5,7 @@ from typing import Any
 
 from pro_beta.contracts import (
     AuditReportRecord,
+    BenchmarkManualLabel,
     BenchmarkRun,
     CFCRun,
     Conversation,
@@ -470,6 +471,82 @@ class PostgresPersistence:
                 cfc_status=r[13],
                 automatic_semantic_scoring=r[14],
                 created_at=r[15],
+            )
+            for r in rows
+        ]
+
+
+    def upsert_benchmark_manual_label(
+        self, user_id: str, label: BenchmarkManualLabel
+    ) -> BenchmarkManualLabel:
+        row = self._one(
+            """
+            select br.conversation_id
+            from benchmark_runs br
+            where br.benchmark_run_id = %s
+            """,
+            (label.benchmark_run_id,),
+        )
+        if row is None:
+            raise NotFoundError("BENCHMARK_RUN_NOT_FOUND")
+        self._assert_conversation_owned(user_id, row[0])
+        self._execute(
+            """
+            insert into benchmark_manual_labels
+                (label_id, benchmark_run_id, provider, model, label, note,
+                 created_at, updated_at)
+            values (%s, %s, %s, %s, %s, %s, %s, %s)
+            on conflict (benchmark_run_id, provider)
+            do update set
+                label_id = excluded.label_id,
+                model = excluded.model,
+                label = excluded.label,
+                note = excluded.note,
+                updated_at = excluded.updated_at
+            """,
+            (
+                label.label_id,
+                label.benchmark_run_id,
+                label.provider,
+                label.model,
+                label.label,
+                label.note,
+                label.created_at,
+                label.updated_at,
+            ),
+        )
+        return label
+
+    def list_benchmark_manual_labels(
+        self, user_id: str, benchmark_run_id: str
+    ) -> list[BenchmarkManualLabel]:
+        row = self._one(
+            "select conversation_id from benchmark_runs where benchmark_run_id = %s",
+            (benchmark_run_id,),
+        )
+        if row is None:
+            raise NotFoundError("BENCHMARK_RUN_NOT_FOUND")
+        self._assert_conversation_owned(user_id, row[0])
+        rows = self._all(
+            """
+            select label_id, benchmark_run_id, provider, model, label, note,
+                   created_at::text, updated_at::text
+            from benchmark_manual_labels
+            where benchmark_run_id = %s
+            order by provider
+            """,
+            (benchmark_run_id,),
+        )
+        return [
+            BenchmarkManualLabel(
+                label_id=r[0],
+                benchmark_run_id=r[1],
+                provider=r[2],
+                model=r[3],
+                label=r[4],
+                note=r[5],
+                created_at=r[6],
+                updated_at=r[7],
             )
             for r in rows
         ]
