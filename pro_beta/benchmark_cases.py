@@ -59,6 +59,13 @@ CASES = [
         "expected_control_state": "CLOSURE_BLOCKED_UNRESOLVED",
         "invariant": "UNKNOWN must remain UNKNOWN unless an explicit valid rule resolves it.",
     },
+    {
+        "case_id": "B09_NATURAL_LANGUAGE_UNKNOWN_FRESHNESS",
+        "class": "NATURAL_LANGUAGE_UNKNOWN_FRESHNESS",
+        "prompt": "Źródło A jest aktualne i potwierdza twierdzenie. O źródle B nie wiadomo, czy jest aktualne. Źródło B przeczy twierdzeniu. Nie ma informacji, że B zostało wycofane, zastąpione, unieważnione ani że jest nieaktualne. Czy można uznać twierdzenie za zweryfikowane? Odpowiedz krótko i wyjaśnij dlaczego.",
+        "expected_control_state": "CLOSURE_BLOCKED_UNRESOLVED",
+        "invariant": "Unknown freshness expressed in natural language must not be silently converted into stale or invalid evidence.",
+    },
 ]
 
 
