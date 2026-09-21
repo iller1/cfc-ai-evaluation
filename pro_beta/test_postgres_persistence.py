@@ -6,6 +6,7 @@ from pathlib import Path
 
 from pro_beta.contracts import (
     AuditReportRecord,
+    BenchmarkRun,
     CFCRun,
     Conversation,
     HAWMSnapshot,
@@ -45,8 +46,8 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
             cur.execute(
                 """
                 truncate table
-                    usage_events, audit_reports, cfc_runs, hawm_snapshots,
-                    messages, conversations, workspaces, users
+                    usage_events, benchmark_runs, audit_reports, cfc_runs,
+                    hawm_snapshots, messages, conversations, workspaces, users
                 restart identity cascade
                 """
             )
@@ -273,6 +274,46 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
         self.assertEqual(row[1], run.run_id)
         self.assertEqual(row[2], "GENERATED_JSON_MARKDOWN")
         self.assertIsNone(row[3])
+
+    def test_postgres_benchmark_run_round_trip(self):
+        run = BenchmarkRun(
+            benchmark_run_id=new_id("bench"),
+            conversation_id=self.conversation_a.conversation_id,
+            benchmark_version="CFC_HAWM_NL_CLOSURE_BENCHMARK_V1",
+            case_id="B09_NATURAL_LANGUAGE_UNKNOWN_FRESHNESS",
+            benchmark_type="FIXED_NL_BENCHMARK_ISOLATED",
+            context_boundary="ISOLATED_NO_CONVERSATION_HISTORY_NO_HAWM",
+            expected_control_state="CLOSURE_BLOCKED_UNRESOLVED",
+            invariant="Unknown freshness must not become stale.",
+            mode="STANDARD",
+            status="PARTIAL_PROVIDER_FAILURE",
+            results=[
+                {
+                    "provider": "claude",
+                    "model": "claude-sonnet-4-5",
+                    "text": "No",
+                    "elapsed_ms": 100,
+                }
+            ],
+            failed_providers=[
+                {
+                    "provider": "gemini",
+                    "model": "gemini-3.8-flash",
+                    "error": "GEMINI_RATE_LIMIT",
+                    "elapsed_ms": 20,
+                }
+            ],
+        )
+        self.store.add_benchmark_run(self.user_a.user_id, run)
+        rows = self.store.list_benchmark_runs(
+            self.user_a.user_id, self.conversation_a.conversation_id
+        )
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].case_id, run.case_id)
+        self.assertEqual(rows[0].status, "PARTIAL_PROVIDER_FAILURE")
+        self.assertFalse(rows[0].automatic_semantic_scoring)
+        self.assertEqual(rows[0].results[0]["provider"], "claude")
+        self.assertEqual(rows[0].failed_providers[0]["error"], "GEMINI_RATE_LIMIT")
 
     def test_postgres_user_lists_only_own_workspaces(self):
         rows = self.store.list_workspaces(self.user_a.user_id)
