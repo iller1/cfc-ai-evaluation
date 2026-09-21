@@ -6,6 +6,7 @@ from pathlib import Path
 
 from pro_beta.contracts import (
     AuditReportRecord,
+    BenchmarkManualLabel,
     BenchmarkRun,
     CFCRun,
     Conversation,
@@ -314,6 +315,54 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
         self.assertFalse(rows[0].automatic_semantic_scoring)
         self.assertEqual(rows[0].results[0]["provider"], "claude")
         self.assertEqual(rows[0].failed_providers[0]["error"], "GEMINI_RATE_LIMIT")
+
+    def test_postgres_manual_benchmark_label_upsert(self):
+        run = BenchmarkRun(
+            benchmark_run_id=new_id("bench"),
+            conversation_id=self.conversation_a.conversation_id,
+            benchmark_version="CFC_HAWM_NL_CLOSURE_BENCHMARK_V1",
+            case_id="B09_NATURAL_LANGUAGE_UNKNOWN_FRESHNESS",
+            benchmark_type="FIXED_NL_BENCHMARK_ISOLATED",
+            context_boundary="ISOLATED_NO_CONVERSATION_HISTORY_NO_HAWM",
+            expected_control_state="CLOSURE_BLOCKED_UNRESOLVED",
+            invariant="Unknown freshness must not become stale.",
+            mode="STANDARD",
+            status="COMPLETE",
+            results=[
+                {
+                    "provider": "claude",
+                    "model": "claude-sonnet-4-5",
+                    "text": "No",
+                    "elapsed_ms": 100,
+                }
+            ],
+            failed_providers=[],
+        )
+        self.store.add_benchmark_run(self.user_a.user_id, run)
+        first = BenchmarkManualLabel(
+            label_id=new_id("benchlabel"),
+            benchmark_run_id=run.benchmark_run_id,
+            provider="claude",
+            model="claude-sonnet-4-5",
+            label="CONSISTENT",
+            note="first",
+        )
+        self.store.upsert_benchmark_manual_label(self.user_a.user_id, first)
+        second = BenchmarkManualLabel(
+            label_id=new_id("benchlabel"),
+            benchmark_run_id=run.benchmark_run_id,
+            provider="claude",
+            model="claude-sonnet-4-5",
+            label="AMBIGUOUS",
+            note="revised",
+        )
+        self.store.upsert_benchmark_manual_label(self.user_a.user_id, second)
+        rows = self.store.list_benchmark_manual_labels(
+            self.user_a.user_id, run.benchmark_run_id
+        )
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].label, "AMBIGUOUS")
+        self.assertEqual(rows[0].note, "revised")
 
     def test_postgres_user_lists_only_own_workspaces(self):
         rows = self.store.list_workspaces(self.user_a.user_id)
