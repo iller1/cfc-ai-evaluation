@@ -87,6 +87,8 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
             authority="MODEL_REPLY_UNCHECKED",
             cfc_status="NOT_CONNECTED_C2",
             mode="STANDARD",
+            provider="claude",
+            model="claude-sonnet-4-5",
         )
         with self.assertRaises(OwnershipError):
             self.store.append_message(self.user_a.user_id, msg)
@@ -139,6 +141,8 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
         self.assertEqual(rows[0].content, "ordinary reply")
         self.assertEqual(rows[0].authority, "MODEL_REPLY_UNCHECKED")
         self.assertEqual(rows[0].cfc_status, "NOT_CONNECTED_C2")
+        self.assertEqual(rows[0].provider, "claude")
+        self.assertEqual(rows[0].model, "claude-sonnet-4-5")
 
     def test_postgres_hawm_json_round_trip(self):
         snap = HAWMSnapshot(
