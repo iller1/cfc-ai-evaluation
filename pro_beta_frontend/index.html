@@ -74,6 +74,16 @@
           <button id="get-claude-key" type="button">Get Claude API key</button>
         </div>
         <div id="claude-status" class="boundary">Claude disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</div>
+        <hr>
+        <h3>OpenAI BYOK</h3>
+        <div class="row">
+          <input id="openai-key" type="password" placeholder="OpenAI API key">
+          <input id="openai-model" value="gpt-5.6-terra" placeholder="Model">
+          <button id="connect-openai">Use OpenAI key in this tab</button>
+          <button id="disconnect-openai">Forget OpenAI key</button>
+          <button id="get-openai-key" type="button">Get OpenAI API key</button>
+        </div>
+        <div id="openai-status" class="boundary">OpenAI disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</div>
       </section>
       <div id="messages"></div>
       <div class="row">
@@ -81,6 +91,7 @@
         <button id="send-message">Save message</button>
         <button id="send-gemini">Send to Gemini</button>
         <button id="send-claude">Send to Claude</button>
+        <button id="send-openai">Send to OpenAI</button>
       </div>
       <p id="workspace-status"></p>
 
