@@ -86,6 +86,18 @@ create table if not exists benchmark_runs (
   created_at timestamptz not null default now()
 );
 
+create table if not exists benchmark_manual_labels (
+  label_id text primary key,
+  benchmark_run_id text not null references benchmark_runs(benchmark_run_id) on delete cascade,
+  provider text not null,
+  model text not null,
+  label text not null check (label in ('CONSISTENT','AMBIGUOUS','PREMATURE_CLOSURE')),
+  note text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (benchmark_run_id, provider)
+);
+
 create table if not exists usage_events (
   event_id text primary key,
   user_id text not null references users(user_id) on delete cascade,
@@ -101,6 +113,8 @@ create index if not exists idx_hawm_conversation_created on hawm_snapshots(conve
 create index if not exists idx_cfc_runs_conversation_created on cfc_runs(conversation_id, created_at);
 create index if not exists idx_benchmark_runs_conversation_created on benchmark_runs(conversation_id, created_at);
 create index if not exists idx_benchmark_runs_case_created on benchmark_runs(case_id, created_at);
+create index if not exists idx_benchmark_labels_run on benchmark_manual_labels(benchmark_run_id);
+create index if not exists idx_benchmark_labels_label on benchmark_manual_labels(label);
 create index if not exists idx_usage_user_created on usage_events(user_id, created_at);
 
 -- Intentionally absent: passwords, password hashes, provider API keys, access tokens.
