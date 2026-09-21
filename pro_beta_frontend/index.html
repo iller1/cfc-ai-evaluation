@@ -88,8 +88,14 @@
         <h3>3-model comparison</h3>
         <p class="meta">Sends the same prompt, same conversation history and same HAWM working state to Gemini, Claude and OpenAI. All three replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</p>
         <div class="row">
+          <select id="benchmark-case">
+            <option value="">Custom prompt / no benchmark case</option>
+          </select>
+          <button id="load-benchmark-case" type="button">Load benchmark case</button>
           <button id="compare-models">Compare Gemini + Claude + OpenAI</button>
         </div>
+        <div id="benchmark-boundary" class="boundary">Benchmark cases are natural-language behavior probes, not CFC verification.</div>
+        <div id="benchmark-expected" class="boundary">No benchmark case selected.</div>
         <div id="compare-status" class="boundary">No comparison run yet.</div>
       </section>
       <div id="messages"></div>
