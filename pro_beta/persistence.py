@@ -5,6 +5,7 @@ from typing import Dict, List
 
 from pro_beta.contracts import (
     AuditReportRecord,
+    BenchmarkRun,
     CFCRun,
     Conversation,
     HAWMSnapshot,
@@ -39,6 +40,7 @@ class InMemoryPersistence:
         self.hawm_snapshots: Dict[str, HAWMSnapshot] = {}
         self.cfc_runs: Dict[str, CFCRun] = {}
         self.audit_reports: Dict[str, AuditReportRecord] = {}
+        self.benchmark_runs: Dict[str, BenchmarkRun] = {}
         self.usage_events: Dict[str, UsageEvent] = {}
 
     # ---------- user/account ----------
@@ -203,6 +205,27 @@ class InMemoryPersistence:
             raise ValueError("AUDIT_REPORT_ALREADY_EXISTS")
         self.audit_reports[report.report_id] = report
         return report
+
+    # ---------- benchmark runs ----------
+
+    def add_benchmark_run(
+        self, user_id: str, run: BenchmarkRun
+    ) -> BenchmarkRun:
+        self._owned_conversation(user_id, run.conversation_id)
+        if run.benchmark_run_id in self.benchmark_runs:
+            raise ValueError("BENCHMARK_RUN_ALREADY_EXISTS")
+        self.benchmark_runs[run.benchmark_run_id] = run
+        return run
+
+    def list_benchmark_runs(
+        self, user_id: str, conversation_id: str
+    ) -> List[BenchmarkRun]:
+        self._owned_conversation(user_id, conversation_id)
+        return [
+            r
+            for r in self.benchmark_runs.values()
+            if r.conversation_id == conversation_id
+        ]
 
     # ---------- usage ----------
 
