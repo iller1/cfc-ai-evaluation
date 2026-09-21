@@ -692,6 +692,64 @@ class ProBetaAPITests(unittest.TestCase):
             )
         self.assertEqual(ctx.exception.status, 403)
 
+    def test_byok_openai_chat_persists_only_messages_not_key(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "BYOK"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "OpenAI"},
+        )
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {"goal": "answer carefully"},
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+
+        with patch(
+            "pro_beta.model_provider.openai_call",
+            return_value={
+                "text": "model answer",
+                "finish_reason": "STOP",
+                "truncated": False,
+                "provider": "openai",
+                "model": "gpt-5.6-terra",
+                "mode": "STANDARD",
+                "authority": "MODEL_REPLY_UNCHECKED",
+                "cfc_status": "NOT_CONNECTED_C2",
+            },
+        ) as mocked:
+            result = self.api.chat_with_openai(
+                "token-a",
+                conversation["conversation_id"],
+                {
+                    "text": "hello",
+                    "api_key": "secret-test-key",
+                    "model": "gpt-5.6-terra",
+                    "mode": "STANDARD",
+                },
+            )
+
+        self.assertFalse(result["api_key_persisted"])
+        self.assertEqual(result["authority"], "MODEL_REPLY_UNCHECKED")
+        self.assertEqual(result["cfc_status"], "NOT_CONNECTED_C2")
+        rows = self.api.list_messages(
+            "token-a", conversation["conversation_id"]
+        )
+        self.assertEqual([row["content"] for row in rows], ["hello", "model answer"])
+        self.assertEqual(rows[1]["authority"], "MODEL_REPLY_UNCHECKED")
+        self.assertEqual(rows[1]["cfc_status"], "NOT_CONNECTED_C2")
+        self.assertEqual(rows[1]["provider"], "openai")
+        self.assertEqual(rows[1]["model"], "gpt-5.6-terra")
+        self.assertNotIn("secret-test-key", repr(rows))
+        call = mocked.call_args.kwargs
+        self.assertEqual(call["api_key"], "secret-test-key")
+        self.assertEqual(call["hawm_state"]["goal"], "answer carefully")
+
     def test_byok_claude_chat_persists_only_messages_not_key(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "BYOK"}
@@ -807,6 +865,23 @@ class ProBetaAPITests(unittest.TestCase):
         call = mocked.call_args.kwargs
         self.assertEqual(call["api_key"], "secret-test-key")
         self.assertEqual(call["hawm_state"]["goal"], "answer carefully")
+
+    def test_byok_openai_chat_requires_key(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "BYOK missing key"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "OpenAI"},
+        )
+        with self.assertRaises(APIError) as ctx:
+            self.api.chat_with_openai(
+                "token-a",
+                conversation["conversation_id"],
+                {"text": "hello"},
+            )
+        self.assertEqual(ctx.exception.code, "OPENAI_API_KEY_REQUIRED")
 
     def test_byok_claude_chat_requires_key(self):
         workspace = self.api.create_workspace(
