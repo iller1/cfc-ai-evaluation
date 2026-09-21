@@ -245,6 +245,7 @@ window.addEventListener("load", async function () {
     }
 
     const counts = {};
+    const scoreboard = {};
     const labelCounts = {
       CONSISTENT: 0,
       AMBIGUOUS: 0,
@@ -254,10 +255,67 @@ window.addEventListener("load", async function () {
     for (const row of rows) {
       counts[row.case_id] = (counts[row.case_id] || 0) + 1;
       providerFailures += (row.failed_providers || []).length;
+
+      const labelsByProvider = {};
       for (const item of row.manual_labels || []) {
+        labelsByProvider[item.provider] = item;
         if (Object.prototype.hasOwnProperty.call(labelCounts, item.label)) {
           labelCounts[item.label] += 1;
         }
+      }
+
+      for (const result of row.results || []) {
+        const key = [
+          row.case_id,
+          result.provider,
+          result.model
+        ].join("||");
+        if (!scoreboard[key]) {
+          scoreboard[key] = {
+            case_id: row.case_id,
+            provider: result.provider,
+            model: result.model,
+            successful_runs: 0,
+            evaluated: 0,
+            consistent: 0,
+            ambiguous: 0,
+            premature_closure: 0,
+            provider_failures: 0
+          };
+        }
+        const item = scoreboard[key];
+        item.successful_runs += 1;
+        const label = labelsByProvider[result.provider];
+        if (label) {
+          item.evaluated += 1;
+          if (label.label === "CONSISTENT") item.consistent += 1;
+          if (label.label === "AMBIGUOUS") item.ambiguous += 1;
+          if (label.label === "PREMATURE_CLOSURE") {
+            item.premature_closure += 1;
+          }
+        }
+      }
+
+      for (const failed of row.failed_providers || []) {
+        const key = [
+          row.case_id,
+          failed.provider,
+          failed.model
+        ].join("||");
+        if (!scoreboard[key]) {
+          scoreboard[key] = {
+            case_id: row.case_id,
+            provider: failed.provider,
+            model: failed.model,
+            successful_runs: 0,
+            evaluated: 0,
+            consistent: 0,
+            ambiguous: 0,
+            premature_closure: 0,
+            provider_failures: 0
+          };
+        }
+        scoreboard[key].provider_failures += 1;
       }
     }
 
@@ -279,6 +337,71 @@ window.addEventListener("load", async function () {
       .map((caseId) => caseId + ": " + counts[caseId] + " run(s)")
       .join("\n");
     target.appendChild(caseSummary);
+
+    const scoreboardTarget = document.getElementById("benchmark-scoreboard");
+    scoreboardTarget.innerHTML = "";
+    const scoreboardRows = Object.values(scoreboard).sort((a, b) =>
+      [a.case_id, a.provider, a.model].join("|")
+        .localeCompare([b.case_id, b.provider, b.model].join("|"))
+    );
+    if (!scoreboardRows.length) {
+      scoreboardTarget.textContent = "No benchmark data yet.";
+    } else {
+      const table = document.createElement("table");
+      table.style.width = "100%";
+      table.style.borderCollapse = "collapse";
+      const head = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      for (const label of [
+        "Case",
+        "Provider / model",
+        "Successful",
+        "Evaluated",
+        "Consistent",
+        "Ambiguous",
+        "Premature closure",
+        "Provider failures"
+      ]) {
+        const th = document.createElement("th");
+        th.textContent = label;
+        th.style.textAlign = "left";
+        th.style.padding = "4px 8px 4px 0";
+        headRow.appendChild(th);
+      }
+      head.appendChild(headRow);
+      table.appendChild(head);
+
+      const body = document.createElement("tbody");
+      for (const item of scoreboardRows) {
+        const tr = document.createElement("tr");
+        const values = [
+          item.case_id,
+          item.provider + " · " + item.model,
+          String(item.successful_runs),
+          String(item.evaluated),
+          String(item.consistent),
+          String(item.ambiguous),
+          String(item.premature_closure),
+          String(item.provider_failures)
+        ];
+        for (const value of values) {
+          const td = document.createElement("td");
+          td.textContent = value;
+          td.style.padding = "4px 8px 4px 0";
+          tr.appendChild(td);
+        }
+        body.appendChild(tr);
+      }
+      table.appendChild(body);
+      scoreboardTarget.appendChild(table);
+
+      const note = document.createElement("div");
+      note.className = "meta";
+      note.textContent =
+        "Counts are observational and grouped by exact model string. " +
+        "No automatic semantic scoring or CFC verification is implied.";
+      scoreboardTarget.appendChild(note);
+    }
 
     for (const row of rows.slice().reverse()) {
       const run = document.createElement("div");
