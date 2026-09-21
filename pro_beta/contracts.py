@@ -112,6 +112,18 @@ class BenchmarkRun:
 
 
 @dataclass(frozen=True)
+class BenchmarkManualLabel:
+    label_id: str
+    benchmark_run_id: str
+    provider: str
+    model: str
+    label: str
+    note: str | None = None
+    created_at: str = field(default_factory=utc_now_iso)
+    updated_at: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(frozen=True)
 class UsageEvent:
     event_id: str
     user_id: str
