@@ -200,6 +200,21 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("api_key_persisted", body)
         self.assertIn("MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2", body)
 
+    def test_message_metadata_renders_provider_and_model(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("row.provider", body)
+        self.assertIn("row.model", body)
+        self.assertIn("providerModel", body)
+
     def test_audit_report_export_ui_is_present(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
