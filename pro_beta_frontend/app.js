@@ -10,6 +10,20 @@ window.addEventListener("load", async function () {
   const messages = document.getElementById("messages");
   const PRO_BETA_GEMINI_KEY = "pro_beta_gemini_key";
   const PRO_BETA_GEMINI_MODEL = "pro_beta_gemini_model";
+  const PRO_BETA_CLAUDE_KEY = "pro_beta_claude_key";
+  const PRO_BETA_CLAUDE_MODEL = "pro_beta_claude_model";
+
+  function updateClaudeStatus() {
+    const keyPresent = Boolean(sessionStorage.getItem(PRO_BETA_CLAUDE_KEY));
+    const modelName =
+      sessionStorage.getItem(PRO_BETA_CLAUDE_MODEL) ||
+      document.getElementById("claude-model").value ||
+      "claude-sonnet-4-5";
+    document.getElementById("claude-status").textContent = keyPresent
+      ? "Claude ready in this browser tab · " + modelName +
+        " · MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2 · API key not persisted by Pro Beta"
+      : "Claude disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.";
+  }
 
   function updateGeminiStatus() {
     const keyPresent = Boolean(sessionStorage.getItem(PRO_BETA_GEMINI_KEY));
@@ -321,6 +335,39 @@ window.addEventListener("load", async function () {
 
       updateGeminiStatus();
 
+      document.getElementById("connect-claude").addEventListener("click", () => {
+        const rawKey = document.getElementById("claude-key").value.trim();
+        const modelName =
+          document.getElementById("claude-model").value.trim() ||
+          "claude-sonnet-4-5";
+        if (!rawKey) {
+          document.getElementById("claude-status").textContent =
+            "Claude key required.";
+          return;
+        }
+        sessionStorage.setItem(PRO_BETA_CLAUDE_KEY, rawKey);
+        sessionStorage.setItem(PRO_BETA_CLAUDE_MODEL, modelName);
+        document.getElementById("claude-key").value = "";
+        updateClaudeStatus();
+      });
+
+      document.getElementById("disconnect-claude").addEventListener("click", () => {
+        sessionStorage.removeItem(PRO_BETA_CLAUDE_KEY);
+        sessionStorage.removeItem(PRO_BETA_CLAUDE_MODEL);
+        document.getElementById("claude-key").value = "";
+        updateClaudeStatus();
+      });
+
+      document.getElementById("get-claude-key").addEventListener("click", () => {
+        window.open(
+          "https://console.anthropic.com/settings/keys",
+          "_blank",
+          "noopener,noreferrer"
+        );
+      });
+
+      updateClaudeStatus();
+
       document.getElementById("save-hawm").addEventListener("click", async () => {
         const hawmStatus = document.getElementById("hawm-status");
         try {
@@ -491,6 +538,51 @@ window.addEventListener("load", async function () {
           await loadMessages();
         } catch (error) {
           geminiStatus.textContent = "Gemini error: " + error.message;
+        }
+      });
+
+      document.getElementById("send-claude").addEventListener("click", async () => {
+        const claudeStatus = document.getElementById("claude-status");
+        try {
+          const conversationId = conversationSelect.value;
+          if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+          const input = document.getElementById("message-input");
+          const content = input.value.trim();
+          if (!content) throw new Error("MESSAGE_EMPTY");
+          const apiKey = sessionStorage.getItem(PRO_BETA_CLAUDE_KEY) || "";
+          if (!apiKey) throw new Error("CLAUDE_API_KEY_REQUIRED");
+          const modelName =
+            sessionStorage.getItem(PRO_BETA_CLAUDE_MODEL) ||
+            document.getElementById("claude-model").value ||
+            "claude-sonnet-4-5";
+          const mode = document.getElementById("gemini-mode").value;
+          claudeStatus.textContent =
+            "Calling Claude · ordinary reply remains MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2…";
+          const result = await api(
+            "/api/conversations/" + conversationId + "/claude-chat",
+            {
+              method: "POST",
+              body: JSON.stringify({
+                text: content,
+                mode,
+                model: modelName,
+                api_key: apiKey
+              })
+            }
+          );
+          input.value = "";
+          claudeStatus.textContent = [
+            "Claude reply saved",
+            "Provider: " + result.provider,
+            "Model: " + result.model,
+            "Authority: " + result.authority,
+            "CFC: " + result.cfc_status,
+            "API key persisted: " + String(result.api_key_persisted),
+            "Truncated: " + String(result.truncated)
+          ].join("\n");
+          await loadMessages();
+        } catch (error) {
+          claudeStatus.textContent = "Claude error: " + error.message;
         }
       });
 
