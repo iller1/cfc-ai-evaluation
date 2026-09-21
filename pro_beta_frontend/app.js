@@ -735,6 +735,7 @@ window.addEventListener("load", async function () {
           input.value = "";
           const lines = [
             result.benchmark_type,
+            "Status: " + (result.benchmark_status || "COMPLETE"),
             "Authority: " + result.authority,
             "CFC: " + result.cfc_status,
             "API keys persisted: " + String(result.api_keys_persisted)
@@ -744,6 +745,12 @@ window.addEventListener("load", async function () {
               row.provider + " · " + row.model + " · " +
               row.elapsed_ms + " ms · " +
               row.authority + " · " + row.cfc_status
+            );
+          }
+          for (const row of result.failed_providers || []) {
+            lines.push(
+              row.provider + " · " + row.model + " · FAILED · " +
+              row.error + " · " + row.elapsed_ms + " ms"
             );
           }
           compareStatus.textContent = lines.join("\n");
