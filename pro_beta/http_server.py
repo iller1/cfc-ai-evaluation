@@ -126,6 +126,14 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if path == "/api/benchmark-cases":
+            credential = _bearer(self.headers)
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            self._api_call(lambda api: api.list_benchmark_cases(credential))
+            return
+
         if path == "/api/workspaces":
             credential = _bearer(self.headers)
             if not credential:
