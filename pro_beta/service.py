@@ -6,6 +6,7 @@ from typing import Protocol
 from pro_beta.auth_boundary import AuthContext
 from pro_beta.contracts import (
     AuditReportRecord,
+    BenchmarkRun,
     CFCRun,
     Conversation,
     HAWMSnapshot,
@@ -44,6 +45,12 @@ class PersistencePort(Protocol):
     def add_audit_report(
         self, user_id: str, report: AuditReportRecord
     ) -> AuditReportRecord: ...
+    def add_benchmark_run(
+        self, user_id: str, run: BenchmarkRun
+    ) -> BenchmarkRun: ...
+    def list_benchmark_runs(
+        self, user_id: str, conversation_id: str
+    ) -> list[BenchmarkRun]: ...
 
 
 @dataclass(frozen=True)
@@ -215,3 +222,43 @@ class ProBetaService:
             artifact_path=artifact_path,
         )
         return self.persistence.add_audit_report(auth.user_id, report)
+
+
+    def save_benchmark_run(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        *,
+        benchmark_version: str,
+        case_id: str,
+        benchmark_type: str,
+        context_boundary: str,
+        expected_control_state: str,
+        invariant: str,
+        mode: str,
+        status: str,
+        results: list[dict],
+        failed_providers: list[dict],
+    ) -> BenchmarkRun:
+        run = BenchmarkRun(
+            benchmark_run_id=new_id("bench"),
+            conversation_id=conversation_id,
+            benchmark_version=benchmark_version,
+            case_id=case_id,
+            benchmark_type=benchmark_type,
+            context_boundary=context_boundary,
+            expected_control_state=expected_control_state,
+            invariant=invariant,
+            mode=mode,
+            status=status,
+            results=results,
+            failed_providers=failed_providers,
+        )
+        return self.persistence.add_benchmark_run(auth.user_id, run)
+
+    def list_benchmark_runs(
+        self, auth: AuthContext, conversation_id: str
+    ) -> list[BenchmarkRun]:
+        return self.persistence.list_benchmark_runs(
+            auth.user_id, conversation_id
+        )
