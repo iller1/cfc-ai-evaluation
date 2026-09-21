@@ -8,6 +8,20 @@ window.addEventListener("load", async function () {
   const conversationSelect = document.getElementById("conversation-select");
   const status = document.getElementById("workspace-status");
   const messages = document.getElementById("messages");
+  const PRO_BETA_GEMINI_KEY = "pro_beta_gemini_key";
+  const PRO_BETA_GEMINI_MODEL = "pro_beta_gemini_model";
+
+  function updateGeminiStatus() {
+    const keyPresent = Boolean(sessionStorage.getItem(PRO_BETA_GEMINI_KEY));
+    const modelName =
+      sessionStorage.getItem(PRO_BETA_GEMINI_MODEL) ||
+      document.getElementById("gemini-model").value ||
+      "gemini-3.8-flash";
+    document.getElementById("gemini-status").textContent = keyPresent
+      ? "Gemini ready in this browser tab · " + modelName +
+        " · MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2 · API key not persisted by Pro Beta"
+      : "Gemini disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.";
+  }
 
   async function api(path, options = {}) {
     const token = await Clerk.session.getToken();
@@ -274,6 +288,39 @@ window.addEventListener("load", async function () {
         }
       });
 
+      document.getElementById("connect-gemini").addEventListener("click", () => {
+        const rawKey = document.getElementById("gemini-key").value.trim();
+        const modelName =
+          document.getElementById("gemini-model").value.trim() ||
+          "gemini-3.8-flash";
+        if (!rawKey) {
+          document.getElementById("gemini-status").textContent =
+            "Gemini key required.";
+          return;
+        }
+        sessionStorage.setItem(PRO_BETA_GEMINI_KEY, rawKey);
+        sessionStorage.setItem(PRO_BETA_GEMINI_MODEL, modelName);
+        document.getElementById("gemini-key").value = "";
+        updateGeminiStatus();
+      });
+
+      document.getElementById("disconnect-gemini").addEventListener("click", () => {
+        sessionStorage.removeItem(PRO_BETA_GEMINI_KEY);
+        sessionStorage.removeItem(PRO_BETA_GEMINI_MODEL);
+        document.getElementById("gemini-key").value = "";
+        updateGeminiStatus();
+      });
+
+      document.getElementById("get-gemini-key").addEventListener("click", () => {
+        window.open(
+          "https://aistudio.google.com/app/apikey",
+          "_blank",
+          "noopener,noreferrer"
+        );
+      });
+
+      updateGeminiStatus();
+
       document.getElementById("save-hawm").addEventListener("click", async () => {
         const hawmStatus = document.getElementById("hawm-status");
         try {
@@ -399,6 +446,51 @@ window.addEventListener("load", async function () {
           renderCFC(run);
         } catch (error) {
           result.textContent = "CFC error: " + error.message;
+        }
+      });
+
+      document.getElementById("send-gemini").addEventListener("click", async () => {
+        const geminiStatus = document.getElementById("gemini-status");
+        try {
+          const conversationId = conversationSelect.value;
+          if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+          const input = document.getElementById("message-input");
+          const content = input.value.trim();
+          if (!content) throw new Error("MESSAGE_EMPTY");
+          const apiKey = sessionStorage.getItem(PRO_BETA_GEMINI_KEY) || "";
+          if (!apiKey) throw new Error("GEMINI_API_KEY_REQUIRED");
+          const modelName =
+            sessionStorage.getItem(PRO_BETA_GEMINI_MODEL) ||
+            document.getElementById("gemini-model").value ||
+            "gemini-3.8-flash";
+          const mode = document.getElementById("gemini-mode").value;
+          geminiStatus.textContent =
+            "Calling Gemini · ordinary reply remains MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2…";
+          const result = await api(
+            "/api/conversations/" + conversationId + "/gemini-chat",
+            {
+              method: "POST",
+              body: JSON.stringify({
+                text: content,
+                mode,
+                model: modelName,
+                api_key: apiKey
+              })
+            }
+          );
+          input.value = "";
+          geminiStatus.textContent = [
+            "Gemini reply saved",
+            "Provider: " + result.provider,
+            "Model: " + result.model,
+            "Authority: " + result.authority,
+            "CFC: " + result.cfc_status,
+            "API key persisted: " + String(result.api_key_persisted),
+            "Truncated: " + String(result.truncated)
+          ].join("\n");
+          await loadMessages();
+        } catch (error) {
+          geminiStatus.textContent = "Gemini error: " + error.message;
         }
       });
 
