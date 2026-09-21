@@ -270,7 +270,7 @@ class FrontendTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("/api/benchmark-cases", body)
         self.assertIn("benchmark_case_id", body)
-        self.assertIn("FIXED_NL_BENCHMARK_ISOLATED", body)
+        self.assertIn("benchmark_context_boundary", body)
         self.assertIn("Automatic semantic scoring: disabled in v1", body)
 
     def test_message_metadata_renders_provider_and_model(self):
