@@ -238,44 +238,140 @@ window.addEventListener("load", async function () {
     const rows = await api(
       "/api/conversations/" + conversationId + "/benchmark-runs"
     );
+    target.innerHTML = "";
     if (!rows.length) {
       target.textContent = "No persisted benchmark runs yet.";
       return;
     }
 
     const counts = {};
+    const labelCounts = {
+      CONSISTENT: 0,
+      AMBIGUOUS: 0,
+      PREMATURE_CLOSURE: 0
+    };
     let providerFailures = 0;
     for (const row of rows) {
       counts[row.case_id] = (counts[row.case_id] || 0) + 1;
       providerFailures += (row.failed_providers || []).length;
+      for (const item of row.manual_labels || []) {
+        if (Object.prototype.hasOwnProperty.call(labelCounts, item.label)) {
+          labelCounts[item.label] += 1;
+        }
+      }
     }
-    const summary = [
+
+    const summary = document.createElement("div");
+    summary.className = "meta";
+    summary.textContent = [
       "Persisted runs: " + rows.length,
       "Provider failures: " + providerFailures,
+      "Manual labels: CONSISTENT " + labelCounts.CONSISTENT +
+        " · AMBIGUOUS " + labelCounts.AMBIGUOUS +
+        " · PREMATURE_CLOSURE " + labelCounts.PREMATURE_CLOSURE,
       "Automatic semantic scoring: disabled"
-    ];
-    for (const caseId of Object.keys(counts).sort()) {
-      summary.push(caseId + ": " + counts[caseId] + " run(s)");
-    }
-    summary.push("");
+    ].join("\n");
+    target.appendChild(summary);
+
+    const caseSummary = document.createElement("div");
+    caseSummary.className = "meta";
+    caseSummary.textContent = Object.keys(counts).sort()
+      .map((caseId) => caseId + ": " + counts[caseId] + " run(s)")
+      .join("\n");
+    target.appendChild(caseSummary);
+
     for (const row of rows.slice().reverse()) {
-      const providers = (row.results || [])
-        .map((item) => item.provider + " · " + item.model)
-        .join(", ") || "no successful providers";
-      const failures = (row.failed_providers || [])
-        .map((item) => item.provider + ":" + item.error)
-        .join(", ");
-      summary.push(
-        [
-          row.case_id,
-          row.status,
-          providers,
-          failures ? "failed=" + failures : "failed=none",
-          row.created_at
-        ].join(" · ")
-      );
+      const run = document.createElement("div");
+      run.className = "message";
+
+      const heading = document.createElement("div");
+      heading.textContent = [
+        row.case_id,
+        row.status,
+        row.created_at
+      ].join(" · ");
+      run.appendChild(heading);
+
+      const labelsByProvider = {};
+      for (const item of row.manual_labels || []) {
+        labelsByProvider[item.provider] = item;
+      }
+
+      for (const result of row.results || []) {
+        const line = document.createElement("div");
+        line.className = "row";
+        const providerText = document.createElement("span");
+        providerText.textContent =
+          result.provider + " · " + result.model + " · " +
+          result.elapsed_ms + " ms";
+        line.appendChild(providerText);
+
+        const select = document.createElement("select");
+        select.innerHTML = [
+          '<option value="">Not evaluated</option>',
+          '<option value="CONSISTENT">CONSISTENT</option>',
+          '<option value="AMBIGUOUS">AMBIGUOUS</option>',
+          '<option value="PREMATURE_CLOSURE">PREMATURE_CLOSURE</option>'
+        ].join("");
+        if (labelsByProvider[result.provider]) {
+          select.value = labelsByProvider[result.provider].label;
+        }
+        line.appendChild(select);
+
+        const note = document.createElement("input");
+        note.placeholder = "Optional note";
+        note.value = labelsByProvider[result.provider]?.note || "";
+        line.appendChild(note);
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "Save label";
+        button.addEventListener("click", async () => {
+          if (!select.value) {
+            button.textContent = "Choose label";
+            return;
+          }
+          try {
+            button.textContent = "Saving…";
+            await api(
+              "/api/benchmark-runs/" + row.benchmark_run_id + "/label",
+              {
+                method: "POST",
+                body: JSON.stringify({
+                  provider: result.provider,
+                  label: select.value,
+                  note: note.value.trim()
+                })
+              }
+            );
+            button.textContent = "Saved";
+            await loadBenchmarkHistory();
+          } catch (error) {
+            button.textContent = "Error: " + error.message;
+          }
+        });
+        line.appendChild(button);
+        run.appendChild(line);
+      }
+
+      for (const failed of row.failed_providers || []) {
+        const failure = document.createElement("div");
+        failure.className = "meta";
+        failure.textContent =
+          failed.provider + " · " + failed.model +
+          " · PROVIDER_FAILURE · " + failed.error;
+        run.appendChild(failure);
+      }
+
+      const boundary = document.createElement("div");
+      boundary.className = "meta";
+      boundary.textContent =
+        "Manual labels are human annotations only; model replies remain " +
+        row.authority + " / CFC " + row.cfc_status + ".";
+      run.appendChild(boundary);
+
+      target.appendChild(run);
     }
-    target.textContent = summary.join("\n");
   }
 
   async function loadConversations() {
