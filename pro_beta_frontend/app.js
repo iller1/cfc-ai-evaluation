@@ -242,6 +242,44 @@ window.addEventListener("load", async function () {
     await loadCFC();
   }
 
+  let benchmarkCases = [];
+
+  async function loadBenchmarkCases() {
+    const manifest = await api("/api/benchmark-cases");
+    benchmarkCases = Array.isArray(manifest.cases) ? manifest.cases : [];
+    const select = document.getElementById("benchmark-case");
+    select.innerHTML = '<option value="">Custom prompt / no benchmark case</option>';
+    for (const row of benchmarkCases) {
+      const option = document.createElement("option");
+      option.value = row.case_id;
+      option.textContent = row.case_id + " · " + row.class;
+      select.appendChild(option);
+    }
+    document.getElementById("benchmark-boundary").textContent =
+      manifest.benchmark_version + " · " + manifest.boundary +
+      " · " + manifest.scoring;
+  }
+
+  function selectedBenchmarkCase() {
+    const caseId = document.getElementById("benchmark-case").value;
+    return benchmarkCases.find((row) => row.case_id === caseId) || null;
+  }
+
+  function renderBenchmarkExpectation(row) {
+    const target = document.getElementById("benchmark-expected");
+    if (!row) {
+      target.textContent = "No benchmark case selected.";
+      return;
+    }
+    target.textContent = [
+      "Case: " + row.case_id,
+      "Class: " + row.class,
+      "Expected control state: " + row.expected_control_state,
+      "Invariant: " + row.invariant,
+      "Automatic semantic scoring: disabled in v1"
+    ].join("\n");
+  }
+
   async function loadWorkspaces() {
     const rows = await api("/api/workspaces");
     setOptions(workspaceSelect, rows, "workspace_id", "name");
@@ -278,7 +316,24 @@ window.addEventListener("load", async function () {
           : "Pro Beta account connected.";
 
       app.hidden = false;
+      await loadBenchmarkCases();
       await loadWorkspaces();
+
+      document.getElementById("benchmark-case").addEventListener("change", () => {
+        renderBenchmarkExpectation(selectedBenchmarkCase());
+      });
+
+      document.getElementById("load-benchmark-case").addEventListener("click", () => {
+        const row = selectedBenchmarkCase();
+        if (!row) {
+          renderBenchmarkExpectation(null);
+          return;
+        }
+        document.getElementById("message-input").value = row.prompt;
+        renderBenchmarkExpectation(row);
+        document.getElementById("compare-status").textContent =
+          row.case_id + " loaded. Run the three-model comparison when ready.";
+      });
 
       document.getElementById("create-workspace").addEventListener("click", async () => {
         try {
