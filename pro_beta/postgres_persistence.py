@@ -253,8 +253,8 @@ class PostgresPersistence:
             """
             insert into messages
                 (message_id, conversation_id, role, content,
-                 authority, cfc_status, mode, created_at)
-            values (%s, %s, %s, %s, %s, %s, %s, %s)
+                 authority, cfc_status, mode, provider, model, created_at)
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 message.message_id,
@@ -264,6 +264,8 @@ class PostgresPersistence:
                 message.authority,
                 message.cfc_status,
                 message.mode,
+                message.provider,
+                message.model,
                 message.created_at,
             ),
         )
@@ -274,7 +276,7 @@ class PostgresPersistence:
         rows = self._all(
             """
             select message_id, conversation_id, role, content,
-                   authority, cfc_status, mode, created_at::text
+                   authority, cfc_status, mode, provider, model, created_at::text
             from messages
             where conversation_id = %s
             order by created_at, message_id
@@ -290,7 +292,9 @@ class PostgresPersistence:
                 authority=r[4],
                 cfc_status=r[5],
                 mode=r[6],
-                created_at=r[7],
+                provider=r[7],
+                model=r[8],
+                created_at=r[9],
             )
             for r in rows
         ]
