@@ -14,6 +14,7 @@ EXPECTED_TABLES = (
     "cfc_runs",
     "audit_reports",
     "benchmark_runs",
+    "benchmark_manual_labels",
     "usage_events",
 )
 
