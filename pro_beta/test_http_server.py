@@ -62,6 +62,21 @@ class HTTPServerTests(unittest.TestCase):
         self.assertEqual(status, 401)
         self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
 
+    def test_benchmark_label_route_is_post_only(self):
+        status, payload = self.request(
+            "/api/benchmark-runs/bench_test/label",
+            method="POST",
+        )
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
+
+        status, payload = self.request(
+            "/api/benchmark-runs/bench_test/label",
+            method="GET",
+        )
+        self.assertEqual(status, 404)
+        self.assertEqual(payload["error"], "NOT_FOUND")
+
     def test_unknown_route_is_404(self):
         status, payload = self.request("/unknown")
         self.assertEqual(status, 404)
