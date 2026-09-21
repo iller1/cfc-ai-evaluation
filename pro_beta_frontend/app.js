@@ -682,6 +682,77 @@ window.addEventListener("load", async function () {
         }
       });
 
+      document.getElementById("compare-models").addEventListener("click", async () => {
+        const compareStatus = document.getElementById("compare-status");
+        try {
+          const conversationId = conversationSelect.value;
+          if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+          const input = document.getElementById("message-input");
+          const content = input.value.trim();
+          if (!content) throw new Error("MESSAGE_EMPTY");
+
+          const geminiKey = sessionStorage.getItem(PRO_BETA_GEMINI_KEY) || "";
+          const claudeKey = sessionStorage.getItem(PRO_BETA_CLAUDE_KEY) || "";
+          const openaiKey = sessionStorage.getItem(PRO_BETA_OPENAI_KEY) || "";
+          if (!geminiKey || !claudeKey || !openaiKey) {
+            throw new Error("CONNECT_ALL_THREE_PROVIDER_KEYS_FIRST");
+          }
+
+          const mode = document.getElementById("gemini-mode").value;
+          const geminiModel =
+            sessionStorage.getItem(PRO_BETA_GEMINI_MODEL) ||
+            document.getElementById("gemini-model").value ||
+            "gemini-3.8-flash";
+          const claudeModel =
+            sessionStorage.getItem(PRO_BETA_CLAUDE_MODEL) ||
+            document.getElementById("claude-model").value ||
+            "claude-sonnet-4-5";
+          const openaiModel =
+            sessionStorage.getItem(PRO_BETA_OPENAI_MODEL) ||
+            document.getElementById("openai-model").value ||
+            "gpt-5.6-terra";
+
+          compareStatus.textContent =
+            "Running same-prompt comparison across Gemini, Claude and OpenAI…";
+
+          const result = await api(
+            "/api/conversations/" + conversationId + "/compare-models",
+            {
+              method: "POST",
+              body: JSON.stringify({
+                text: content,
+                mode,
+                gemini_api_key: geminiKey,
+                claude_api_key: claudeKey,
+                openai_api_key: openaiKey,
+                gemini_model: geminiModel,
+                claude_model: claudeModel,
+                openai_model: openaiModel
+              })
+            }
+          );
+
+          input.value = "";
+          const lines = [
+            result.benchmark_type,
+            "Authority: " + result.authority,
+            "CFC: " + result.cfc_status,
+            "API keys persisted: " + String(result.api_keys_persisted)
+          ];
+          for (const row of result.results || []) {
+            lines.push(
+              row.provider + " · " + row.model + " · " +
+              row.elapsed_ms + " ms · " +
+              row.authority + " · " + row.cfc_status
+            );
+          }
+          compareStatus.textContent = lines.join("\n");
+          await loadMessages();
+        } catch (error) {
+          compareStatus.textContent = "Comparison error: " + error.message;
+        }
+      });
+
       document.getElementById("send-message").addEventListener("click", async () => {
         try {
           const conversationId = conversationSelect.value;
