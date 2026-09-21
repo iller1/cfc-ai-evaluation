@@ -867,6 +867,27 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertEqual(call["api_key"], "secret-test-key")
         self.assertEqual(call["hawm_state"]["goal"], "answer carefully")
 
+    def test_benchmark_manifest_is_fixed_and_bounded(self):
+        manifest = self.api.list_benchmark_cases("token-a")
+        self.assertEqual(
+            manifest["benchmark_version"],
+            "CFC_HAWM_NL_CLOSURE_BENCHMARK_V1",
+        )
+        self.assertEqual(
+            manifest["boundary"],
+            "NATURAL_LANGUAGE_MODEL_BEHAVIOR_BENCHMARK_NOT_CFC_VERIFICATION",
+        )
+        self.assertEqual(
+            manifest["scoring"],
+            "NO_AUTOMATIC_SEMANTIC_PASS_FAIL_V1",
+        )
+        self.assertEqual(manifest["case_count"], 8)
+        self.assertEqual(len(manifest["cases"]), 8)
+        self.assertEqual(
+            manifest["cases"][0]["expected_control_state"],
+            "CLOSURE_BLOCKED_UNRESOLVED",
+        )
+
     def test_compare_models_uses_same_context_and_persists_one_prompt(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "Compare"}
@@ -980,6 +1001,115 @@ class ProBetaAPITests(unittest.TestCase):
             self.assertEqual(call["mode"], "STANDARD")
             self.assertEqual(call["history"], [])
             self.assertEqual(call["hawm_state"]["goal"], "compare fairly")
+
+    def test_fixed_benchmark_case_ignores_conversation_history_and_hawm(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Benchmark isolation"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "B08"},
+        )
+        self.api.persist_user_message(
+            "token-a",
+            conversation["conversation_id"],
+            content="contaminating prior history",
+            mode="STANDARD",
+        )
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation["conversation_id"],
+            {
+                "state": {"goal": "contaminating HAWM"},
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        manifest = self.api.list_benchmark_cases("token-a")
+        case = next(
+            row for row in manifest["cases"]
+            if row["case_id"] == "B08_EXPLICIT_UNKNOWN_NOT_STALE"
+        )
+
+        base_result = {
+            "finish_reason": "STOP",
+            "truncated": False,
+            "mode": "STANDARD",
+            "authority": "MODEL_REPLY_UNCHECKED",
+            "cfc_status": "NOT_CONNECTED_C2",
+        }
+        with patch(
+            "pro_beta.model_provider.gemini_call",
+            return_value={
+                **base_result,
+                "text": "g",
+                "provider": "gemini",
+                "model": "gemini-3.8-flash",
+            },
+        ) as g, patch(
+            "pro_beta.model_provider.claude_call",
+            return_value={
+                **base_result,
+                "text": "c",
+                "provider": "claude",
+                "model": "claude-sonnet-4-5",
+            },
+        ) as cl, patch(
+            "pro_beta.model_provider.openai_call",
+            return_value={
+                **base_result,
+                "text": "o",
+                "provider": "openai",
+                "model": "gpt-5.6-terra",
+            },
+        ) as o:
+            result = self.api.compare_models(
+                "token-a",
+                conversation["conversation_id"],
+                {
+                    "text": case["prompt"],
+                    "benchmark_case_id": case["case_id"],
+                    "gemini_api_key": "g-key",
+                    "claude_api_key": "c-key",
+                    "openai_api_key": "o-key",
+                },
+            )
+
+        self.assertEqual(result["benchmark_type"], "FIXED_NL_BENCHMARK_ISOLATED")
+        self.assertEqual(
+            result["benchmark_context_boundary"],
+            "ISOLATED_NO_CONVERSATION_HISTORY_NO_HAWM",
+        )
+        self.assertEqual(
+            result["benchmark_expected_control_state"],
+            "CLOSURE_BLOCKED_UNRESOLVED",
+        )
+        for call in (g.call_args.kwargs, cl.call_args.kwargs, o.call_args.kwargs):
+            self.assertEqual(call["history"], [])
+            self.assertIsNone(call["hawm_state"])
+
+    def test_fixed_benchmark_rejects_prompt_mutation(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Benchmark mutation"}
+        )
+        conversation = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Mutation"},
+        )
+        with self.assertRaises(APIError) as ctx:
+            self.api.compare_models(
+                "token-a",
+                conversation["conversation_id"],
+                {
+                    "text": "mutated prompt",
+                    "benchmark_case_id": "B08_EXPLICIT_UNKNOWN_NOT_STALE",
+                    "gemini_api_key": "g-key",
+                    "claude_api_key": "c-key",
+                    "openai_api_key": "o-key",
+                },
+            )
+        self.assertEqual(ctx.exception.code, "BENCHMARK_PROMPT_MISMATCH")
 
     def test_compare_models_keeps_partial_results_when_one_provider_fails(self):
         workspace = self.api.create_workspace(
