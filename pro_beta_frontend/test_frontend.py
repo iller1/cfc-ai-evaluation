@@ -249,6 +249,30 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("openai_api_key", body)
         self.assertIn("benchmark_type", body)
 
+    def test_fixed_benchmark_selector_is_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="benchmark-case"', body)
+        self.assertIn('id="load-benchmark-case"', body)
+        self.assertIn('id="benchmark-expected"', body)
+        self.assertIn("natural-language behavior probes", body)
+
+    def test_app_js_loads_and_binds_fixed_benchmark_cases(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/api/benchmark-cases", body)
+        self.assertIn("benchmark_case_id", body)
+        self.assertIn("FIXED_NL_BENCHMARK_ISOLATED", body)
+        self.assertIn("Automatic semantic scoring: disabled in v1", body)
+
     def test_message_metadata_renders_provider_and_model(self):
         with patch.dict(
             os.environ,
