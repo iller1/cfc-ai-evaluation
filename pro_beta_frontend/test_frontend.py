@@ -247,7 +247,7 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("gemini_api_key", body)
         self.assertIn("claude_api_key", body)
         self.assertIn("openai_api_key", body)
-        self.assertIn("SAME_PROMPT", body)
+        self.assertIn("benchmark_type", body)
 
     def test_message_metadata_renders_provider_and_model(self):
         with patch.dict(
