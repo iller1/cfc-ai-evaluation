@@ -871,7 +871,7 @@ class ProBetaAPITests(unittest.TestCase):
         manifest = self.api.list_benchmark_cases("token-a")
         self.assertEqual(
             manifest["benchmark_version"],
-            "CFC_HAWM_NL_CLOSURE_BENCHMARK_V1",
+            "CFC_HAWM_NL_CLOSURE_BENCHMARK_V2",
         )
         self.assertEqual(
             manifest["boundary"],
