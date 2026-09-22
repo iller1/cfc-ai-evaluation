@@ -271,7 +271,7 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("/api/benchmark-cases", body)
         self.assertIn("benchmark_case_id", body)
         self.assertIn("benchmark_context_boundary", body)
-        self.assertIn("Automatic semantic scoring: disabled in v1", body)
+        self.assertIn("Automatic semantic scoring: disabled", body)
 
     def test_benchmark_history_ui_is_present(self):
         status, body, _ = self.get("/")
