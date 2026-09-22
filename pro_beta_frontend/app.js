@@ -253,7 +253,9 @@ window.addEventListener("load", async function () {
     };
     let providerFailures = 0;
     for (const row of rows) {
-      counts[row.case_id] = (counts[row.case_id] || 0) + 1;
+      const benchmarkVersion = row.benchmark_version || "UNKNOWN_BENCHMARK_VERSION";
+      const caseCountKey = benchmarkVersion + "||" + row.case_id;
+      counts[caseCountKey] = (counts[caseCountKey] || 0) + 1;
       providerFailures += (row.failed_providers || []).length;
 
       const labelsByProvider = {};
@@ -266,12 +268,14 @@ window.addEventListener("load", async function () {
 
       for (const result of row.results || []) {
         const key = [
+          benchmarkVersion,
           row.case_id,
           result.provider,
           result.model
         ].join("||");
         if (!scoreboard[key]) {
           scoreboard[key] = {
+            benchmark_version: benchmarkVersion,
             case_id: row.case_id,
             provider: result.provider,
             model: result.model,
@@ -298,12 +302,14 @@ window.addEventListener("load", async function () {
 
       for (const failed of row.failed_providers || []) {
         const key = [
+          benchmarkVersion,
           row.case_id,
           failed.provider,
           failed.model
         ].join("||");
         if (!scoreboard[key]) {
           scoreboard[key] = {
+            benchmark_version: benchmarkVersion,
             case_id: row.case_id,
             provider: failed.provider,
             model: failed.model,
@@ -334,15 +340,22 @@ window.addEventListener("load", async function () {
     const caseSummary = document.createElement("div");
     caseSummary.className = "meta";
     caseSummary.textContent = Object.keys(counts).sort()
-      .map((caseId) => caseId + ": " + counts[caseId] + " run(s)")
+      .map((key) => {
+        const parts = key.split("||");
+        const benchmarkVersion = parts[0];
+        const caseId = parts[1];
+        return benchmarkVersion + " · " + caseId + ": " + counts[key] + " run(s)";
+      })
       .join("\n");
     target.appendChild(caseSummary);
 
     const scoreboardTarget = document.getElementById("benchmark-scoreboard");
     scoreboardTarget.innerHTML = "";
     const scoreboardRows = Object.values(scoreboard).sort((a, b) =>
-      [a.case_id, a.provider, a.model].join("|")
-        .localeCompare([b.case_id, b.provider, b.model].join("|"))
+      [a.benchmark_version, a.case_id, a.provider, a.model].join("|")
+        .localeCompare(
+          [b.benchmark_version, b.case_id, b.provider, b.model].join("|")
+        )
     );
     if (!scoreboardRows.length) {
       scoreboardTarget.textContent = "No benchmark data yet.";
@@ -353,6 +366,7 @@ window.addEventListener("load", async function () {
       const head = document.createElement("thead");
       const headRow = document.createElement("tr");
       for (const label of [
+        "Benchmark version",
         "Case",
         "Provider / model",
         "Successful",
@@ -375,6 +389,7 @@ window.addEventListener("load", async function () {
       for (const item of scoreboardRows) {
         const tr = document.createElement("tr");
         const values = [
+          item.benchmark_version,
           item.case_id,
           item.provider + " · " + item.model,
           String(item.successful_runs),
@@ -398,8 +413,9 @@ window.addEventListener("load", async function () {
       const note = document.createElement("div");
       note.className = "meta";
       note.textContent =
-        "Counts are observational and grouped by exact model string. " +
-        "No automatic semantic scoring or CFC verification is implied.";
+        "Counts are observational and grouped by benchmark version, case, " +
+        "provider and exact model string. No automatic semantic scoring or " +
+        "CFC verification is implied.";
       scoreboardTarget.appendChild(note);
     }
 
@@ -409,6 +425,7 @@ window.addEventListener("load", async function () {
 
       const heading = document.createElement("div");
       heading.textContent = [
+        row.benchmark_version || "UNKNOWN_BENCHMARK_VERSION",
         row.case_id,
         row.status,
         row.created_at
