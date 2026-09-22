@@ -546,7 +546,7 @@ window.addEventListener("load", async function () {
       "Class: " + row.class,
       "Expected control state: " + row.expected_control_state,
       "Invariant: " + row.invariant,
-      "Automatic semantic scoring: disabled in v1"
+      "Automatic semantic scoring: disabled"
     ].join("\n");
   }
 
