@@ -1,0 +1,67 @@
+name: Pro Beta contracts
+
+on:
+  push:
+    branches:
+      - pro-beta-v0.1
+    paths:
+      - "pro_beta/**"
+      - "pro_beta_frontend/**"
+      - ".github/workflows/pro-beta-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: cfc
+          POSTGRES_PASSWORD: cfc_test_password
+          POSTGRES_DB: cfc_pro_beta_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cfc -d cfc_pro_beta_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PRO_BETA_TEST_DATABASE_URL: postgresql://cfc:cfc_test_password@localhost:5432/cfc_pro_beta_test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install test runtime dependencies
+        run: >-
+          python -m pip install
+          "psycopg[binary]>=3.2,<4"
+          "PyJWT[crypto]>=2.10,<3"
+
+      - name: Run Pro Beta contract, auth, persistence and PostgreSQL tests
+        run: >-
+          python -m unittest -v
+          pro_beta.test_contracts
+          pro_beta.test_auth_boundary
+          pro_beta.test_api
+          pro_beta.test_db_bootstrap
+          pro_beta.test_clerk_verifier
+          pro_beta.test_http_server
+          pro_beta.test_oidc_verifier
+          pro_beta.test_persistence
+          pro_beta_frontend.test_frontend
+          pro_beta.test_service
+          pro_beta.test_postgres_persistence

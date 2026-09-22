@@ -1,0 +1,29 @@
+name: Web Alpha regression
+
+on:
+  push:
+    branches:
+      - web-demo-v1.0
+    paths:
+      - "web_demo/**"
+      - ".github/workflows/web-alpha-regression.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Run Web Alpha regression suite
+        run: python -m unittest -v web_demo.test_web_alpha

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CFC + HAWM Pro Beta</title>
+  <style>
+    :root { font-family: Inter, system-ui, Arial, sans-serif; color-scheme: dark; }
+    body { margin:0; min-height:100vh; background:#111827; color:#f9fafb; display:grid; place-items:center; }
+    main { width:min(760px,92vw); background:#1f2937; border:1px solid #374151; border-radius:18px; padding:28px; box-shadow:0 20px 60px rgba(0,0,0,.28); }
+    h1 { margin:0 0 8px; font-size:28px; }
+    p { color:#cbd5e1; line-height:1.5; }
+    .boundary { margin:18px 0; padding:12px 14px; border-radius:10px; background:#0f172a; font-family:ui-monospace,monospace; font-size:13px; }
+    #auth { margin-top:22px; min-height:240px; }
+    .error { color:#fca5a5; }
+    .panel { margin-top:18px; padding:14px; border:1px solid #374151; border-radius:12px; background:#111827; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+    input, textarea, select, button { font:inherit; }
+    input, textarea, select { background:#0f172a; color:#f9fafb; border:1px solid #475569; border-radius:8px; padding:9px; }
+    button { background:#334155; color:#f9fafb; border:1px solid #64748b; border-radius:8px; padding:9px 12px; cursor:pointer; }
+    button:hover { background:#475569; }
+    #messages { margin-top:10px; display:grid; gap:8px; }
+    .message { padding:10px; border-radius:8px; background:#0f172a; white-space:pre-wrap; }
+    .meta { font-size:12px; color:#94a3b8; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>CFC + HAWM Pro Beta</h1>
+    <p>Private beta sign-in. HAWM stores working state; CFC remains a separate closure-control path.</p>
+    <div class="boundary">Ordinary model replies: MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2</div>
+    <div id="auth">Loading authentication…</div>
+    <section id="workspace-app" class="panel" hidden>
+      <h2>Workspace</h2>
+      <div class="row">
+        <input id="workspace-name" placeholder="Workspace name">
+        <button id="create-workspace">Create workspace</button>
+      </div>
+      <div class="row">
+        <select id="workspace-select"></select>
+        <button id="refresh-workspaces">Refresh</button>
+      </div>
+      <div class="row">
+        <input id="conversation-title" placeholder="Conversation title">
+        <button id="create-conversation">New conversation</button>
+      </div>
+      <div class="row">
+        <select id="conversation-select"></select>
+      </div>
+      <section id="gemini-panel" class="panel">
+        <h2>Gemini BYOK chat</h2>
+        <p class="meta">Your Gemini API key is kept only in this browser tab session storage and sent with each model request. It is not stored in Pro Beta records.</p>
+        <div class="row">
+          <input id="gemini-key" type="password" placeholder="Gemini API key">
+          <input id="gemini-model" value="gemini-3.8-flash" placeholder="Model">
+          <select id="gemini-mode">
+            <option value="STANDARD">STANDARD</option>
+            <option value="MINIMUM">MINIMUM</option>
+            <option value="EXPANDED">EXPANDED</option>
+            <option value="YES_NO">YES / NO</option>
+          </select>
+          <button id="connect-gemini">Use key in this tab</button>
+          <button id="disconnect-gemini">Forget key</button>
+          <button id="get-gemini-key" type="button">Get Gemini API key</button>
+        </div>
+        <div id="gemini-status" class="boundary">Gemini disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</div>
+        <hr>
+        <h3>Claude BYOK</h3>
+        <div class="row">
+          <input id="claude-key" type="password" placeholder="Claude API key">
+          <input id="claude-model" value="claude-sonnet-4-5" placeholder="Model">
+          <button id="connect-claude">Use Claude key in this tab</button>
+          <button id="disconnect-claude">Forget Claude key</button>
+          <button id="get-claude-key" type="button">Get Claude API key</button>
+        </div>
+        <div id="claude-status" class="boundary">Claude disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</div>
+        <hr>
+        <h3>OpenAI BYOK</h3>
+        <div class="row">
+          <input id="openai-key" type="password" placeholder="OpenAI API key">
+          <input id="openai-model" value="gpt-5.6-terra" placeholder="Model">
+          <button id="connect-openai">Use OpenAI key in this tab</button>
+          <button id="disconnect-openai">Forget OpenAI key</button>
+          <button id="get-openai-key" type="button">Get OpenAI API key</button>
+        </div>
+        <div id="openai-status" class="boundary">OpenAI disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</div>
+        <hr>
+        <h3>3-model comparison</h3>
+        <p class="meta">Sends the same prompt, same conversation history and same HAWM working state to Gemini, Claude and OpenAI. All three replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</p>
+        <div class="row">
+          <select id="benchmark-case">
+            <option value="">Custom prompt / no benchmark case</option>
+          </select>
+          <button id="load-benchmark-case" type="button">Load benchmark case</button>
+          <button id="compare-models">Compare Gemini + Claude + OpenAI</button>
+        </div>
+        <div id="benchmark-boundary" class="boundary">Benchmark cases are natural-language behavior probes, not CFC verification.</div>
+        <div id="benchmark-expected" class="boundary">No benchmark case selected.</div>
+        <div id="compare-status" class="boundary">No comparison run yet.</div>
+        <hr>
+        <h3>Benchmark run history</h3>
+        <p class="meta">Persisted raw benchmark runs for this conversation. No automatic semantic PASS/FAIL is assigned.</p>
+        <button id="refresh-benchmark-history" type="button">Refresh benchmark history</button>
+        <div id="benchmark-history" class="boundary">No persisted benchmark runs yet.</div>
+        <h3>Benchmark scoreboard</h3>
+        <p class="meta">Aggregated by exact case, provider and model version. Manual labels only; provider failures are counted separately.</p>
+        <div id="benchmark-scoreboard" class="boundary">No benchmark data yet.</div>
+      </section>
+      <div id="messages"></div>
+      <div class="row">
+        <textarea id="message-input" rows="3" style="flex:1" placeholder="Write a message"></textarea>
+        <button id="send-message">Save message</button>
+        <button id="send-gemini">Send to Gemini</button>
+        <button id="send-claude">Send to Claude</button>
+        <button id="send-openai">Send to OpenAI</button>
+      </div>
+      <p id="workspace-status"></p>
+
+      <section id="hawm-panel" class="panel">
+        <h2>HAWM working state</h2>
+        <p class="meta">Saved working state for the selected conversation. This does not run CFC.</p>
+        <div class="row"><input id="hawm-goal" style="flex:1" placeholder="Goal"></div>
+        <div class="row"><input id="hawm-task" style="flex:1" placeholder="Current task"></div>
+        <div class="row"><textarea id="hawm-claims" rows="2" style="flex:1" placeholder="Claims / assumptions"></textarea></div>
+        <div class="row"><textarea id="hawm-evidence" rows="2" style="flex:1" placeholder="Evidence"></textarea></div>
+        <div class="row"><textarea id="hawm-constraints" rows="2" style="flex:1" placeholder="Constraints"></textarea></div>
+        <div class="row"><textarea id="hawm-unresolved" rows="2" style="flex:1" placeholder="Unresolved"></textarea></div>
+        <div class="row"><input id="hawm-next-action" style="flex:1" placeholder="Next action"></div>
+        <h3>Structured CFC input</h3>
+        <p class="meta">These explicit fields are the only HAWM values mapped into CFC. Free-text HAWM fields are not interpreted.</p>
+        <div class="row">
+          <label>Conclusion
+            <select id="hawm-cfc-conclusion">
+              <option value="POSITIVE">POSITIVE</option>
+              <option value="NEGATIVE">NEGATIVE</option>
+            </select>
+          </label>
+          <label>Required supports
+            <select id="hawm-cfc-required">
+              <option value="1">1</option>
+              <option value="2">2</option>
+            </select>
+          </label>
+          <label>Scope
+            <select id="hawm-cfc-scope">
+              <option value="EXPECTED">EXPECTED</option>
+              <option value="WRONG">WRONG</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Provenance
+            <select id="hawm-cfc-provenance">
+              <option value="DISTINCT">DISTINCT</option>
+              <option value="SHARED_LINEAGE">SHARED_LINEAGE</option>
+            </select>
+          </label>
+          <label>Independence authority
+            <select id="hawm-cfc-independence">
+              <option value="NONE">NONE</option>
+              <option value="VERIFIED">VERIFIED</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Evidence 1 polarity
+            <select id="hawm-cfc-e1-polarity">
+              <option value="POSITIVE">POSITIVE</option>
+              <option value="NEGATIVE">NEGATIVE</option>
+            </select>
+          </label>
+          <label>Evidence 1 validity
+            <select id="hawm-cfc-e1-validity">
+              <option value="CURRENT">CURRENT</option>
+              <option value="STALE">STALE</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Evidence 2
+            <select id="hawm-cfc-e2-enabled">
+              <option value="NO">OMIT</option>
+              <option value="YES">INCLUDE</option>
+            </select>
+          </label>
+          <label>Evidence 2 polarity
+            <select id="hawm-cfc-e2-polarity">
+              <option value="POSITIVE">POSITIVE</option>
+              <option value="NEGATIVE">NEGATIVE</option>
+            </select>
+          </label>
+          <label>Evidence 2 validity
+            <select id="hawm-cfc-e2-validity">
+              <option value="CURRENT">CURRENT</option>
+              <option value="STALE">STALE</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <button id="save-hawm">Save HAWM snapshot</button>
+          <button id="run-hawm-cfc">Check structured HAWM with CFC</button>
+        </div>
+        <p id="hawm-status"></p>
+        <div id="hawm-cfc-result" class="boundary">No structured HAWM CFC run yet.</div>
+      </section>
+
+      <section id="report-panel" class="panel">
+        <h2>Audit report export</h2>
+        <p class="meta">Exports the latest persisted HAWM snapshot and latest CFC run without reinterpreting free text or changing CFC output.</p>
+        <div class="row">
+          <button id="export-report">Export audit report (.md)</button>
+        </div>
+        <div id="report-status" class="boundary">No report exported yet.</div>
+      </section>
+
+      <section id="cfc-panel" class="panel">
+        <h2>CFC prepared check</h2>
+        <p class="meta">Runs a preserved synthetic fixture through frozen CFC Anchor 0.2.90rc1. It does not analyze this conversation text.</p>
+        <div class="row">
+          <select id="cfc-case">
+            <option value="CASE_01_UNRESOLVED_POSITIVE">Unresolved positive</option>
+            <option value="CASE_03_ACTIVE_CONFLICT_NO_RESOLUTION">Active conflict</option>
+            <option value="CASE_07_VALID_POSITIVE_CLOSURE">Valid positive closure</option>
+            <option value="CASE_10_INCOMPLETE_REQUIRED_CHECKS">Incomplete required checks</option>
+          </select>
+          <button id="run-cfc">Run prepared CFC check</button>
+        </div>
+        <div id="cfc-result" class="boundary">No CFC run saved for this conversation yet.</div>
+      </section>
+    </section>
+  </main>
+
+  <script
+    defer
+    crossorigin="anonymous"
+    src="https://alert-bear-8010.clerk.accounts.dev/npm/@clerk/ui@1/dist/ui.browser.js"
+    type="text/javascript"
+  ></script>
+  <script
+    defer
+    crossorigin="anonymous"
+    data-clerk-publishable-key="__CLERK_PUBLISHABLE_KEY__"
+    src="https://alert-bear-8010.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js"
+    type="text/javascript"
+  ></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>
