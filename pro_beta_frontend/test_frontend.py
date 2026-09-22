@@ -315,7 +315,7 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("successful_runs", body)
         self.assertIn("provider_failures", body)
         self.assertIn("premature_closure", body)
-        self.assertIn("Counts are observational and grouped by exact model string", body)
+        self.assertIn("Counts are observational and grouped by benchmark version, case, provider and exact model string", body)
 
     def test_app_js_contains_manual_benchmark_label_controls(self):
         with patch.dict(
