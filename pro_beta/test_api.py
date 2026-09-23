@@ -85,6 +85,57 @@ class ProBetaAPITests(unittest.TestCase):
             service=ProBetaService(self.store),
         )
 
+    def test_founding_beta_measurement_api_rejects_customer_content_fields(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta"}
+        )
+        payload = {
+            "system_version": "founding-beta-rc1",
+            "workflow_type": "research",
+            "case_id": "case-001",
+            "cfc_result": "STOP",
+            "reason_code": "GATE_FAILURE",
+            "hawm_state": "STOP_EXPLAINED",
+            "human_assessment": "AGREE",
+            "final_action": "DID_NOT_ACT",
+            "problem_type": "NONE",
+            "document": "customer content must not persist",
+        }
+        with self.assertRaises(APIError) as ctx:
+            self.api.create_founding_beta_measurement(
+                "token-a", workspace["workspace_id"], payload
+            )
+        self.assertEqual(
+            ctx.exception.code, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN"
+        )
+
+    def test_founding_beta_measurement_api_round_trip(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta"}
+        )
+        payload = {
+            "system_version": "founding-beta-rc1",
+            "workflow_type": "decision_support",
+            "case_id": "case-002",
+            "cfc_result": "ALLOW",
+            "reason_code": "ALL_REQUIRED_GATES_VALID",
+            "hawm_state": "ALLOW_PRESENTED",
+            "human_assessment": "UNSURE",
+            "final_action": "ESCALATED",
+            "problem_type": "USABILITY",
+            "comment": "short anonymized note",
+        }
+        created = self.api.create_founding_beta_measurement(
+            "token-a", workspace["workspace_id"], payload
+        )
+        rows = self.api.list_founding_beta_measurements(
+            "token-a", workspace["workspace_id"]
+        )
+        self.assertEqual(rows[0]["measurement_id"], created["measurement_id"])
+        self.assertNotIn("content", created)
+        self.assertNotIn("prompt", created)
+        self.assertNotIn("response", created)
+
     def test_missing_credential_is_401(self):
         with self.assertRaises(APIError) as ctx:
             self.api.list_workspaces("")
