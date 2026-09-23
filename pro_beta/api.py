@@ -207,6 +207,25 @@ class ProBetaAPI:
             raise APIError(403, str(exc)) from exc
         return [asdict(row) for row in rows]
 
+    def delete_founding_beta_measurements(
+        self, credential: str, workspace_id: str
+    ) -> dict:
+        auth = self._auth(credential)
+        try:
+            deleted = self.service.delete_founding_beta_measurements(
+                auth, workspace_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return {
+            "workspace_id": workspace_id,
+            "deleted_measurements": deleted,
+            "customer_content_deleted": 0,
+        }
+
+
     def create_workspace(self, credential: str, payload: dict[str, Any]) -> dict:
         auth = self._auth(credential)
         name = str(payload.get("name") or "")
