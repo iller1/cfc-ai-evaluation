@@ -35,6 +35,7 @@ class FakeVerifier:
 
 
 class ProBetaAPITests(unittest.TestCase):
+    # Founding Beta v2 dry-run gate: full flow stays in the standard CI suite.
     def setUp(self):
         self.store = InMemoryPersistence()
         self.account_a = UserAccount(
