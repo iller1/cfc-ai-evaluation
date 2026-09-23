@@ -21,6 +21,7 @@ from pro_beta.contracts import (
 class PersistencePort(Protocol):
     def create_workspace(self, user_id: str, workspace: Workspace) -> Workspace: ...
     def list_workspaces(self, user_id: str) -> list[Workspace]: ...
+    def get_workspace(self, user_id: str, workspace_id: str) -> Workspace: ...
     def create_conversation(
         self, user_id: str, conversation: Conversation
     ) -> Conversation: ...
@@ -176,6 +177,11 @@ class ProBetaService:
 
     def list_workspaces(self, auth: AuthContext) -> list[Workspace]:
         return self.persistence.list_workspaces(auth.user_id)
+
+    def get_workspace(
+        self, auth: AuthContext, workspace_id: str
+    ) -> Workspace:
+        return self.persistence.get_workspace(auth.user_id, workspace_id)
 
     def create_conversation(
         self,
