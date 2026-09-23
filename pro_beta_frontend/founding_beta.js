@@ -132,11 +132,22 @@ window.addEventListener("load", async function () {
       document.getElementById("fb-reason-code").value = reason;
       document.getElementById("fb-hawm-state").value =
         (p.claim_state || "UNKNOWN") + "_PRESENTED";
+      const mapped = result.mapped_input || {};
+      const mappedEvidence = Array.isArray(mapped.evidence)
+        ? mapped.evidence.map((row, index) =>
+            "E" + (index + 1) + "=" + (row.polarity || "UNKNOWN") + "/" + (row.validity || "UNKNOWN")
+          ).join(", ")
+        : "UNKNOWN";
       target.textContent = [
         "Anchor: " + result.controller_anchor,
         "Decision: " + decision,
         "Claim state: " + (p.claim_state || "UNKNOWN"),
         "Reason: " + reason,
+        "Mapped input: supports=" + String(mapped.required_independent_supports ?? "UNKNOWN") +
+          " · scope=" + String(mapped.scope || "UNKNOWN") +
+          " · provenance=" + String(mapped.provenance_shape || "UNKNOWN") +
+          " · independence=" + String(mapped.independence_authority || "UNKNOWN") +
+          " · evidence=" + mappedEvidence,
         "Customer content persisted: " + String(result.persisted_customer_content)
       ].join("\n");
     } catch (error) {

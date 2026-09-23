@@ -146,6 +146,15 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("CASE_ID_REQUIRED", js)
         self.assertIn("enter a non-sensitive case ID such as TEST-001", js)
 
+    def test_dedicated_founding_beta_js_displays_mapped_input(self):
+        status, body, _ = self.get("/founding-beta.js")
+        self.assertEqual(status, 200)
+        self.assertIn("Mapped input:", body)
+        self.assertIn("required_independent_supports", body)
+        self.assertIn("provenance_shape", body)
+        self.assertIn("independence_authority", body)
+        self.assertIn("row.validity", body)
+
     def test_dedicated_founding_beta_js_uses_ephemeral_check_and_measurements(self):
         with patch.dict(
             os.environ,
