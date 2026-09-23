@@ -4,14 +4,17 @@ This checklist converts the working Founding Beta plan into an operational gate.
 
 ## A. Product freeze
 
-- [ ] Name the beta release version.
-- [ ] Record exact frontend/API commit.
-- [ ] Record exact Integration Layer version.
-- [ ] Record frozen Anchor/controller identities.
-- [ ] Confirm no frozen artifact changed.
-- [ ] Run regression/acceptance tests.
-- [ ] Confirm production health.
-- [ ] Confirm database persistence and replay.
+- [x] Name the beta release candidate: `Founding Beta RC1`.
+- [x] Record exact candidate commit: `230a656e2535870887d1b633bffc5b4ef1693585`.
+- [x] Record exact Integration Layer version: `v0.4 RC`.
+- [x] Record frozen identities: Operator Wrapper `v1.23`; CFC Anchor `0.2.90rc1`; Demonstrator `v1.0`.
+- [x] Confirm no frozen artifact changed in the Founding Beta measurement implementation.
+- [x] Run Pro Beta contract/auth/persistence/PostgreSQL/frontend suite — GitHub Actions run `35871943953`: SUCCESS.
+- [x] Re-run same suite on Postgres 18 (matching production major) — GitHub Actions run `35873169764`: SUCCESS.
+- [x] Content-free Founding Beta measurement path + tests — GitHub Actions run `35898706059`: SUCCESS.
+- [x] Dedicated no-customer-content `/founding-beta` page + ephemeral structured CFC path — GitHub Actions run `35899501928`: SUCCESS.
+- [x] Confirm current Railway production health — all five services latest deployment status SUCCESS on 2026-09-23. This confirms the current production baseline only; Founding Beta v2 branch is not yet deployed.
+- [x] Confirm measurement database persistence/ownership through Postgres 18 integration tests; end-to-end live beta replay remains part of onboarding dry-run.
 
 ## B. Onboarding
 
@@ -19,17 +22,17 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Limitations document exists.
 - [x] Example workflow exists.
 - [x] Feedback protocol exists.
-- [ ] Select one real feedback channel.
-- [ ] Run onboarding once as if we were a new company.
+- [x] Select one real feedback channel — structured GitHub Founding Beta issue form (non-sensitive reports only).
+- [ ] Run onboarding once as if we were a new company on the dedicated `/founding-beta` path.
 - [ ] Measure time-to-first-use.
 - [ ] Record onboarding friction.
 
 ## C. Observability
 
-- [ ] Confirm version is stored with each relevant external beta case.
-- [ ] Confirm input/evidence state can be reconstructed.
-- [ ] Confirm control result can be reconstructed.
-- [ ] Confirm provider failures are distinct from semantic outcomes.
+- [x] Confirm version is stored with each Founding Beta measurement (`system_version`).
+- [x] Confirm Founding Beta measurement path does not require customer content; only non-content state/reason codes are persisted.
+- [x] Confirm control result is persisted as `ALLOW / STOP / UNRESOLVED` plus `reason_code`.
+- [x] Confirm existing benchmark provider failures remain separate from semantic outcomes; Founding Beta measurement schema records product outcome/problem class separately.
 - [ ] Confirm audit/log retention works after redeploy.
 - [ ] Confirm an operator can replay one historical beta case end-to-end.
 
@@ -40,31 +43,33 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Human final control is explicit.
 - [x] High-risk sole-use is prohibited.
 - [x] Frozen baseline rule is explicit.
-- [ ] Choose allowed workflow classes for first companies.
-- [ ] Choose prohibited workflow classes for first companies.
+- [x] Choose allowed workflow classes for first companies — see `FOUNDING_BETA_WORKFLOW_POLICY.md`.
+- [x] Choose prohibited workflow classes for first companies — see `FOUNDING_BETA_WORKFLOW_POLICY.md`.
 
 ## E. Data/privacy
 
+- [x] Architecture rule: **NO CUSTOMER CONTENT BY DEFAULT**; dedicated measurement API has no document/prompt/model-response fields.
+
 - [x] Working data/terms draft exists.
-- [ ] Choose retention duration.
-- [ ] Define deletion process.
-- [ ] Define access roles.
-- [ ] Confirm hosting/data locations relevant to customer disclosure.
-- [ ] Decide whether personal data is permitted in round 1.
+- [x] Choose proposed retention duration — 30 days for Founding Beta measurement records; legal approval and automatic enforcement remain open.
+- [x] Define deletion process — authenticated workspace purge + operator-assisted SOP in `FOUNDING_BETA_DELETION_SOP.md`.
+- [x] Define access roles — participant/workspace user, project operator, infrastructure/subprocessors in `FOUNDING_BETA_ACCESS_ROLES.md`; named operators and production-access procedure remain open.
+- [ ] Confirm hosting/data locations relevant to customer disclosure. Railway currently reports region code `sfo` for frontend/API/Postgres; customer-facing geography still TO VERIFY.
+- [x] Decide whether personal data is permitted in round 1 — default policy: no unnecessary personal/sensitive data; synthetic/public/authorized low-risk data preferred.
 - [ ] Produce final privacy notice before paid onboarding.
 
 ## F. Commercial
 
-- [ ] Confirm Founding Beta price.
+- [x] Confirm Founding Beta price: £10/month as an engagement filter, not target valuation.
 - [ ] Choose billing mechanism.
 - [ ] Confirm contracting entity/jurisdiction.
 - [ ] Confirm tax/VAT handling.
-- [ ] Finalize beta terms.
+- [ ] Finalize Founding Beta Terms / Beta Agreement and obtain UK SaaS/data-protection/AI legal review before paid launch.
 - [ ] Define support contact and expectations.
 
 ## G. First-user gate
 
-- [ ] At least 3 genuinely engaged companies identified.
+- [ ] At least 3–5 genuinely engaged companies identified for initial start (up to 10 in first group).
 - [ ] Each company has one bounded workflow.
 - [ ] Each company accepts beta limitations.
 - [ ] Each company has a named human reviewer.

@@ -124,6 +124,29 @@ class BenchmarkManualLabel:
 
 
 @dataclass(frozen=True)
+class FoundingBetaMeasurement:
+    """Content-free Founding Beta telemetry.
+
+    This record intentionally has no field for customer documents, prompts,
+    model replies, or raw evidence content.
+    """
+
+    measurement_id: str
+    workspace_id: str
+    system_version: str
+    workflow_type: str
+    case_id: str
+    cfc_result: str
+    reason_code: str
+    hawm_state: str
+    human_assessment: str
+    final_action: str
+    problem_type: str
+    comment: str | None = None
+    created_at: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(frozen=True)
 class UsageEvent:
     event_id: str
     user_id: str

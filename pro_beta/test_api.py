@@ -35,6 +35,7 @@ class FakeVerifier:
 
 
 class ProBetaAPITests(unittest.TestCase):
+    # Founding Beta v2 dry-run gate: full flow stays in the standard CI suite.
     def setUp(self):
         self.store = InMemoryPersistence()
         self.account_a = UserAccount(
@@ -84,6 +85,201 @@ class ProBetaAPITests(unittest.TestCase):
             auth_boundary=boundary,
             service=ProBetaService(self.store),
         )
+
+    def test_founding_beta_structured_cfc_is_ephemeral_and_content_free(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta"}
+        )
+        result = self.api.run_founding_beta_structured_cfc(
+            "token-a",
+            workspace["workspace_id"],
+            {
+                "cfc_structured": {
+                    "conclusion": "POSITIVE",
+                    "required_independent_supports": 2,
+                    "provenance_shape": "SHARED_LINEAGE",
+                    "independence_authority": "NONE",
+                    "scope": "EXPECTED",
+                    "evidence": [
+                        {"polarity": "POSITIVE", "validity": "CURRENT"},
+                        {"polarity": "POSITIVE", "validity": "CURRENT"},
+                    ],
+                }
+            },
+        )
+        self.assertEqual(result["controller_anchor"], "0.2.90rc1")
+        self.assertFalse(result["persisted_customer_content"])
+        self.assertEqual(result["presentation"]["decision"], "STOP")
+
+    def test_founding_beta_v2_end_to_end_dry_run(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta dry run"}
+        )
+
+        cfc = self.api.run_founding_beta_structured_cfc(
+            "token-a",
+            workspace["workspace_id"],
+            {
+                "cfc_structured": {
+                    "conclusion": "POSITIVE",
+                    "required_independent_supports": 2,
+                    "provenance_shape": "SHARED_LINEAGE",
+                    "independence_authority": "NONE",
+                    "scope": "EXPECTED",
+                    "evidence": [
+                        {"polarity": "POSITIVE", "validity": "CURRENT"},
+                        {"polarity": "POSITIVE", "validity": "CURRENT"},
+                    ],
+                }
+            },
+        )
+        self.assertFalse(cfc["persisted_customer_content"])
+        self.assertEqual(cfc["controller_anchor"], "0.2.90rc1")
+
+        presentation = cfc["presentation"]
+        decision = presentation["decision"]
+        reason = (
+            presentation.get("reason")
+            or ",".join(presentation.get("false_gates") or [])
+            or "NO_REASON_CODE"
+        )
+
+        measurement = self.api.create_founding_beta_measurement(
+            "token-a",
+            workspace["workspace_id"],
+            {
+                "system_version": "founding-beta-rc1",
+                "workflow_type": "decision_support",
+                "case_id": "dry-run-001",
+                "cfc_result": decision,
+                "reason_code": reason,
+                "hawm_state": (
+                    str(presentation.get("claim_state") or "UNKNOWN")
+                    + "_PRESENTED"
+                ),
+                "human_assessment": "AGREE",
+                "final_action": "DID_NOT_ACT",
+                "problem_type": "NONE",
+                "comment": "synthetic dry-run",
+            },
+        )
+        self.assertNotIn("content", measurement)
+        self.assertNotIn("document", measurement)
+
+        history = self.api.list_founding_beta_measurements(
+            "token-a", workspace["workspace_id"]
+        )
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]["case_id"], "dry-run-001")
+
+        deleted = self.api.delete_founding_beta_measurements(
+            "token-a", workspace["workspace_id"]
+        )
+        self.assertEqual(deleted["deleted_measurements"], 1)
+        self.assertEqual(
+            self.api.list_founding_beta_measurements(
+                "token-a", workspace["workspace_id"]
+            ),
+            [],
+        )
+
+    def test_founding_beta_structured_cfc_rejects_customer_content(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta"}
+        )
+        with self.assertRaises(APIError) as ctx:
+            self.api.run_founding_beta_structured_cfc(
+                "token-a",
+                workspace["workspace_id"],
+                {
+                    "document": "must not be accepted",
+                    "cfc_structured": {},
+                },
+            )
+        self.assertEqual(
+            ctx.exception.code, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN"
+        )
+
+    def test_founding_beta_measurement_api_rejects_customer_content_fields(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta"}
+        )
+        payload = {
+            "system_version": "founding-beta-rc1",
+            "workflow_type": "research",
+            "case_id": "case-001",
+            "cfc_result": "STOP",
+            "reason_code": "GATE_FAILURE",
+            "hawm_state": "STOP_EXPLAINED",
+            "human_assessment": "AGREE",
+            "final_action": "DID_NOT_ACT",
+            "problem_type": "NONE",
+            "document": "customer content must not persist",
+        }
+        with self.assertRaises(APIError) as ctx:
+            self.api.create_founding_beta_measurement(
+                "token-a", workspace["workspace_id"], payload
+            )
+        self.assertEqual(
+            ctx.exception.code, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN"
+        )
+
+    def test_founding_beta_measurement_api_delete(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta delete"}
+        )
+        payload = {
+            "system_version": "rc1",
+            "workflow_type": "research",
+            "case_id": "delete-001",
+            "cfc_result": "UNRESOLVED",
+            "reason_code": "TEST",
+            "hawm_state": "UNRESOLVED_PRESENTED",
+            "human_assessment": "AGREE",
+            "final_action": "ESCALATED",
+            "problem_type": "NONE",
+        }
+        self.api.create_founding_beta_measurement(
+            "token-a", workspace["workspace_id"], payload
+        )
+        result = self.api.delete_founding_beta_measurements(
+            "token-a", workspace["workspace_id"]
+        )
+        self.assertEqual(result["deleted_measurements"], 1)
+        self.assertEqual(result["customer_content_deleted"], 0)
+        self.assertEqual(
+            self.api.list_founding_beta_measurements(
+                "token-a", workspace["workspace_id"]
+            ),
+            [],
+        )
+
+    def test_founding_beta_measurement_api_round_trip(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta"}
+        )
+        payload = {
+            "system_version": "founding-beta-rc1",
+            "workflow_type": "decision_support",
+            "case_id": "case-002",
+            "cfc_result": "ALLOW",
+            "reason_code": "ALL_REQUIRED_GATES_VALID",
+            "hawm_state": "ALLOW_PRESENTED",
+            "human_assessment": "UNSURE",
+            "final_action": "ESCALATED",
+            "problem_type": "USABILITY",
+            "comment": "short anonymized note",
+        }
+        created = self.api.create_founding_beta_measurement(
+            "token-a", workspace["workspace_id"], payload
+        )
+        rows = self.api.list_founding_beta_measurements(
+            "token-a", workspace["workspace_id"]
+        )
+        self.assertEqual(rows[0]["measurement_id"], created["measurement_id"])
+        self.assertNotIn("content", created)
+        self.assertNotIn("prompt", created)
+        self.assertNotIn("response", created)
 
     def test_missing_credential_is_401(self):
         with self.assertRaises(APIError) as ctx:

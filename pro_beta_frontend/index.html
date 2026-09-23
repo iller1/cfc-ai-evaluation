@@ -116,6 +116,60 @@
       </div>
       <p id="workspace-status"></p>
 
+      <section id="founding-beta-measurement-panel" class="panel">
+        <h2>Founding Beta v2 measurement</h2>
+        <p class="meta"><strong>NO CUSTOMER CONTENT BY DEFAULT.</strong> Record system behavior and human evaluation only. Do not paste customer documents, prompts, model replies or raw evidence here.</p>
+        <div class="row">
+          <input id="fb-system-version" value="founding-beta-rc1" placeholder="System version">
+          <select id="fb-workflow-type">
+            <option value="document_review">document_review</option>
+            <option value="research">research</option>
+            <option value="decision_support">decision_support</option>
+            <option value="other">other</option>
+          </select>
+          <input id="fb-case-id" placeholder="Non-sensitive case ID">
+        </div>
+        <div class="row">
+          <select id="fb-cfc-result">
+            <option value="ALLOW">ALLOW</option>
+            <option value="STOP">STOP</option>
+            <option value="UNRESOLVED">UNRESOLVED</option>
+          </select>
+          <input id="fb-reason-code" placeholder="Reason code / gate failure">
+          <input id="fb-hawm-state" placeholder="HAWM presentation/state code">
+        </div>
+        <div class="row">
+          <select id="fb-human-assessment">
+            <option value="AGREE">AGREE</option>
+            <option value="DISAGREE">DISAGREE</option>
+            <option value="UNSURE">UNSURE</option>
+          </select>
+          <select id="fb-final-action">
+            <option value="ACTED">ACTED</option>
+            <option value="DID_NOT_ACT">DID_NOT_ACT</option>
+            <option value="ESCALATED">ESCALATED</option>
+            <option value="OTHER">OTHER</option>
+          </select>
+          <select id="fb-problem-type">
+            <option value="NONE">NONE</option>
+            <option value="BUG">BUG</option>
+            <option value="USABILITY">USABILITY</option>
+            <option value="FALSE_STOP">FALSE_STOP</option>
+            <option value="FALSE_ALLOW">FALSE_ALLOW</option>
+            <option value="UPSTREAM_STATE_ISSUE">UPSTREAM_STATE_ISSUE</option>
+          </select>
+        </div>
+        <div class="row">
+          <textarea id="fb-comment" maxlength="500" rows="2" style="flex:1" placeholder="Optional short anonymized comment only"></textarea>
+        </div>
+        <div class="row">
+          <button id="save-beta-measurement" type="button">Record beta measurement</button>
+          <button id="refresh-beta-measurements" type="button">Refresh measurements</button>
+        </div>
+        <div id="beta-measurement-status" class="boundary">No Founding Beta measurement recorded yet.</div>
+        <div id="beta-measurement-history" class="boundary">No measurement history loaded.</div>
+      </section>
+
       <section id="hawm-panel" class="panel">
         <h2>HAWM working state</h2>
         <p class="meta">Saved working state for the selected conversation. This does not run CFC.</p>

@@ -1,0 +1,127 @@
+name: Founding Beta feedback
+description: Report a reproducible CFC + HAWM Founding Beta finding
+title: "[Founding Beta] "
+labels:
+  - founding-beta
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for Founding Beta bugs, usability issues, missing features, assumption errors and boundary findings.
+
+        Do not include passwords, API keys, personal data, customer secrets or other confidential material.
+
+  - type: input
+    id: product_version
+    attributes:
+      label: Product version
+      description: Exact Founding Beta / Pro Beta version or commit if known.
+      placeholder: "e.g. Founding Beta RC1 / commit abc123"
+    validations:
+      required: true
+
+  - type: input
+    id: workflow
+    attributes:
+      label: Workflow / use case
+      description: Short name for the bounded workflow being tested.
+    validations:
+      required: true
+
+  - type: input
+    id: case_id
+    attributes:
+      label: Case identifier
+      description: A non-sensitive case ID that lets us find the matching logs.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: classification
+    attributes:
+      label: Primary classification
+      options:
+        - BUG
+        - USABILITY
+        - MISSING_FEATURE
+        - ASSUMPTION_ERROR
+        - BOUNDARY_FINDING
+    validations:
+      required: true
+
+  - type: dropdown
+    id: closure_tag
+    attributes:
+      label: Closure-related tag
+      options:
+        - NOT_APPLICABLE
+        - FALSE_STOP
+        - MISSED_STOP
+        - PREMATURE_CLOSURE
+        - AMBIGUOUS_OUTPUT
+        - PROVENANCE_GAP
+        - SCOPE_ERROR
+        - STALE_EVIDENCE
+        - PROVIDER_FAILURE
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence_state
+    attributes:
+      label: Evidence / input state summary
+      description: Describe only the minimum non-sensitive state needed to reproduce the issue.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Did this block the workflow?
+      options:
+        - "Yes"
+        - "No"
+        - "Partially"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: Reproducible?
+      options:
+        - "Yes"
+        - "No"
+        - "Unknown"
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Optional non-sensitive detail.
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have not included passwords, API keys, personal data, customer secrets or other confidential information.
+          required: true

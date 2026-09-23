@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - pro-beta-v0.1
+      - founding-beta-v0.1
     paths:
       - "pro_beta/**"
       - "pro_beta_frontend/**"
@@ -20,7 +21,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:18
         env:
           POSTGRES_USER: cfc
           POSTGRES_PASSWORD: cfc_test_password

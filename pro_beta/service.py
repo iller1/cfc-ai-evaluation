@@ -9,6 +9,7 @@ from pro_beta.contracts import (
     BenchmarkManualLabel,
     BenchmarkRun,
     CFCRun,
+    FoundingBetaMeasurement,
     Conversation,
     HAWMSnapshot,
     Message,
@@ -20,6 +21,7 @@ from pro_beta.contracts import (
 class PersistencePort(Protocol):
     def create_workspace(self, user_id: str, workspace: Workspace) -> Workspace: ...
     def list_workspaces(self, user_id: str) -> list[Workspace]: ...
+    def get_workspace(self, user_id: str, workspace_id: str) -> Workspace: ...
     def create_conversation(
         self, user_id: str, conversation: Conversation
     ) -> Conversation: ...
@@ -61,6 +63,15 @@ class PersistencePort(Protocol):
     def list_benchmark_manual_labels(
         self, user_id: str, benchmark_run_id: str
     ) -> list[BenchmarkManualLabel]: ...
+    def add_founding_beta_measurement(
+        self, user_id: str, item: FoundingBetaMeasurement
+    ) -> FoundingBetaMeasurement: ...
+    def list_founding_beta_measurements(
+        self, user_id: str, workspace_id: str
+    ) -> list[FoundingBetaMeasurement]: ...
+    def delete_founding_beta_measurements(
+        self, user_id: str, workspace_id: str
+    ) -> int: ...
 
 
 @dataclass(frozen=True)
@@ -74,6 +85,98 @@ class ProBetaService:
 
     persistence: PersistencePort
 
+    def save_founding_beta_measurement(
+        self,
+        auth: AuthContext,
+        workspace_id: str,
+        *,
+        system_version: str,
+        workflow_type: str,
+        case_id: str,
+        cfc_result: str,
+        reason_code: str,
+        hawm_state: str,
+        human_assessment: str,
+        final_action: str,
+        problem_type: str,
+        comment: str | None = None,
+    ) -> FoundingBetaMeasurement:
+        cfc_result = cfc_result.strip().upper()
+        human_assessment = human_assessment.strip().upper()
+        problem_type = problem_type.strip().upper()
+
+        if cfc_result not in {"ALLOW", "STOP", "UNRESOLVED"}:
+            raise ValueError("FOUNDING_BETA_CFC_RESULT_INVALID")
+        if human_assessment not in {"AGREE", "DISAGREE", "UNSURE"}:
+            raise ValueError("FOUNDING_BETA_HUMAN_ASSESSMENT_INVALID")
+        if problem_type not in {
+            "NONE",
+            "BUG",
+            "USABILITY",
+            "FALSE_STOP",
+            "FALSE_ALLOW",
+            "UPSTREAM_STATE_ISSUE",
+        }:
+            raise ValueError("FOUNDING_BETA_PROBLEM_TYPE_INVALID")
+
+        required = {
+            "system_version": system_version,
+            "workflow_type": workflow_type,
+            "case_id": case_id,
+            "reason_code": reason_code,
+            "hawm_state": hawm_state,
+            "final_action": final_action,
+        }
+        if any(not str(value).strip() for value in required.values()):
+            raise ValueError("FOUNDING_BETA_REQUIRED_FIELD_MISSING")
+
+        limits = {
+            "system_version": (system_version, 128),
+            "workflow_type": (workflow_type, 80),
+            "case_id": (case_id, 128),
+            "reason_code": (reason_code, 1024),
+            "hawm_state": (hawm_state, 160),
+            "final_action": (final_action, 80),
+        }
+        if any(len(str(value)) > limit for value, limit in limits.values()):
+            raise ValueError("FOUNDING_BETA_FIELD_TOO_LONG")
+
+        clean_comment = None if comment is None else str(comment).strip()
+        if clean_comment and len(clean_comment) > 500:
+            raise ValueError("FOUNDING_BETA_COMMENT_TOO_LONG")
+
+        item = FoundingBetaMeasurement(
+            measurement_id=new_id("fbm"),
+            workspace_id=workspace_id,
+            system_version=system_version.strip(),
+            workflow_type=workflow_type.strip(),
+            case_id=case_id.strip(),
+            cfc_result=cfc_result,
+            reason_code=reason_code.strip(),
+            hawm_state=hawm_state.strip(),
+            human_assessment=human_assessment,
+            final_action=final_action.strip(),
+            problem_type=problem_type,
+            comment=clean_comment or None,
+        )
+        return self.persistence.add_founding_beta_measurement(
+            auth.user_id, item
+        )
+
+    def list_founding_beta_measurements(
+        self, auth: AuthContext, workspace_id: str
+    ) -> list[FoundingBetaMeasurement]:
+        return self.persistence.list_founding_beta_measurements(
+            auth.user_id, workspace_id
+        )
+
+    def delete_founding_beta_measurements(
+        self, auth: AuthContext, workspace_id: str
+    ) -> int:
+        return self.persistence.delete_founding_beta_measurements(
+            auth.user_id, workspace_id
+        )
+
     def create_workspace(self, auth: AuthContext, name: str) -> Workspace:
         workspace = Workspace(
             workspace_id=new_id("ws"),
@@ -84,6 +187,11 @@ class ProBetaService:
 
     def list_workspaces(self, auth: AuthContext) -> list[Workspace]:
         return self.persistence.list_workspaces(auth.user_id)
+
+    def get_workspace(
+        self, auth: AuthContext, workspace_id: str
+    ) -> Workspace:
+        return self.persistence.get_workspace(auth.user_id, workspace_id)
 
     def create_conversation(
         self,

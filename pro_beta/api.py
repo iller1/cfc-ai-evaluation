@@ -101,6 +101,131 @@ class ProBetaAPI:
 
         return {"account": asdict(account), "created": created}
 
+    def run_founding_beta_structured_cfc(
+        self,
+        credential: str,
+        workspace_id: str,
+        payload: dict[str, Any],
+    ) -> dict:
+        auth = self._auth(credential)
+        forbidden = {
+            "document",
+            "document_text",
+            "content",
+            "prompt",
+            "response",
+            "model_response",
+            "raw_evidence",
+        }
+        if forbidden.intersection(payload):
+            raise APIError(400, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN")
+        try:
+            self.service.get_workspace(auth, workspace_id)
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        state = payload.get("cfc_structured")
+        if not isinstance(state, dict):
+            raise APIError(400, "FOUNDING_BETA_STRUCTURED_STATE_REQUIRED")
+        if forbidden.intersection(state):
+            raise APIError(400, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN")
+
+        try:
+            from pro_beta.cfc_execution import run_structured_hawm_state
+            executed = run_structured_hawm_state(
+                {"cfc_structured": state}
+            )
+        except ValueError as exc:
+            raise APIError(400, str(exc)) from exc
+        except Exception as exc:
+            raise APIError(500, "CFC_EXECUTION_FAILED") from exc
+
+        return {
+            "case_id": executed["case_id"],
+            "controller_anchor": executed["controller_anchor"],
+            "controller_result": executed["controller_result"],
+            "presentation": executed["presentation"],
+            "boundary": executed["boundary"],
+            "mapped_input": executed["mapped_input"],
+            "persisted_customer_content": False,
+        }
+
+    def create_founding_beta_measurement(
+        self,
+        credential: str,
+        workspace_id: str,
+        payload: dict[str, Any],
+    ) -> dict:
+        auth = self._auth(credential)
+        forbidden = {
+            "document",
+            "document_text",
+            "content",
+            "prompt",
+            "response",
+            "model_response",
+            "raw_evidence",
+        }
+        if forbidden.intersection(payload):
+            raise APIError(400, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN")
+        try:
+            item = self.service.save_founding_beta_measurement(
+                auth,
+                workspace_id,
+                system_version=str(payload.get("system_version") or ""),
+                workflow_type=str(payload.get("workflow_type") or ""),
+                case_id=str(payload.get("case_id") or ""),
+                cfc_result=str(payload.get("cfc_result") or ""),
+                reason_code=str(payload.get("reason_code") or ""),
+                hawm_state=str(payload.get("hawm_state") or ""),
+                human_assessment=str(payload.get("human_assessment") or ""),
+                final_action=str(payload.get("final_action") or ""),
+                problem_type=str(payload.get("problem_type") or ""),
+                comment=payload.get("comment"),
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        except ValueError as exc:
+            raise APIError(400, str(exc)) from exc
+        return asdict(item)
+
+    def list_founding_beta_measurements(
+        self, credential: str, workspace_id: str
+    ) -> list[dict]:
+        auth = self._auth(credential)
+        try:
+            rows = self.service.list_founding_beta_measurements(
+                auth, workspace_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return [asdict(row) for row in rows]
+
+    def delete_founding_beta_measurements(
+        self, credential: str, workspace_id: str
+    ) -> dict:
+        auth = self._auth(credential)
+        try:
+            deleted = self.service.delete_founding_beta_measurements(
+                auth, workspace_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return {
+            "workspace_id": workspace_id,
+            "deleted_measurements": deleted,
+            "customer_content_deleted": 0,
+        }
+
+
     def create_workspace(self, credential: str, payload: dict[str, Any]) -> dict:
         auth = self._auth(credential)
         name = str(payload.get("name") or "")

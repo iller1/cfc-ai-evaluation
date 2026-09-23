@@ -11,6 +11,8 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parent
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP_JS = (ROOT / "app.js").read_text(encoding="utf-8")
+FOUNDING_BETA = (ROOT / "founding_beta.html").read_text(encoding="utf-8")
+FOUNDING_BETA_JS = (ROOT / "founding_beta.js").read_text(encoding="utf-8")
 
 
 class FrontendHandler(BaseHTTPRequestHandler):
@@ -66,6 +68,29 @@ class FrontendHandler(BaseHTTPRequestHandler):
                 + repr(api_base)
                 + ";\n"
                 + APP_JS
+            ).encode("utf-8")
+            self._send(HTTPStatus.OK, js, "application/javascript; charset=utf-8")
+            return
+
+        if path in {"/founding-beta", "/founding-beta/"}:
+            publishable_key = os.environ.get("CLERK_PUBLISHABLE_KEY", "").strip()
+            body = FOUNDING_BETA.replace(
+                "__CLERK_PUBLISHABLE_KEY__",
+                html.escape(publishable_key, quote=True),
+            ).encode("utf-8")
+            self._send(HTTPStatus.OK, body, "text/html; charset=utf-8")
+            return
+
+        if path == "/founding-beta.js":
+            publishable_key = os.environ.get("CLERK_PUBLISHABLE_KEY", "").strip()
+            api_base = os.environ.get("PRO_BETA_API_BASE", "").strip()
+            js = (
+                'window.PRO_BETA_CLERK_KEY = '
+                + repr(publishable_key)
+                + ";\nwindow.PRO_BETA_API_BASE = "
+                + repr(api_base)
+                + ";\n"
+                + FOUNDING_BETA_JS
             ).encode("utf-8")
             self._send(HTTPStatus.OK, js, "application/javascript; charset=utf-8")
             return
