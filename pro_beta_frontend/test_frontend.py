@@ -91,6 +91,34 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('id="create-conversation"', body)
         self.assertIn('id="send-message"', body)
 
+    def test_founding_beta_v2_measurement_ui_is_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="founding-beta-measurement-panel"', body)
+        self.assertIn('id="save-beta-measurement"', body)
+        self.assertIn('id="fb-human-assessment"', body)
+        self.assertIn('id="fb-problem-type"', body)
+        self.assertIn("NO CUSTOMER CONTENT BY DEFAULT", body)
+        self.assertNotIn('id="fb-document"', body)
+        self.assertNotIn('id="fb-prompt"', body)
+        self.assertNotIn('id="fb-model-response"', body)
+
+    def test_app_js_contains_content_free_measurement_route(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/beta-measurements", body)
+        self.assertIn("human_assessment", body)
+        self.assertIn("problem_type", body)
+        self.assertIn("no customer document/prompt/model-response field was submitted", body)
+
     def test_hawm_ui_is_present(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
