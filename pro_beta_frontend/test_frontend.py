@@ -119,6 +119,39 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("problem_type", body)
         self.assertIn("no customer document/prompt/model-response field was submitted", body)
 
+    def test_dedicated_founding_beta_page_is_content_free(self):
+        status, body, _ = self.get("/founding-beta")
+        self.assertEqual(status, 200)
+        self.assertIn("CFC + HAWM Founding Beta v2", body)
+        self.assertIn("NO CUSTOMER CONTENT BY DEFAULT", body)
+        self.assertIn('id="fb-run-cfc"', body)
+        self.assertIn('id="fb-save-measurement"', body)
+        self.assertNotIn('id="message-input"', body)
+        self.assertNotIn('id="send-gemini"', body)
+        self.assertNotIn('id="send-claude"', body)
+        self.assertNotIn('id="send-openai"', body)
+        self.assertNotIn('id="hawm-evidence"', body)
+
+    def test_dedicated_founding_beta_js_uses_ephemeral_check_and_measurements(self):
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, body, _ = self.get("/founding-beta.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/beta-cfc-check", body)
+        self.assertIn("/beta-measurements", body)
+        self.assertIn("persisted_customer_content", body)
+        self.assertIn("human_assessment", body)
+        self.assertIn("problem_type", body)
+        self.assertNotIn("/gemini-chat", body)
+        self.assertNotIn("/claude-chat", body)
+        self.assertNotIn("/openai-chat", body)
+
     def test_hawm_ui_is_present(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
