@@ -5,11 +5,11 @@ This checklist converts the working Founding Beta plan into an operational gate.
 ## A. Product freeze
 
 - [ ] Name the beta release version.
-- [ ] Record exact frontend/API commit.
+- [x] Record exact candidate commit: `ee97145277de61a81be981058a1ad520ef108441`.
 - [ ] Record exact Integration Layer version.
 - [ ] Record frozen Anchor/controller identities.
 - [ ] Confirm no frozen artifact changed.
-- [ ] Run regression/acceptance tests.
+- [x] Run Pro Beta contract/auth/persistence/PostgreSQL/frontend suite — GitHub Actions run `35871943953`: SUCCESS.
 - [ ] Confirm production health.
 - [ ] Confirm database persistence and replay.
 
@@ -19,7 +19,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Limitations document exists.
 - [x] Example workflow exists.
 - [x] Feedback protocol exists.
-- [ ] Select one real feedback channel.
+- [x] Select one real feedback channel — structured GitHub Founding Beta issue form (non-sensitive reports only).
 - [ ] Run onboarding once as if we were a new company.
 - [ ] Measure time-to-first-use.
 - [ ] Record onboarding friction.
