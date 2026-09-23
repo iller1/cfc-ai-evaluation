@@ -90,3 +90,31 @@ Latest validation on the Founding Beta branch:
 - full Pro Beta contract/auth/persistence/PostgreSQL/frontend suite: SUCCESS
 
 This is internal engineering evidence, not external validation.
+
+## Ephemeral CFC path
+
+The dedicated Founding Beta page does not persist customer source content.
+
+Structured, non-content evidence state can be sent to:
+
+- `POST /api/workspaces/{workspace_id}/beta-cfc-check`
+
+The endpoint:
+- enforces workspace ownership,
+- rejects explicit customer-content field names,
+- invokes frozen CFC Anchor through the structured mapping path,
+- returns controller/presentation output,
+- returns `persisted_customer_content: false`,
+- does not create a message or HAWM free-text snapshot.
+
+The dedicated frontend route is:
+
+- `/founding-beta`
+
+It intentionally omits legacy chat/model-send controls and exposes only structured technical state, CFC result, human assessment and minimal measurement.
+
+Latest integrated validation:
+- candidate head: `230a656e2535870887d1b633bffc5b4ef1693585`
+- GitHub Actions run: `35899501928`
+- PostgreSQL: 18
+- result: SUCCESS
