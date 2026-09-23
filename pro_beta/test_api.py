@@ -151,6 +151,36 @@ class ProBetaAPITests(unittest.TestCase):
             ctx.exception.code, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN"
         )
 
+    def test_founding_beta_measurement_api_delete(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta delete"}
+        )
+        payload = {
+            "system_version": "rc1",
+            "workflow_type": "research",
+            "case_id": "delete-001",
+            "cfc_result": "UNRESOLVED",
+            "reason_code": "TEST",
+            "hawm_state": "UNRESOLVED_PRESENTED",
+            "human_assessment": "AGREE",
+            "final_action": "ESCALATED",
+            "problem_type": "NONE",
+        }
+        self.api.create_founding_beta_measurement(
+            "token-a", workspace["workspace_id"], payload
+        )
+        result = self.api.delete_founding_beta_measurements(
+            "token-a", workspace["workspace_id"]
+        )
+        self.assertEqual(result["deleted_measurements"], 1)
+        self.assertEqual(result["customer_content_deleted"], 0)
+        self.assertEqual(
+            self.api.list_founding_beta_measurements(
+                "token-a", workspace["workspace_id"]
+            ),
+            [],
+        )
+
     def test_founding_beta_measurement_api_round_trip(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "Founding Beta"}
