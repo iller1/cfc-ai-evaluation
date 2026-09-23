@@ -8,6 +8,7 @@ from pro_beta.contracts import (
     BenchmarkManualLabel,
     BenchmarkRun,
     CFCRun,
+    FoundingBetaMeasurement,
     Conversation,
     HAWMSnapshot,
     Message,
@@ -40,6 +41,7 @@ class InMemoryPersistence:
         self.messages: Dict[str, Message] = {}
         self.hawm_snapshots: Dict[str, HAWMSnapshot] = {}
         self.cfc_runs: Dict[str, CFCRun] = {}
+        self.founding_beta_measurements: Dict[str, FoundingBetaMeasurement] = {}
         self.audit_reports: Dict[str, AuditReportRecord] = {}
         self.benchmark_runs: Dict[str, BenchmarkRun] = {}
         self.benchmark_manual_labels: Dict[str, BenchmarkManualLabel] = {}
@@ -272,6 +274,27 @@ class InMemoryPersistence:
             label
             for label in self.benchmark_manual_labels.values()
             if label.benchmark_run_id == benchmark_run_id
+        ]
+
+    # ---------- founding beta measurements ----------
+
+    def add_founding_beta_measurement(
+        self, user_id: str, item: FoundingBetaMeasurement
+    ) -> FoundingBetaMeasurement:
+        self._owned_workspace(user_id, item.workspace_id)
+        if item.measurement_id in self.founding_beta_measurements:
+            raise ValueError("FOUNDING_BETA_MEASUREMENT_ALREADY_EXISTS")
+        self.founding_beta_measurements[item.measurement_id] = item
+        return item
+
+    def list_founding_beta_measurements(
+        self, user_id: str, workspace_id: str
+    ) -> List[FoundingBetaMeasurement]:
+        self._owned_workspace(user_id, workspace_id)
+        return [
+            item
+            for item in self.founding_beta_measurements.values()
+            if item.workspace_id == workspace_id
         ]
 
     # ---------- usage ----------
