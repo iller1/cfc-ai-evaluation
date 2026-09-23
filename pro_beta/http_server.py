@@ -227,6 +227,19 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             return
 
         parts = [part for part in path.split("/") if part]
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "workspaces" and parts[3] == "beta-cfc-check":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            payload = self._payload()
+            workspace_id = parts[2]
+            self._api_call(
+                lambda api: api.run_founding_beta_structured_cfc(
+                    credential, workspace_id, payload
+                )
+            )
+            return
+
         if len(parts) == 4 and parts[0] == "api" and parts[1] == "workspaces" and parts[3] == "beta-measurements":
             if not credential:
                 self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
