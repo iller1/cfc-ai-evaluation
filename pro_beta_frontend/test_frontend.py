@@ -133,6 +133,19 @@ class FrontendTests(unittest.TestCase):
         self.assertNotIn('id="send-openai"', body)
         self.assertNotIn('id="hawm-evidence"', body)
 
+    def test_dedicated_founding_beta_case_id_is_required_and_validated(self):
+        status, body, _ = self.get("/founding-beta")
+        self.assertEqual(status, 200)
+        self.assertIn('id="fb-case-id"', body)
+        self.assertIn('required', body)
+        self.assertIn('aria-required="true"', body)
+        self.assertIn("e.g. TEST-001", body)
+
+        status, js, _ = self.get("/founding-beta.js")
+        self.assertEqual(status, 200)
+        self.assertIn("CASE_ID_REQUIRED", js)
+        self.assertIn("enter a non-sensitive case ID such as TEST-001", js)
+
     def test_dedicated_founding_beta_js_uses_ephemeral_check_and_measurements(self):
         with patch.dict(
             os.environ,

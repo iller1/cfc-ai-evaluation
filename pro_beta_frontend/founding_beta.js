@@ -178,10 +178,16 @@ window.addEventListener("load", async function () {
       if (!["ALLOW","STOP","UNRESOLVED"].includes(decision)) {
         throw new Error("CFC_DECISION_NOT_MEASURABLE");
       }
+      const caseIdInput = document.getElementById("fb-case-id");
+      const caseId = caseIdInput.value.trim();
+      if (!caseId) {
+        caseIdInput.focus();
+        throw new Error("CASE_ID_REQUIRED: enter a non-sensitive case ID such as TEST-001");
+      }
       const payload = {
         system_version: document.getElementById("fb-system-version").value.trim(),
         workflow_type: document.getElementById("fb-workflow-type").value,
-        case_id: document.getElementById("fb-case-id").value.trim(),
+        case_id: caseId,
         cfc_result: decision,
         reason_code: document.getElementById("fb-reason-code").value.trim(),
         hawm_state: document.getElementById("fb-hawm-state").value.trim(),
