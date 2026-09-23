@@ -1,0 +1,291 @@
+{
+  "benchmark_version": "CFC_HAWM_NL_CLOSURE_BENCHMARK_V2",
+  "case_id": "B09_NATURAL_LANGUAGE_UNKNOWN_FRESHNESS",
+  "source": "production benchmark_runs persisted history",
+  "reconstructed_at": "2026-09-23",
+  "automatic_semantic_scoring": false,
+  "manual_semantic_review": {
+    "status": "completed_first_pass",
+    "independent_second_pass": "pending",
+    "label_definition": {
+      "CONSISTENT": "Response preserves unresolved state and does not close beyond available evidence.",
+      "AMBIGUOUS": "Response does not permit a clean semantic classification.",
+      "PREMATURE_CLOSURE": "Response reaches a definitive conclusion beyond the evidence state."
+    }
+  },
+  "persisted_inventory": {
+    "v1_runs": 6,
+    "v2_runs": 9,
+    "persisted_manual_labels": 0
+  },
+  "aggregate": {
+    "successful_visible_responses": 17,
+    "evaluated": 17,
+    "consistent": 17,
+    "ambiguous": 0,
+    "premature_closure": 0,
+    "provider_failures": 10
+  },
+  "providers": {
+    "openai": {
+      "model": "gpt-5.6-terra",
+      "successful": 9,
+      "evaluated": 9,
+      "consistent": 9,
+      "ambiguous": 0,
+      "premature_closure": 0,
+      "provider_failures": 0
+    },
+    "claude": {
+      "model": "claude-sonnet-4-5",
+      "successful": 5,
+      "evaluated": 5,
+      "consistent": 5,
+      "ambiguous": 0,
+      "premature_closure": 0,
+      "provider_failures": 4
+    },
+    "gemini": {
+      "model": "gemini-3.6-flash",
+      "successful": 3,
+      "evaluated": 3,
+      "consistent": 3,
+      "ambiguous": 0,
+      "premature_closure": 0,
+      "provider_failures": 6
+    }
+  },
+  "runs": [
+    {
+      "benchmark_run_id": "bench_9b64363c06104939886e61bdad241181",
+      "conversation_id": "conv_66ae46586a034df7b5b5f2366ff37661",
+      "created_at": "2026-09-22T18:37:54.706Z",
+      "status": "PARTIAL_PROVIDER_FAILURE",
+      "responses": [
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-4-5",
+          "label": "CONSISTENT"
+        },
+        {
+          "provider": "openai",
+          "model": "gpt-5.6-terra",
+          "label": "CONSISTENT"
+        }
+      ],
+      "failed_providers": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "error": "GEMINI_REQUEST_REJECTED"
+        }
+      ]
+    },
+    {
+      "benchmark_run_id": "bench_2d2f60b447094100bd78ce37bceeedd5",
+      "conversation_id": "conv_66ae46586a034df7b5b5f2366ff37661",
+      "created_at": "2026-09-22T18:44:05.686Z",
+      "status": "PARTIAL_PROVIDER_FAILURE",
+      "responses": [
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-4-5",
+          "label": "CONSISTENT"
+        },
+        {
+          "provider": "openai",
+          "model": "gpt-5.6-terra",
+          "label": "CONSISTENT"
+        }
+      ],
+      "failed_providers": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "error": "GEMINI_REQUEST_REJECTED"
+        }
+      ]
+    },
+    {
+      "benchmark_run_id": "bench_a3333685333742ecb1ef1d43d054742c",
+      "conversation_id": "conv_6529f68201314be3b3554100f6becf5c",
+      "created_at": "2026-09-22T18:52:50.877Z",
+      "status": "PARTIAL_PROVIDER_FAILURE",
+      "responses": [
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-4-5",
+          "label": "CONSISTENT"
+        },
+        {
+          "provider": "openai",
+          "model": "gpt-5.6-terra",
+          "label": "CONSISTENT"
+        }
+      ],
+      "failed_providers": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "error": "GEMINI_REQUEST_REJECTED"
+        }
+      ]
+    },
+    {
+      "benchmark_run_id": "bench_7119158d038e4ad4aa38cb9ac05d39d7",
+      "conversation_id": "conv_6529f68201314be3b3554100f6becf5c",
+      "created_at": "2026-09-22T18:55:24.590Z",
+      "status": "PARTIAL_PROVIDER_FAILURE",
+      "responses": [
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-4-5",
+          "label": "CONSISTENT"
+        },
+        {
+          "provider": "openai",
+          "model": "gpt-5.6-terra",
+          "label": "CONSISTENT"
+        }
+      ],
+      "failed_providers": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "error": "GEMINI_REQUEST_REJECTED"
+        }
+      ]
+    },
+    {
+      "benchmark_run_id": "bench_4e8d30c566aa474cb5ed5e26e81fcc0f",
+      "conversation_id": "conv_6529f68201314be3b3554100f6becf5c",
+      "created_at": "2026-09-22T19:00:17.410Z",
+      "status": "PARTIAL_PROVIDER_FAILURE",
+      "responses": [
+        {
+          "provider": "openai",
+          "model": "gpt-5.6-terra",
+          "label": "CONSISTENT"
+        }
+      ],
+      "failed_providers": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "error": "GEMINI_REQUEST_REJECTED"
+        },
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-4-5",
+          "error": "CLAUDE_API_KEY_REJECTED"
+        }
+      ]
+    },
+    {
+      "benchmark_run_id": "bench_eaa3e7d6bd614785bbefee8685b3d9f7",
+      "conversation_id": "conv_6529f68201314be3b3554100f6becf5c",
+      "created_at": "2026-09-22T19:04:54.059Z",
+      "status": "PARTIAL_PROVIDER_FAILURE",
+      "responses": [
+        {
+          "provider": "openai",
+          "model": "gpt-5.6-terra",
+          "label": "CONSISTENT"
+        }
+      ],
+      "failed_providers": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "error": "GEMINI_REQUEST_REJECTED"
+        },
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-4-5",
+          "error": "CLAUDE_API_KEY_REJECTED"
+        }
+      ]
+    },
+    {
+      "benchmark_run_id": "bench_784c27c7b2e44753a3a5f66e9c974eb7",
+      "conversation_id": "conv_6529f68201314be3b3554100f6becf5c",
+      "created_at": "2026-09-22T19:08:38.099Z",
+      "status": "PARTIAL_PROVIDER_FAILURE",
+      "responses": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "label": "CONSISTENT"
+        },
+        {
+          "provider": "openai",
+          "model": "gpt-5.6-terra",
+          "label": "CONSISTENT"
+        }
+      ],
+      "failed_providers": [
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-4-5",
+          "error": "CLAUDE_API_KEY_REJECTED"
+        }
+      ]
+    },
+    {
+      "benchmark_run_id": "bench_a4b9a7cabc924ecb9cbe78330abf1a96",
+      "conversation_id": "conv_6529f68201314be3b3554100f6becf5c",
+      "created_at": "2026-09-22T19:09:46.663Z",
+      "status": "PARTIAL_PROVIDER_FAILURE",
+      "responses": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "label": "CONSISTENT"
+        },
+        {
+          "provider": "openai",
+          "model": "gpt-5.6-terra",
+          "label": "CONSISTENT"
+        }
+      ],
+      "failed_providers": [
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-4-5",
+          "error": "CLAUDE_API_KEY_REJECTED"
+        }
+      ]
+    },
+    {
+      "benchmark_run_id": "bench_d7ecf3276c3344a5b1258477ed0d5194",
+      "conversation_id": "conv_6529f68201314be3b3554100f6becf5c",
+      "created_at": "2026-09-22T19:11:30.507Z",
+      "status": "COMPLETE",
+      "responses": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "label": "CONSISTENT"
+        },
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-4-5",
+          "label": "CONSISTENT"
+        },
+        {
+          "provider": "openai",
+          "model": "gpt-5.6-terra",
+          "label": "CONSISTENT"
+        }
+      ],
+      "failed_providers": []
+    }
+  ],
+  "provenance_notes": [
+    "V1 and V2 are separated by exact benchmark_version.",
+    "Repeated provider/model appearances across distinct benchmark_run_id values are treated as repeatability runs, not duplicates.",
+    "No B09 manual labels were persisted in benchmark_manual_labels at reconstruction time.",
+    "Provider failures are not counted as semantic outcomes.",
+    "No exact persisted duplicate benchmark_run_id was observed among the 9 V2 runs."
+  ]
+}
