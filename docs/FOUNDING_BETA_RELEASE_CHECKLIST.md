@@ -5,15 +5,16 @@ This checklist converts the working Founding Beta plan into an operational gate.
 ## A. Product freeze
 
 - [x] Name the beta release candidate: `Founding Beta RC1`.
-- [x] Record exact candidate commit: `ee97145277de61a81be981058a1ad520ef108441`.
+- [x] Record exact candidate commit: `230a656e2535870887d1b633bffc5b4ef1693585`.
 - [x] Record exact Integration Layer version: `v0.4 RC`.
 - [x] Record frozen identities: Operator Wrapper `v1.23`; CFC Anchor `0.2.90rc1`; Demonstrator `v1.0`.
 - [x] Confirm no frozen artifact changed in the Founding Beta measurement implementation.
 - [x] Run Pro Beta contract/auth/persistence/PostgreSQL/frontend suite — GitHub Actions run `35871943953`: SUCCESS.
 - [x] Re-run same suite on Postgres 18 (matching production major) — GitHub Actions run `35873169764`: SUCCESS.
 - [x] Content-free Founding Beta measurement path + tests — GitHub Actions run `35898706059`: SUCCESS.
+- [x] Dedicated no-customer-content `/founding-beta` page + ephemeral structured CFC path — GitHub Actions run `35899501928`: SUCCESS.
 - [ ] Confirm production health.
-- [ ] Confirm database persistence and replay.
+- [x] Confirm measurement database persistence/ownership through Postgres 18 integration tests; end-to-end live beta replay remains part of onboarding dry-run.
 
 ## B. Onboarding
 
@@ -22,7 +23,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Example workflow exists.
 - [x] Feedback protocol exists.
 - [x] Select one real feedback channel — structured GitHub Founding Beta issue form (non-sensitive reports only).
-- [ ] Run onboarding once as if we were a new company.
+- [ ] Run onboarding once as if we were a new company on the dedicated `/founding-beta` path.
 - [ ] Measure time-to-first-use.
 - [ ] Record onboarding friction.
 
