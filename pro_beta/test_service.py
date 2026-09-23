@@ -126,6 +126,36 @@ class ProBetaServiceTests(unittest.TestCase):
                 self.auth_b, workspace.workspace_id
             )
 
+    def test_founding_beta_measurement_purge_is_owned(self):
+        workspace = self.service.create_workspace(self.auth_a, "A")
+        self.service.save_founding_beta_measurement(
+            self.auth_a,
+            workspace.workspace_id,
+            system_version="rc1",
+            workflow_type="research",
+            case_id="delete-001",
+            cfc_result="STOP",
+            reason_code="TEST",
+            hawm_state="STOP_PRESENTED",
+            human_assessment="AGREE",
+            final_action="DID_NOT_ACT",
+            problem_type="NONE",
+        )
+        with self.assertRaises(OwnershipError):
+            self.service.delete_founding_beta_measurements(
+                self.auth_b, workspace.workspace_id
+            )
+        deleted = self.service.delete_founding_beta_measurements(
+            self.auth_a, workspace.workspace_id
+        )
+        self.assertEqual(deleted, 1)
+        self.assertEqual(
+            self.service.list_founding_beta_measurements(
+                self.auth_a, workspace.workspace_id
+            ),
+            [],
+        )
+
     def test_founding_beta_measurement_rejects_invalid_enum(self):
         workspace = self.service.create_workspace(self.auth_a, "A")
         with self.assertRaises(ValueError):
