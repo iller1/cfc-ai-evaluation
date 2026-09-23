@@ -191,6 +191,19 @@ class PostgresPersistence:
             for r in rows
         ]
 
+    def delete_founding_beta_measurements(
+        self, user_id: str, workspace_id: str
+    ) -> int:
+        self._assert_workspace_owned(user_id, workspace_id)
+        with self.connection.cursor() as cur:
+            cur.execute(
+                "delete from founding_beta_measurements where workspace_id = %s",
+                (workspace_id,),
+            )
+            deleted = cur.rowcount
+        self.connection.commit()
+        return int(deleted)
+
     def create_workspace(self, user_id: str, workspace: Workspace) -> Workspace:
         self.get_user(user_id)
         if workspace.user_id != user_id:
