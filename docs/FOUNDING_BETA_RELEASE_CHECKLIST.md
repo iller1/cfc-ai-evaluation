@@ -13,7 +13,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Re-run same suite on Postgres 18 (matching production major) — GitHub Actions run `35873169764`: SUCCESS.
 - [x] Content-free Founding Beta measurement path + tests — GitHub Actions run `35898706059`: SUCCESS.
 - [x] Dedicated no-customer-content `/founding-beta` page + ephemeral structured CFC path — GitHub Actions run `35899501928`: SUCCESS.
-- [x] Confirm current Railway production health — all five services latest deployment status SUCCESS on 2026-09-23. This confirms the current production baseline only; Founding Beta v2 branch is not yet deployed.
+- [x] Confirm current Railway production health — all five services latest deployment status SUCCESS on 2026-09-23; dedicated Founding Beta v2 frontend/API path is deployed live.
 - [x] Confirm measurement database persistence/ownership through Postgres 18 integration tests; end-to-end live beta replay remains part of onboarding dry-run.
 
 ## B. Onboarding
@@ -23,9 +23,9 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Example workflow exists.
 - [x] Feedback protocol exists.
 - [x] Select one real feedback channel — structured GitHub Founding Beta issue form (non-sensitive reports only).
-- [ ] Run onboarding once as if we were a new company on the dedicated `/founding-beta` path.
+- [x] Run onboarding once as if we were a new company on the dedicated `/founding-beta` path — live synthetic dry run completed 2026-09-23 with STOP/SUPPORTED, ALLOW/VERIFIED, and STOP/UNRESOLVED outcomes recorded.
 - [ ] Measure time-to-first-use.
-- [ ] Record onboarding friction.
+- [x] Record onboarding friction — required non-sensitive `case_id` was not clearly signposted; UI validation/labeling was fixed and redeployed. Read-only mapped-input diagnostics were also added during the dry run.
 
 ## C. Observability
 
@@ -65,7 +65,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [ ] Confirm contracting entity/jurisdiction.
 - [ ] Confirm tax/VAT handling.
 - [ ] Finalize Founding Beta Terms / Beta Agreement and obtain UK SaaS/data-protection/AI legal review before paid launch.
-- [ ] Define support contact and expectations.
+- [x] Define support contact and expectations — `krzysztofsliwka@yahoo.co.uk`; reasonable-efforts beta support, no SLA.
 
 ## G. First-user gate
 
