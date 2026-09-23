@@ -62,6 +62,21 @@ class HTTPServerTests(unittest.TestCase):
         self.assertEqual(status, 401)
         self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
 
+    def test_beta_measurement_routes_require_bearer(self):
+        status, payload = self.request(
+            "/api/workspaces/ws_test/beta-measurements",
+            method="POST",
+        )
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
+
+        status, payload = self.request(
+            "/api/workspaces/ws_test/beta-measurements",
+            method="GET",
+        )
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
+
     def test_benchmark_label_route_is_post_only(self):
         status, payload = self.request(
             "/api/benchmark-runs/bench_test/label",
