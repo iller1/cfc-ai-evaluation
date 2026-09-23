@@ -10,6 +10,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [ ] Record frozen Anchor/controller identities.
 - [ ] Confirm no frozen artifact changed.
 - [x] Run Pro Beta contract/auth/persistence/PostgreSQL/frontend suite — GitHub Actions run `35871943953`: SUCCESS.
+- [x] Re-run same suite on Postgres 18 (matching production major) — GitHub Actions run `35873169764`: SUCCESS.
 - [ ] Confirm production health.
 - [ ] Confirm database persistence and replay.
 
@@ -40,8 +41,8 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Human final control is explicit.
 - [x] High-risk sole-use is prohibited.
 - [x] Frozen baseline rule is explicit.
-- [ ] Choose allowed workflow classes for first companies.
-- [ ] Choose prohibited workflow classes for first companies.
+- [x] Choose allowed workflow classes for first companies — see `FOUNDING_BETA_WORKFLOW_POLICY.md`.
+- [x] Choose prohibited workflow classes for first companies — see `FOUNDING_BETA_WORKFLOW_POLICY.md`.
 
 ## E. Data/privacy
 
@@ -49,8 +50,8 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [ ] Choose retention duration.
 - [ ] Define deletion process.
 - [ ] Define access roles.
-- [ ] Confirm hosting/data locations relevant to customer disclosure.
-- [ ] Decide whether personal data is permitted in round 1.
+- [ ] Confirm hosting/data locations relevant to customer disclosure. Railway currently reports region code `sfo` for frontend/API/Postgres; customer-facing geography still TO VERIFY.
+- [x] Decide whether personal data is permitted in round 1 — default policy: no unnecessary personal/sensitive data; synthetic/public/authorized low-risk data preferred.
 - [ ] Produce final privacy notice before paid onboarding.
 
 ## F. Commercial
