@@ -85,6 +85,48 @@ class ProBetaAPITests(unittest.TestCase):
             service=ProBetaService(self.store),
         )
 
+    def test_founding_beta_structured_cfc_is_ephemeral_and_content_free(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta"}
+        )
+        result = self.api.run_founding_beta_structured_cfc(
+            "token-a",
+            workspace["workspace_id"],
+            {
+                "cfc_structured": {
+                    "conclusion": "POSITIVE",
+                    "required_independent_supports": 2,
+                    "provenance_shape": "SHARED_LINEAGE",
+                    "independence_authority": "NONE",
+                    "scope": "EXPECTED",
+                    "evidence": [
+                        {"polarity": "POSITIVE", "validity": "CURRENT"},
+                        {"polarity": "POSITIVE", "validity": "CURRENT"},
+                    ],
+                }
+            },
+        )
+        self.assertEqual(result["controller_anchor"], "0.2.90rc1")
+        self.assertFalse(result["persisted_customer_content"])
+        self.assertEqual(result["presentation"]["decision"], "STOP")
+
+    def test_founding_beta_structured_cfc_rejects_customer_content(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Founding Beta"}
+        )
+        with self.assertRaises(APIError) as ctx:
+            self.api.run_founding_beta_structured_cfc(
+                "token-a",
+                workspace["workspace_id"],
+                {
+                    "document": "must not be accepted",
+                    "cfc_structured": {},
+                },
+            )
+        self.assertEqual(
+            ctx.exception.code, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN"
+        )
+
     def test_founding_beta_measurement_api_rejects_customer_content_fields(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "Founding Beta"}
