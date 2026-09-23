@@ -57,7 +57,7 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", allowed)
             self.send_header("Vary", "Origin")
             self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
-            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 
     def _json(self, status: int, payload) -> None:
         body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
@@ -203,6 +203,33 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
                 return
             conversation_id = parts[2]
             self._api_call(lambda api: api.latest_cfc_run(credential, conversation_id))
+            return
+
+        self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
+
+    def do_DELETE(self) -> None:
+        path = urlsplit(self.path).path
+        credential = _bearer(self.headers)
+        parts = [part for part in path.split("/") if part]
+
+        if (
+            len(parts) == 4
+            and parts[0] == "api"
+            and parts[1] == "workspaces"
+            and parts[3] == "beta-measurements"
+        ):
+            if not credential:
+                self._json(
+                    HTTPStatus.UNAUTHORIZED,
+                    {"error": "AUTH_CREDENTIAL_REQUIRED"},
+                )
+                return
+            workspace_id = parts[2]
+            self._api_call(
+                lambda api: api.delete_founding_beta_measurements(
+                    credential, workspace_id
+                )
+            )
             return
 
         self._json(HTTPStatus.NOT_FOUND, {"error": "NOT_FOUND"})
