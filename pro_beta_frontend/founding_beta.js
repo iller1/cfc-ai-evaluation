@@ -144,6 +144,29 @@ window.addEventListener("load", async function () {
     }
   });
 
+  document.getElementById("fb-delete-measurements").addEventListener("click", async () => {
+    const workspaceId = workspaceSelect.value;
+    const status = document.getElementById("fb-measurement-status");
+    try {
+      if (!workspaceId) throw new Error("CREATE_WORKSPACE_FIRST");
+      const confirmed = window.confirm(
+        "Delete all Founding Beta measurement records for this workspace? This cannot be undone."
+      );
+      if (!confirmed) return;
+      const result = await api(
+        "/api/workspaces/" + workspaceId + "/beta-measurements",
+        { method: "DELETE" }
+      );
+      status.textContent =
+        "Deleted measurement records: " + result.deleted_measurements +
+        " · customer content deleted: " + result.customer_content_deleted;
+      lastCfc = null;
+      await loadHistory();
+    } catch (error) {
+      status.textContent = "Delete error: " + error.message;
+    }
+  });
+
   document.getElementById("fb-save-measurement").addEventListener("click", async () => {
     const workspaceId = workspaceSelect.value;
     const status = document.getElementById("fb-measurement-status");
