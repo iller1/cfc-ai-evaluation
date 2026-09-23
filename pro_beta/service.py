@@ -69,6 +69,9 @@ class PersistencePort(Protocol):
     def list_founding_beta_measurements(
         self, user_id: str, workspace_id: str
     ) -> list[FoundingBetaMeasurement]: ...
+    def delete_founding_beta_measurements(
+        self, user_id: str, workspace_id: str
+    ) -> int: ...
 
 
 @dataclass(frozen=True)
@@ -164,6 +167,13 @@ class ProBetaService:
         self, auth: AuthContext, workspace_id: str
     ) -> list[FoundingBetaMeasurement]:
         return self.persistence.list_founding_beta_measurements(
+            auth.user_id, workspace_id
+        )
+
+    def delete_founding_beta_measurements(
+        self, auth: AuthContext, workspace_id: str
+    ) -> int:
+        return self.persistence.delete_founding_beta_measurements(
             auth.user_id, workspace_id
         )
 
