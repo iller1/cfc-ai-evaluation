@@ -134,7 +134,7 @@ class ProBetaService:
             "system_version": (system_version, 128),
             "workflow_type": (workflow_type, 80),
             "case_id": (case_id, 128),
-            "reason_code": (reason_code, 160),
+            "reason_code": (reason_code, 1024),
             "hawm_state": (hawm_state, 160),
             "final_action": (final_action, 80),
         }
