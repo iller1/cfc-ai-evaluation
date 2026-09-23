@@ -101,6 +101,57 @@ class ProBetaAPI:
 
         return {"account": asdict(account), "created": created}
 
+    def run_founding_beta_structured_cfc(
+        self,
+        credential: str,
+        workspace_id: str,
+        payload: dict[str, Any],
+    ) -> dict:
+        auth = self._auth(credential)
+        forbidden = {
+            "document",
+            "document_text",
+            "content",
+            "prompt",
+            "response",
+            "model_response",
+            "raw_evidence",
+        }
+        if forbidden.intersection(payload):
+            raise APIError(400, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN")
+        try:
+            self.service.get_workspace(auth, workspace_id)
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        state = payload.get("cfc_structured")
+        if not isinstance(state, dict):
+            raise APIError(400, "FOUNDING_BETA_STRUCTURED_STATE_REQUIRED")
+        if forbidden.intersection(state):
+            raise APIError(400, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN")
+
+        try:
+            from pro_beta.cfc_execution import run_structured_hawm_state
+            executed = run_structured_hawm_state(
+                {"cfc_structured": state}
+            )
+        except ValueError as exc:
+            raise APIError(400, str(exc)) from exc
+        except Exception as exc:
+            raise APIError(500, "CFC_EXECUTION_FAILED") from exc
+
+        return {
+            "case_id": executed["case_id"],
+            "controller_anchor": executed["controller_anchor"],
+            "controller_result": executed["controller_result"],
+            "presentation": executed["presentation"],
+            "boundary": executed["boundary"],
+            "mapped_input": executed["mapped_input"],
+            "persisted_customer_content": False,
+        }
+
     def create_founding_beta_measurement(
         self,
         credential: str,
