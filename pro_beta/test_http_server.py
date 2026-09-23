@@ -70,6 +70,14 @@ class HTTPServerTests(unittest.TestCase):
         self.assertEqual(status, 401)
         self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
 
+    def test_beta_measurement_delete_requires_bearer(self):
+        status, payload = self.request(
+            "/api/workspaces/ws_test/beta-measurements",
+            method="DELETE",
+        )
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
+
     def test_beta_measurement_routes_require_bearer(self):
         status, payload = self.request(
             "/api/workspaces/ws_test/beta-measurements",
