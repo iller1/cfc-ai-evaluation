@@ -529,6 +529,35 @@ window.addEventListener("load", async function () {
     await loadBenchmarkHistory();
   }
 
+  function renderBetaMeasurementHistory(rows) {
+    const target = document.getElementById("beta-measurement-history");
+    if (!Array.isArray(rows) || rows.length === 0) {
+      target.textContent = "No Founding Beta measurements yet.";
+      return;
+    }
+    target.textContent = rows.slice().reverse().slice(0, 20).map((row) => [
+      row.created_at || "",
+      row.system_version + " · " + row.workflow_type + " · " + row.case_id,
+      "CFC: " + row.cfc_result + " · reason: " + row.reason_code,
+      "HAWM: " + row.hawm_state,
+      "Human: " + row.human_assessment + " · action: " + row.final_action,
+      "Problem: " + row.problem_type,
+      row.comment ? "Comment: " + row.comment : ""
+    ].filter(Boolean).join("\n")).join("\n\n---\n\n");
+  }
+
+  async function loadBetaMeasurements() {
+    const workspaceId = workspaceSelect.value;
+    if (!workspaceId) {
+      renderBetaMeasurementHistory([]);
+      return;
+    }
+    const rows = await api(
+      "/api/workspaces/" + workspaceId + "/beta-measurements"
+    );
+    renderBetaMeasurementHistory(rows);
+  }
+
   let benchmarkCases = [];
 
   async function loadBenchmarkCases() {
@@ -571,6 +600,7 @@ window.addEventListener("load", async function () {
     const rows = await api("/api/workspaces");
     setOptions(workspaceSelect, rows, "workspace_id", "name");
     await loadConversations();
+    await loadBetaMeasurements();
   }
 
   if (!key) {
@@ -650,13 +680,67 @@ window.addEventListener("load", async function () {
       });
 
       document.getElementById("refresh-workspaces").addEventListener("click", loadWorkspaces);
-      workspaceSelect.addEventListener("change", loadConversations);
+      workspaceSelect.addEventListener("change", async () => {
+        await loadConversations();
+        await loadBetaMeasurements();
+      });
       conversationSelect.addEventListener("change", async () => {
         await loadMessages();
         await loadHAWM();
         await loadCFC();
         await loadBenchmarkHistory();
       });
+
+      document.getElementById("refresh-beta-measurements").addEventListener(
+        "click",
+        async () => {
+          try {
+            await loadBetaMeasurements();
+          } catch (error) {
+            document.getElementById("beta-measurement-status").textContent =
+              "Measurement history error: " + error.message;
+          }
+        }
+      );
+
+      document.getElementById("save-beta-measurement").addEventListener(
+        "click",
+        async () => {
+          const measurementStatus =
+            document.getElementById("beta-measurement-status");
+          try {
+            const workspaceId = workspaceSelect.value;
+            if (!workspaceId) throw new Error("CREATE_WORKSPACE_FIRST");
+            const payload = {
+              system_version: document.getElementById("fb-system-version").value.trim(),
+              workflow_type: document.getElementById("fb-workflow-type").value,
+              case_id: document.getElementById("fb-case-id").value.trim(),
+              cfc_result: document.getElementById("fb-cfc-result").value,
+              reason_code: document.getElementById("fb-reason-code").value.trim(),
+              hawm_state: document.getElementById("fb-hawm-state").value.trim(),
+              human_assessment: document.getElementById("fb-human-assessment").value,
+              final_action: document.getElementById("fb-final-action").value,
+              problem_type: document.getElementById("fb-problem-type").value,
+              comment: document.getElementById("fb-comment").value.trim()
+            };
+            const saved = await api(
+              "/api/workspaces/" + workspaceId + "/beta-measurements",
+              {
+                method: "POST",
+                body: JSON.stringify(payload)
+              }
+            );
+            document.getElementById("fb-comment").value = "";
+            measurementStatus.textContent =
+              "Measurement recorded: " + saved.measurement_id +
+              " · no customer document/prompt/model-response field was submitted.";
+            await loadBetaMeasurements();
+          } catch (error) {
+            measurementStatus.textContent =
+              "Measurement error: " + error.message;
+          }
+        }
+      );
 
       document.getElementById("create-conversation").addEventListener("click", async () => {
         try {
