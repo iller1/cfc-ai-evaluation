@@ -98,6 +98,24 @@ create table if not exists benchmark_manual_labels (
   unique (benchmark_run_id, provider)
 );
 
+create table if not exists founding_beta_measurements (
+  measurement_id text primary key,
+  workspace_id text not null references workspaces(workspace_id) on delete cascade,
+  system_version text not null,
+  workflow_type text not null,
+  case_id text not null,
+  cfc_result text not null check (cfc_result in ('ALLOW','STOP','UNRESOLVED')),
+  reason_code text not null,
+  hawm_state text not null,
+  human_assessment text not null check (human_assessment in ('AGREE','DISAGREE','UNSURE')),
+  final_action text not null,
+  problem_type text not null check (
+    problem_type in ('NONE','BUG','USABILITY','FALSE_STOP','FALSE_ALLOW','UPSTREAM_STATE_ISSUE')
+  ),
+  comment text,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists usage_events (
   event_id text primary key,
   user_id text not null references users(user_id) on delete cascade,
@@ -115,6 +133,7 @@ create index if not exists idx_benchmark_runs_conversation_created on benchmark_
 create index if not exists idx_benchmark_runs_case_created on benchmark_runs(case_id, created_at);
 create index if not exists idx_benchmark_labels_run on benchmark_manual_labels(benchmark_run_id);
 create index if not exists idx_benchmark_labels_label on benchmark_manual_labels(label);
+create index if not exists idx_founding_beta_measurements_workspace_created on founding_beta_measurements(workspace_id, created_at);
 create index if not exists idx_usage_user_created on usage_events(user_id, created_at);
 
 -- Intentionally absent: passwords, password hashes, provider API keys, access tokens.

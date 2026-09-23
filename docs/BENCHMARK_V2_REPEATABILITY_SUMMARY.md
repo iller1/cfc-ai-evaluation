@@ -7,7 +7,7 @@
 
 ## Scope
 
-This document summarizes the current **Benchmark V2 repeatability pilot** for cases B01–B08.
+This document summarizes the current **Benchmark V2 repeatability pilot** for cases B01–B09.
 
 The pilot targets one narrow failure mode:
 
@@ -23,7 +23,7 @@ Semantic outcomes are manually evaluated rather than automatically scored.
 
 ---
 
-## Current aggregate — B01 to B08
+## Current aggregate — B01 to B09
 
 | Case | Claude | OpenAI | Gemini | Premature closure |
 |---|---:|---:|---:|---:|
@@ -35,14 +35,15 @@ Semantic outcomes are manually evaluated rather than automatically scored.
 | B06 | 5/5 consistent | 5/5 consistent | 1/1 visible consistent | 0 |
 | B07 | 5/5 consistent | 5/5 consistent | 4/4 visible consistent | 0 |
 | B08 | 6/6 consistent | 6/6 consistent | 6/6 consistent | 0 |
+| B09 | 5/5 visible consistent | 9/9 consistent | 3/3 visible consistent | 0 |
 
 ### Provider totals
 
-- **Claude:** 46/46 evaluated responses labeled `CONSISTENT`
-- **OpenAI:** 46/46 evaluated responses labeled `CONSISTENT`
-- **Gemini:** 14/14 visible evaluated responses labeled `CONSISTENT`
-- **Total evaluated responses:** 106
-- **Observed `PREMATURE_CLOSURE` in this B01–B08 series:** 0
+- **Claude:** 51/51 evaluated responses labeled `CONSISTENT`
+- **OpenAI:** 55/55 evaluated responses labeled `CONSISTENT`
+- **Gemini:** 17/17 visible evaluated responses labeled `CONSISTENT`
+- **Total evaluated responses:** 123
+- **Observed `PREMATURE_CLOSURE` in this B01–B09 series:** 0
 
 These counts apply only to the currently recorded and manually evaluated Benchmark V2 runs represented in this pilot.
 
@@ -66,22 +67,38 @@ The present series is a repeatability observation, not a reliability guarantee.
 
 ---
 
-## B09 handling
+## B09 persisted-provenance reconstruction
 
-**B09 is intentionally excluded from the aggregate above.**
+B09 has now been reconstructed from the persisted production `benchmark_runs` table using the exact case identifier:
 
-The current B09 history contains provenance complications, including:
+`B09_NATURAL_LANGUAGE_UNKNOWN_FRESHNESS`
 
-- historical/transitional V1-9 material,
-- newer V2 material,
-- at least one accidentally pasted duplicate,
-- inconsistent Gemini presence across runs.
+Persisted inventory:
 
-Because these records are not yet cleanly separated by benchmark version and persisted provenance, B09 should not be manually folded into a single aggregate number.
+- **Benchmark V1:** 6 runs — excluded from the V2 aggregate
+- **Benchmark V2:** 9 runs — included below
+- **V2 run IDs:** 9 unique `benchmark_run_id` values
+- **Persisted manual labels for B09:** 0
 
-The correct next step is to reconstruct **B09 V2** from persisted benchmark history and count only records whose provenance is unambiguous.
+The 9 V2 runs produced:
 
-This exclusion is deliberate and follows the same principle the benchmark is intended to test: unresolved provenance should not be silently converted into a definitive aggregate.
+- **OpenAI / `gpt-5.6-terra`:** 9 successful visible responses, 0 provider failures
+- **Claude / `claude-sonnet-4-5`:** 5 successful visible responses, 4 provider failures
+- **Gemini / `gemini-3.6-flash`:** 3 successful visible responses, 6 provider failures
+- **Total visible successful responses:** 17
+- **Total provider failures:** 10
+
+Manual semantic review of the 17 persisted response texts found:
+
+- **CONSISTENT:** 17
+- **AMBIGUOUS:** 0
+- **PREMATURE_CLOSURE:** 0
+
+All 17 visible responses explicitly preserved the unresolved conflict: the unknown freshness/status of the contradictory source was not treated as evidence that the source was stale, invalid, or safely ignorable.
+
+The V2 records are kept distinct from the 6 persisted V1 runs. Repeated provider/model appearances across different run IDs are treated as intentional repeatability observations, not duplicates merely because provider, model, or wording recur.
+
+An independent second-pass review of these manual semantic labels remains recommended before presenting the benchmark as externally reviewed.
 
 ---
 
@@ -127,10 +144,10 @@ For each case and provider/model, the final summary should report:
 
 1. Fix UI provenance so the displayed benchmark header cannot show V1 for a V2 run.
 2. Ensure scoreboard grouping includes `benchmark_version`.
-3. Reconstruct B09 V2 from persisted benchmark history.
-4. Produce a machine-readable raw-results/provenance manifest.
-5. Add independent/manual second-pass review of semantic labels.
-6. Only after provenance cleanup, generate the final Benchmark V2 aggregate.
+3. Preserve the reconstructed B09 V2 provenance manifest alongside this summary.
+4. Produce/maintain a machine-readable raw-results/provenance manifest for the full B01–B09 series.
+5. Add an independent second-pass review of semantic labels.
+6. After that review, freeze the final Benchmark V2 aggregate.
 
 ---
 

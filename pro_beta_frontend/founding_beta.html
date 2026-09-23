@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CFC + HAWM Founding Beta v2</title>
+  <style>
+    :root { font-family: Inter, system-ui, Arial, sans-serif; color-scheme: dark; }
+    body { margin:0; min-height:100vh; background:#111827; color:#f9fafb; display:grid; place-items:center; }
+    main { width:min(860px,94vw); background:#1f2937; border:1px solid #374151; border-radius:18px; padding:28px; }
+    h1,h2,h3 { margin-top:0; }
+    p { color:#cbd5e1; line-height:1.5; }
+    .panel { margin-top:18px; padding:14px; border:1px solid #374151; border-radius:12px; background:#111827; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+    input, textarea, select, button { font:inherit; }
+    input, textarea, select { background:#0f172a; color:#f9fafb; border:1px solid #475569; border-radius:8px; padding:9px; }
+    button { background:#334155; color:#f9fafb; border:1px solid #64748b; border-radius:8px; padding:9px 12px; cursor:pointer; }
+    .boundary { margin:12px 0; padding:12px 14px; border-radius:10px; background:#0f172a; white-space:pre-wrap; font-family:ui-monospace,monospace; font-size:13px; }
+    .meta { font-size:12px; color:#94a3b8; }
+    .warn { border:1px solid #92400e; background:#451a03; padding:12px; border-radius:10px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>CFC + HAWM Founding Beta v2</h1>
+  <p>Experimental measurement workflow. Human remains the final decision-maker.</p>
+  <div class="warn"><strong>NO CUSTOMER CONTENT BY DEFAULT.</strong> Do not paste customer documents, prompts, full model replies or raw evidence text into this page.</div>
+  <div class="boundary">Flow: structured evidence state → frozen CFC → ALLOW / STOP / UNRESOLVED → human assessment → minimal measurement</div>
+
+  <div id="auth">Loading authentication…</div>
+
+  <section id="beta-app" hidden>
+    <section class="panel">
+      <h2>Workspace</h2>
+      <div class="row">
+        <input id="fb-workspace-name" placeholder="Workspace name">
+        <button id="fb-create-workspace">Create workspace</button>
+      </div>
+      <div class="row">
+        <select id="fb-workspace-select"></select>
+        <button id="fb-refresh-workspaces">Refresh</button>
+      </div>
+      <div id="fb-workspace-status" class="boundary">Select or create a workspace.</div>
+    </section>
+
+    <section class="panel">
+      <h2>1. Structured evidence state</h2>
+      <p class="meta">Technical state only. Do not enter source text.</p>
+      <div class="row">
+        <label>Conclusion
+          <select id="fb-cfc-conclusion">
+            <option value="POSITIVE">POSITIVE</option>
+            <option value="NEGATIVE">NEGATIVE</option>
+          </select>
+        </label>
+        <label>Required supports
+          <select id="fb-cfc-required"><option value="1">1</option><option value="2">2</option></select>
+        </label>
+        <label>Scope
+          <select id="fb-cfc-scope"><option value="EXPECTED">EXPECTED</option><option value="WRONG">WRONG</option></select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Provenance
+          <select id="fb-cfc-provenance"><option value="DISTINCT">DISTINCT</option><option value="SHARED_LINEAGE">SHARED_LINEAGE</option></select>
+        </label>
+        <label>Independence authority
+          <select id="fb-cfc-independence"><option value="NONE">NONE</option><option value="VERIFIED">VERIFIED</option></select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Evidence 1 polarity
+          <select id="fb-cfc-e1-polarity"><option value="POSITIVE">POSITIVE</option><option value="NEGATIVE">NEGATIVE</option></select>
+        </label>
+        <label>Evidence 1 validity
+          <select id="fb-cfc-e1-validity"><option value="CURRENT">CURRENT</option><option value="STALE">STALE</option></select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Evidence 2
+          <select id="fb-cfc-e2-enabled"><option value="NO">OMIT</option><option value="YES">INCLUDE</option></select>
+        </label>
+        <label>Evidence 2 polarity
+          <select id="fb-cfc-e2-polarity"><option value="POSITIVE">POSITIVE</option><option value="NEGATIVE">NEGATIVE</option></select>
+        </label>
+        <label>Evidence 2 validity
+          <select id="fb-cfc-e2-validity"><option value="CURRENT">CURRENT</option><option value="STALE">STALE</option></select>
+        </label>
+      </div>
+      <button id="fb-run-cfc">Run frozen CFC</button>
+      <div id="fb-cfc-result" class="boundary">No CFC check run yet.</div>
+    </section>
+
+    <section class="panel">
+      <h2>2. Human assessment + measurement</h2>
+      <div class="row">
+        <input id="fb-system-version" value="founding-beta-rc1" placeholder="System version">
+        <select id="fb-workflow-type">
+          <option value="document_review">document_review</option>
+          <option value="research">research</option>
+          <option value="decision_support">decision_support</option>
+          <option value="other">other</option>
+        </select>
+        <input id="fb-case-id" placeholder="Non-sensitive case ID">
+      </div>
+      <div class="row">
+        <input id="fb-reason-code" placeholder="Reason code" readonly>
+        <input id="fb-hawm-state" placeholder="HAWM presentation/state code">
+      </div>
+      <div class="row">
+        <select id="fb-human-assessment"><option>AGREE</option><option>DISAGREE</option><option>UNSURE</option></select>
+        <select id="fb-final-action"><option>ACTED</option><option>DID_NOT_ACT</option><option>ESCALATED</option><option>OTHER</option></select>
+        <select id="fb-problem-type">
+          <option>NONE</option><option>BUG</option><option>USABILITY</option><option>FALSE_STOP</option><option>FALSE_ALLOW</option><option>UPSTREAM_STATE_ISSUE</option>
+        </select>
+      </div>
+      <textarea id="fb-comment" maxlength="500" rows="2" style="width:100%" placeholder="Optional short anonymized comment only"></textarea>
+      <div class="row">
+        <button id="fb-save-measurement">Record measurement</button>
+        <button id="fb-refresh-history">Refresh history</button>
+        <button id="fb-delete-measurements" type="button">Delete beta measurements for this workspace</button>
+      </div>
+      <div id="fb-measurement-status" class="boundary">Run CFC, then record human assessment.</div>
+      <div id="fb-history" class="boundary">No measurement history loaded.</div>
+    </section>
+  </section>
+</main>
+
+<script defer crossorigin="anonymous" src="https://alert-bear-8010.clerk.accounts.dev/npm/@clerk/ui@1/dist/ui.browser.js"></script>
+<script defer crossorigin="anonymous" data-clerk-publishable-key="__CLERK_PUBLISHABLE_KEY__" src="https://alert-bear-8010.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js"></script>
+<script src="/founding-beta.js" defer></script>
+</body>
+</html>

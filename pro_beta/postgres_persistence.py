@@ -8,6 +8,7 @@ from pro_beta.contracts import (
     BenchmarkManualLabel,
     BenchmarkRun,
     CFCRun,
+    FoundingBetaMeasurement,
     Conversation,
     HAWMSnapshot,
     Message,
@@ -123,6 +124,85 @@ class PostgresPersistence:
     def _assert_conversation_owned(self, user_id: str, conversation_id: str) -> None:
         if self._conversation_owner(conversation_id) != user_id:
             raise OwnershipError("CONVERSATION_NOT_OWNED")
+
+    def add_founding_beta_measurement(
+        self, user_id: str, item: FoundingBetaMeasurement
+    ) -> FoundingBetaMeasurement:
+        self._assert_workspace_owned(user_id, item.workspace_id)
+        self._execute(
+            """
+            insert into founding_beta_measurements (
+                measurement_id, workspace_id, system_version, workflow_type,
+                case_id, cfc_result, reason_code, hawm_state,
+                human_assessment, final_action, problem_type, comment, created_at
+            )
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                item.measurement_id,
+                item.workspace_id,
+                item.system_version,
+                item.workflow_type,
+                item.case_id,
+                item.cfc_result,
+                item.reason_code,
+                item.hawm_state,
+                item.human_assessment,
+                item.final_action,
+                item.problem_type,
+                item.comment,
+                item.created_at,
+            ),
+        )
+        return item
+
+    def list_founding_beta_measurements(
+        self, user_id: str, workspace_id: str
+    ) -> list[FoundingBetaMeasurement]:
+        self._assert_workspace_owned(user_id, workspace_id)
+        rows = self._all(
+            """
+            select measurement_id, workspace_id, system_version, workflow_type,
+                   case_id, cfc_result, reason_code, hawm_state,
+                   human_assessment, final_action, problem_type, comment,
+                   created_at::text
+            from founding_beta_measurements
+            where workspace_id = %s
+            order by created_at, measurement_id
+            """,
+            (workspace_id,),
+        )
+        return [
+            FoundingBetaMeasurement(
+                measurement_id=r[0],
+                workspace_id=r[1],
+                system_version=r[2],
+                workflow_type=r[3],
+                case_id=r[4],
+                cfc_result=r[5],
+                reason_code=r[6],
+                hawm_state=r[7],
+                human_assessment=r[8],
+                final_action=r[9],
+                problem_type=r[10],
+                comment=r[11],
+                created_at=r[12],
+            )
+            for r in rows
+        ]
+
+    def delete_founding_beta_measurements(
+        self, user_id: str, workspace_id: str
+    ) -> int:
+        self._assert_workspace_owned(user_id, workspace_id)
+        with self.connection.cursor() as cur:
+            cur.execute(
+                "delete from founding_beta_measurements where workspace_id = %s",
+                (workspace_id,),
+            )
+            deleted = cur.rowcount
+        self.connection.commit()
+        return int(deleted)
 
     def create_workspace(self, user_id: str, workspace: Workspace) -> Workspace:
         self.get_user(user_id)
