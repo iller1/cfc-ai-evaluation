@@ -13,7 +13,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Re-run same suite on Postgres 18 (matching production major) — GitHub Actions run `35873169764`: SUCCESS.
 - [x] Content-free Founding Beta measurement path + tests — GitHub Actions run `35898706059`: SUCCESS.
 - [x] Dedicated no-customer-content `/founding-beta` page + ephemeral structured CFC path — GitHub Actions run `35899501928`: SUCCESS.
-- [ ] Confirm production health.
+- [x] Confirm current Railway production health — all five services latest deployment status SUCCESS on 2026-09-23. This confirms the current production baseline only; Founding Beta v2 branch is not yet deployed.
 - [x] Confirm measurement database persistence/ownership through Postgres 18 integration tests; end-to-end live beta replay remains part of onboarding dry-run.
 
 ## B. Onboarding
@@ -51,9 +51,9 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Architecture rule: **NO CUSTOMER CONTENT BY DEFAULT**; dedicated measurement API has no document/prompt/model-response fields.
 
 - [x] Working data/terms draft exists.
-- [ ] Choose retention duration.
-- [ ] Define deletion process.
-- [ ] Define access roles.
+- [x] Choose proposed retention duration — 30 days for Founding Beta measurement records; legal approval and automatic enforcement remain open.
+- [x] Define deletion process — authenticated workspace purge + operator-assisted SOP in `FOUNDING_BETA_DELETION_SOP.md`.
+- [x] Define access roles — participant/workspace user, project operator, infrastructure/subprocessors in `FOUNDING_BETA_ACCESS_ROLES.md`; named operators and production-access procedure remain open.
 - [ ] Confirm hosting/data locations relevant to customer disclosure. Railway currently reports region code `sfo` for frontend/API/Postgres; customer-facing geography still TO VERIFY.
 - [x] Decide whether personal data is permitted in round 1 — default policy: no unnecessary personal/sensitive data; synthetic/public/authorized low-risk data preferred.
 - [ ] Produce final privacy notice before paid onboarding.
