@@ -21,15 +21,15 @@ The Founding Beta can continue as an experimental, controlled pre-paid/private b
 | Current production baseline health | READY | Railway latest deployments SUCCESS |
 | Frozen controller unchanged | READY | Anchor 0.2.90rc1 / Wrapper v1.23 remain frozen |
 | Automatic 30-day retention enforcement | BLOCKER | implement scheduled/credible cleanup before claiming automatic 30-day deletion |
-| Live Founding Beta deployment | BLOCKER / NOT AUTHORIZED YET | requires explicit deployment decision |
-| Live onboarding dry run | BLOCKER ON DEPLOYMENT | run after a safe beta route is deployed |
+| Live Founding Beta deployment | READY | deployed live on Railway 2026-09-23 after explicit authorization |
+| Live onboarding dry run | READY | synthetic end-to-end run completed live: STOP/SUPPORTED, ALLOW/VERIFIED, STOP/UNRESOLVED; measurements persisted without customer content |
 
 ## B. Owner decisions — must be explicit
 
 | Item | Status | Decision needed |
 |---|---|---|
-| Support contact | OPEN | real monitored address/channel |
-| Security/privacy incident contact | OPEN | real monitored non-public channel |
+| Support contact | DECIDED | `krzysztofsliwka@yahoo.co.uk` |
+| Security/privacy incident contact | DECIDED | `krzysztofsliwka@yahoo.co.uk` |
 | Emergency escalation | OPEN | person/channel |
 | Named production operators | OPEN | who may access Railway/database |
 | Billing mechanism | OPEN | Stripe/manual invoice/other |
@@ -94,7 +94,7 @@ Requires:
 - support contact;
 - explicit workflow/data boundaries.
 
-**Current status: close, not yet complete.**
+**Current status: engineering/onboarding conditions met; recruitment still depends on remaining owner/external/privacy decisions.**
 
 ### State 3 — Unpaid / controlled real-workflow beta
 May be possible before full paid launch if legal/privacy risk is appropriately bounded and the operator chooses that route.
