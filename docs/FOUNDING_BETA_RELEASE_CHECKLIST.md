@@ -4,13 +4,14 @@ This checklist converts the working Founding Beta plan into an operational gate.
 
 ## A. Product freeze
 
-- [ ] Name the beta release version.
+- [x] Name the beta release candidate: `Founding Beta RC1`.
 - [x] Record exact candidate commit: `ee97145277de61a81be981058a1ad520ef108441`.
-- [ ] Record exact Integration Layer version.
-- [ ] Record frozen Anchor/controller identities.
-- [ ] Confirm no frozen artifact changed.
+- [x] Record exact Integration Layer version: `v0.4 RC`.
+- [x] Record frozen identities: Operator Wrapper `v1.23`; CFC Anchor `0.2.90rc1`; Demonstrator `v1.0`.
+- [x] Confirm no frozen artifact changed in the Founding Beta measurement implementation.
 - [x] Run Pro Beta contract/auth/persistence/PostgreSQL/frontend suite — GitHub Actions run `35871943953`: SUCCESS.
 - [x] Re-run same suite on Postgres 18 (matching production major) — GitHub Actions run `35873169764`: SUCCESS.
+- [x] Content-free Founding Beta measurement path + tests — GitHub Actions run `35898706059`: SUCCESS.
 - [ ] Confirm production health.
 - [ ] Confirm database persistence and replay.
 
@@ -27,10 +28,10 @@ This checklist converts the working Founding Beta plan into an operational gate.
 
 ## C. Observability
 
-- [ ] Confirm version is stored with each relevant external beta case.
-- [ ] Confirm input/evidence state can be reconstructed.
-- [ ] Confirm control result can be reconstructed.
-- [ ] Confirm provider failures are distinct from semantic outcomes.
+- [x] Confirm version is stored with each Founding Beta measurement (`system_version`).
+- [x] Confirm Founding Beta measurement path does not require customer content; only non-content state/reason codes are persisted.
+- [x] Confirm control result is persisted as `ALLOW / STOP / UNRESOLVED` plus `reason_code`.
+- [x] Confirm existing benchmark provider failures remain separate from semantic outcomes; Founding Beta measurement schema records product outcome/problem class separately.
 - [ ] Confirm audit/log retention works after redeploy.
 - [ ] Confirm an operator can replay one historical beta case end-to-end.
 
@@ -46,6 +47,8 @@ This checklist converts the working Founding Beta plan into an operational gate.
 
 ## E. Data/privacy
 
+- [x] Architecture rule: **NO CUSTOMER CONTENT BY DEFAULT**; dedicated measurement API has no document/prompt/model-response fields.
+
 - [x] Working data/terms draft exists.
 - [ ] Choose retention duration.
 - [ ] Define deletion process.
@@ -56,16 +59,16 @@ This checklist converts the working Founding Beta plan into an operational gate.
 
 ## F. Commercial
 
-- [ ] Confirm Founding Beta price.
+- [x] Confirm Founding Beta price: £10/month as an engagement filter, not target valuation.
 - [ ] Choose billing mechanism.
 - [ ] Confirm contracting entity/jurisdiction.
 - [ ] Confirm tax/VAT handling.
-- [ ] Finalize beta terms.
+- [ ] Finalize Founding Beta Terms / Beta Agreement and obtain UK SaaS/data-protection/AI legal review before paid launch.
 - [ ] Define support contact and expectations.
 
 ## G. First-user gate
 
-- [ ] At least 3 genuinely engaged companies identified.
+- [ ] At least 3–5 genuinely engaged companies identified for initial start (up to 10 in first group).
 - [ ] Each company has one bounded workflow.
 - [ ] Each company accepts beta limitations.
 - [ ] Each company has a named human reviewer.
