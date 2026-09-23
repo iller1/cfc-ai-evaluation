@@ -101,6 +101,61 @@ class ProBetaAPI:
 
         return {"account": asdict(account), "created": created}
 
+    def create_founding_beta_measurement(
+        self,
+        credential: str,
+        workspace_id: str,
+        payload: dict[str, Any],
+    ) -> dict:
+        auth = self._auth(credential)
+        forbidden = {
+            "document",
+            "document_text",
+            "content",
+            "prompt",
+            "response",
+            "model_response",
+            "raw_evidence",
+        }
+        if forbidden.intersection(payload):
+            raise APIError(400, "FOUNDING_BETA_CUSTOMER_CONTENT_FORBIDDEN")
+        try:
+            item = self.service.save_founding_beta_measurement(
+                auth,
+                workspace_id,
+                system_version=str(payload.get("system_version") or ""),
+                workflow_type=str(payload.get("workflow_type") or ""),
+                case_id=str(payload.get("case_id") or ""),
+                cfc_result=str(payload.get("cfc_result") or ""),
+                reason_code=str(payload.get("reason_code") or ""),
+                hawm_state=str(payload.get("hawm_state") or ""),
+                human_assessment=str(payload.get("human_assessment") or ""),
+                final_action=str(payload.get("final_action") or ""),
+                problem_type=str(payload.get("problem_type") or ""),
+                comment=payload.get("comment"),
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        except ValueError as exc:
+            raise APIError(400, str(exc)) from exc
+        return asdict(item)
+
+    def list_founding_beta_measurements(
+        self, credential: str, workspace_id: str
+    ) -> list[dict]:
+        auth = self._auth(credential)
+        try:
+            rows = self.service.list_founding_beta_measurements(
+                auth, workspace_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return [asdict(row) for row in rows]
+
     def create_workspace(self, credential: str, payload: dict[str, Any]) -> dict:
         auth = self._auth(credential)
         name = str(payload.get("name") or "")
