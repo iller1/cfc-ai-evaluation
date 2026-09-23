@@ -9,6 +9,7 @@ from pro_beta.contracts import (
     BenchmarkManualLabel,
     BenchmarkRun,
     CFCRun,
+    FoundingBetaMeasurement,
     Conversation,
     HAWMSnapshot,
     Message,
@@ -47,8 +48,9 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
             cur.execute(
                 """
                 truncate table
-                    usage_events, benchmark_runs, audit_reports, cfc_runs,
-                    hawm_snapshots, messages, conversations, workspaces, users
+                    usage_events, founding_beta_measurements, benchmark_runs,
+                    audit_reports, cfc_runs, hawm_snapshots, messages,
+                    conversations, workspaces, users
                 restart identity cascade
                 """
             )
@@ -73,6 +75,33 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
         )
         self.store.create_conversation(self.user_a.user_id, self.conversation_a)
         self.store.create_conversation(self.user_b.user_id, self.conversation_b)
+
+    def test_postgres_founding_beta_measurement_round_trip_without_content(self):
+        item = FoundingBetaMeasurement(
+            measurement_id=new_id("fbm"),
+            workspace_id=self.workspace_a.workspace_id,
+            system_version="founding-beta-rc1",
+            workflow_type="document_review",
+            case_id="case-001",
+            cfc_result="UNRESOLVED",
+            reason_code="UPSTREAM_STATE_INCOMPLETE",
+            hawm_state="UNRESOLVED_PRESENTED",
+            human_assessment="AGREE",
+            final_action="ESCALATED",
+            problem_type="UPSTREAM_STATE_ISSUE",
+            comment="sanitized",
+        )
+        self.store.add_founding_beta_measurement(self.user_a.user_id, item)
+        rows = self.store.list_founding_beta_measurements(
+            self.user_a.user_id, self.workspace_a.workspace_id
+        )
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].reason_code, "UPSTREAM_STATE_INCOMPLETE")
+        self.assertFalse(hasattr(rows[0], "content"))
+        with self.assertRaises(OwnershipError):
+            self.store.list_founding_beta_measurements(
+                self.user_b.user_id, self.workspace_a.workspace_id
+            )
 
     def test_postgres_blocks_cross_user_workspace_read(self):
         with self.assertRaises(OwnershipError):
