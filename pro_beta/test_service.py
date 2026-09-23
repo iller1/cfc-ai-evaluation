@@ -102,6 +102,47 @@ class ProBetaServiceTests(unittest.TestCase):
                 self.auth_b.user_id, conversation.conversation_id
             )
 
+    def test_founding_beta_measurement_is_content_free_and_owned(self):
+        workspace = self.service.create_workspace(self.auth_a, "A")
+        item = self.service.save_founding_beta_measurement(
+            self.auth_a,
+            workspace.workspace_id,
+            system_version="founding-beta-rc1",
+            workflow_type="research",
+            case_id="case-001",
+            cfc_result="UNRESOLVED",
+            reason_code="CONFLICT_UNRESOLVED",
+            hawm_state="EXPLAINED_UNRESOLVED",
+            human_assessment="AGREE",
+            final_action="ESCALATED",
+            problem_type="NONE",
+            comment="sanitized note",
+        )
+        self.assertEqual(item.cfc_result, "UNRESOLVED")
+        self.assertFalse(hasattr(item, "content"))
+        self.assertFalse(hasattr(item, "document"))
+        with self.assertRaises(OwnershipError):
+            self.service.list_founding_beta_measurements(
+                self.auth_b, workspace.workspace_id
+            )
+
+    def test_founding_beta_measurement_rejects_invalid_enum(self):
+        workspace = self.service.create_workspace(self.auth_a, "A")
+        with self.assertRaises(ValueError):
+            self.service.save_founding_beta_measurement(
+                self.auth_a,
+                workspace.workspace_id,
+                system_version="rc1",
+                workflow_type="research",
+                case_id="case-002",
+                cfc_result="MAYBE",
+                reason_code="X",
+                hawm_state="X",
+                human_assessment="AGREE",
+                final_action="NONE",
+                problem_type="NONE",
+            )
+
     def test_cfc_run_requires_separate_explicit_save_path(self):
         workspace = self.service.create_workspace(self.auth_a, "A")
         conversation = self.service.create_conversation(
