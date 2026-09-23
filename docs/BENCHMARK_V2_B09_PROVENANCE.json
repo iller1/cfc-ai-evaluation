@@ -286,6 +286,111 @@
     "Repeated provider/model appearances across distinct benchmark_run_id values are treated as repeatability runs, not duplicates.",
     "No B09 manual labels were persisted in benchmark_manual_labels at reconstruction time.",
     "Provider failures are not counted as semantic outcomes.",
-    "No exact persisted duplicate benchmark_run_id was observed among the 9 V2 runs."
+    "No exact persisted duplicate benchmark_run_id was observed among the 9 V2 runs.",
+    "Blind second-pass review pack uses R01-R17 identifiers; mapping is stored here for reconciliation and should not be shown to a reviewer before labeling."
+  ],
+  "blind_review_mapping": [
+    {
+      "blind_response_id": "R01",
+      "benchmark_run_id": "bench_9b64363c06104939886e61bdad241181",
+      "provider": "openai",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "blind_response_id": "R02",
+      "benchmark_run_id": "bench_9b64363c06104939886e61bdad241181",
+      "provider": "claude",
+      "model": "claude-sonnet-4-5"
+    },
+    {
+      "blind_response_id": "R03",
+      "benchmark_run_id": "bench_a3333685333742ecb1ef1d43d054742c",
+      "provider": "openai",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "blind_response_id": "R04",
+      "benchmark_run_id": "bench_2d2f60b447094100bd78ce37bceeedd5",
+      "provider": "claude",
+      "model": "claude-sonnet-4-5"
+    },
+    {
+      "blind_response_id": "R05",
+      "benchmark_run_id": "bench_4e8d30c566aa474cb5ed5e26e81fcc0f",
+      "provider": "openai",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "blind_response_id": "R06",
+      "benchmark_run_id": "bench_a3333685333742ecb1ef1d43d054742c",
+      "provider": "claude",
+      "model": "claude-sonnet-4-5"
+    },
+    {
+      "blind_response_id": "R07",
+      "benchmark_run_id": "bench_2d2f60b447094100bd78ce37bceeedd5",
+      "provider": "openai",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "blind_response_id": "R08",
+      "benchmark_run_id": "bench_7119158d038e4ad4aa38cb9ac05d39d7",
+      "provider": "claude",
+      "model": "claude-sonnet-4-5"
+    },
+    {
+      "blind_response_id": "R09",
+      "benchmark_run_id": "bench_eaa3e7d6bd614785bbefee8685b3d9f7",
+      "provider": "openai",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "blind_response_id": "R10",
+      "benchmark_run_id": "bench_784c27c7b2e44753a3a5f66e9c974eb7",
+      "provider": "gemini",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "blind_response_id": "R11",
+      "benchmark_run_id": "bench_784c27c7b2e44753a3a5f66e9c974eb7",
+      "provider": "openai",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "blind_response_id": "R12",
+      "benchmark_run_id": "bench_a4b9a7cabc924ecb9cbe78330abf1a96",
+      "provider": "gemini",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "blind_response_id": "R13",
+      "benchmark_run_id": "bench_a4b9a7cabc924ecb9cbe78330abf1a96",
+      "provider": "openai",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "blind_response_id": "R14",
+      "benchmark_run_id": "bench_d7ecf3276c3344a5b1258477ed0d5194",
+      "provider": "gemini",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "blind_response_id": "R15",
+      "benchmark_run_id": "bench_d7ecf3276c3344a5b1258477ed0d5194",
+      "provider": "claude",
+      "model": "claude-sonnet-4-5"
+    },
+    {
+      "blind_response_id": "R16",
+      "benchmark_run_id": "bench_d7ecf3276c3344a5b1258477ed0d5194",
+      "provider": "openai",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "blind_response_id": "R17",
+      "benchmark_run_id": "bench_7119158d038e4ad4aa38cb9ac05d39d7",
+      "provider": "openai",
+      "model": "gpt-5.6-terra"
+    }
   ]
 }
