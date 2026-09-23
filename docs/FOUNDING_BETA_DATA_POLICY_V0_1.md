@@ -9,11 +9,21 @@ This document defines the minimum data boundary for the first Founding Beta roun
 
 The goal is to keep early customer workflows low-risk, reproducible and inspectable while legal/privacy work remains incomplete.
 
+## Architectural rule
+
+**USE THE DOCUMENT. DON'T COLLECT THE DOCUMENT.**
+
+**NO CUSTOMER CONTENT BY DEFAULT.**
+
+The Founding Beta product path should use customer inputs locally or route them directly to the customer's chosen model/provider where applicable. CFC + HAWM should receive/store only the minimum technical measurement required to evaluate system behavior.
+
+The dedicated Founding Beta measurement API therefore has no fields for customer documents, prompts, model replies or raw evidence content and rejects those field names at the API boundary.
+
 ## Round-1 default rule
 
 Until a reviewed privacy notice, retention policy and deletion process are finalized:
 
-**Do not accept sensitive, special-category, regulated, secret, or unnecessary personal data.**
+**Do not collect customer content by default and do not accept sensitive, special-category, regulated, secret, or unnecessary personal data.**
 
 Prefer:
 - synthetic data,
@@ -44,10 +54,14 @@ A Founding Beta case should contain only what is needed to reproduce the control
 - workflow identifier,
 - case identifier,
 - product version,
-- input/evidence-state references or summaries,
-- model/provider metadata where relevant,
-- control result,
-- user feedback,
+- non-content evidence/state codes or references where needed,
+- CFC result (`ALLOW` / `STOP` / `UNRESOLVED`),
+- reason code / gate failure,
+- HAWM presentation/state code,
+- human assessment (`AGREE` / `DISAGREE` / `UNSURE`),
+- final action code,
+- problem classification,
+- optional short anonymized comment,
 - timestamps.
 
 ## Provider boundary
