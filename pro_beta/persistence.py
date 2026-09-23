@@ -297,6 +297,19 @@ class InMemoryPersistence:
             if item.workspace_id == workspace_id
         ]
 
+    def delete_founding_beta_measurements(
+        self, user_id: str, workspace_id: str
+    ) -> int:
+        self._owned_workspace(user_id, workspace_id)
+        ids = [
+            measurement_id
+            for measurement_id, item in self.founding_beta_measurements.items()
+            if item.workspace_id == workspace_id
+        ]
+        for measurement_id in ids:
+            self.founding_beta_measurements.pop(measurement_id)
+        return len(ids)
+
     # ---------- usage ----------
 
     def add_usage_event(self, user_id: str, event: UsageEvent) -> UsageEvent:
