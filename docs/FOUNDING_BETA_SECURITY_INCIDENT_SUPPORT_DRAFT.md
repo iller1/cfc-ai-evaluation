@@ -50,9 +50,11 @@ Report as an incident if any of the following occurs:
 
 ## Contacts
 
-- Beta support contact: TO DECIDE
-- Security/privacy incident contact: TO DECIDE
-- Emergency escalation contact: TO DECIDE
+- Beta support contact: `krzysztofsliwka@yahoo.co.uk`
+- Security/privacy incident contact: `krzysztofsliwka@yahoo.co.uk`
+- Emergency escalation contact: TO CONFIRM
+
+Operational severity/containment procedure: `FOUNDING_BETA_OPERATOR_EMERGENCY_PROCEDURE.md`.
 
 These must be real monitored addresses before paid onboarding.
 
