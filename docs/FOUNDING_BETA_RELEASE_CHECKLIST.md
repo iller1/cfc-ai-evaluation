@@ -52,7 +52,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 
 - [x] Working data/terms draft exists.
 - [x] Choose proposed retention duration — 30 days for Founding Beta measurement records; legal approval and automatic enforcement remain open.
-- [x] Define deletion process — authenticated workspace purge + operator-assisted SOP in `FOUNDING_BETA_DELETION_SOP.md`.
+- [x] Define deletion process — authenticated workspace purge + operator-assisted SOP in `FOUNDING_BETA_DELETION_SOP.md`; live deletion dry run on 2026-09-24 deleted exactly 1 synthetic measurement, reported `customer content deleted: 0`, and left the workspace history empty after refresh.
 - [x] Define access roles — participant/workspace user, project operator, infrastructure/subprocessors in `FOUNDING_BETA_ACCESS_ROLES.md`; named operators and production-access procedure remain open.
 - [ ] Confirm hosting/data locations relevant to customer disclosure. Railway currently reports region code `sfo` for frontend/API/Postgres; customer-facing geography still TO VERIFY.
 - [x] Decide whether personal data is permitted in round 1 — default policy: no unnecessary personal/sensitive data; synthetic/public/authorized low-risk data preferred.
