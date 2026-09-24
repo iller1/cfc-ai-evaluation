@@ -1,6 +1,6 @@
 # CFC + HAWM Founding Beta v2 — Paid Launch Blocker Matrix
 
-Status date: 2026-09-23
+Status date: 2026-09-24
 
 ## Purpose
 
@@ -16,7 +16,7 @@ The Founding Beta can continue as an experimental, controlled pre-paid/private b
 | Content-free measurement contract | READY | system/workflow/CFC/reason/HAWM/human/problem metadata only |
 | Ephemeral structured CFC check | READY | no message or free-text HAWM persistence |
 | Workspace ownership | READY | persistence/API tests |
-| Measurement deletion endpoint | READY | authenticated workspace purge |
+| Measurement deletion endpoint | READY | authenticated workspace purge; live dry run PASS on 2026-09-24: 1 synthetic record deleted, 0 customer-content records deleted, empty history after refresh |
 | Postgres 18 compatibility | READY | CI PASS |
 | Current production baseline health | READY | Railway latest deployments SUCCESS |
 | Frozen controller unchanged | READY | Anchor 0.2.90rc1 / Wrapper v1.23 remain frozen |
