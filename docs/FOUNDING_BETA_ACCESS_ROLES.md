@@ -34,7 +34,7 @@ Before paid launch, define:
 - whether Railway/Postgres access is shared or individual;
 - how operator access is logged/reviewed.
 
-Current named operator list: **TO DECIDE**
+Current named operator list: **TO DECIDE**. Decision-ready operating procedure: `FOUNDING_BETA_OPERATOR_EMERGENCY_PROCEDURE.md`.
 
 ## Role 3 — Infrastructure / subprocessors
 
@@ -63,7 +63,7 @@ Before paid launch:
 - identify real project operators;
 - use individual accounts where supported;
 - enable available MFA/2FA;
-- document emergency access;
+- document emergency access — procedure prepared in `FOUNDING_BETA_OPERATOR_EMERGENCY_PROCEDURE.md`; named operator/backup confirmation remains open;
 - document revocation/offboarding;
 - record who is authorized to access production database/service configuration.
 
