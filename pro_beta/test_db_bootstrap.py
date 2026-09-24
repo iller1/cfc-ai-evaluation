@@ -41,6 +41,8 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                 "audit_reports",
                 "benchmark_runs",
                 "benchmark_manual_labels",
+                "founding_beta_measurements",
+                "founding_beta_retention_reports",
                 "usage_events",
             },
         )
