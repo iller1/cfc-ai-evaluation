@@ -41,10 +41,10 @@ The Founding Beta can continue as an experimental, controlled pre-paid/private b
 
 | Item | Status | Needed |
 |---|---|---|
-| Railway customer-facing data geography | OPEN | verify current Railway documentation for region code `sfo` |
-| Backup retention/expiry | OPEN | verify Railway/provider behavior |
-| Encryption/security disclosures | OPEN | verify current provider documentation |
-| Subprocessor list | OPEN | Railway, Clerk, model providers; confirm roles |
+| Railway workload region | PARTIALLY VERIFIED | production API, frontend and Postgres currently report Railway region code `sfo`; current Railway public region docs identify US West Metal as California, USA, but the project-specific legacy/internal `sfo` → public-region mapping is not yet independently confirmed |
+| Backup retention/expiry | OPEN / PARTIAL FACTS | Railway public docs state scheduled volume backups can retain daily backups 6 days, weekly 27 days, monthly 89 days; current connected project tooling does not expose whether this Postgres volume has a backup schedule or PITR enabled, so project-specific backup configuration remains to verify |
+| Encryption/security disclosures | VERIFIED AT PROVIDER LEVEL | Railway DPA states databases are encrypted at rest and secure transport controls are used; Railway support documentation additionally states data at rest, including volumes and backups, is AES-256 encrypted automatically |
+| Subprocessor list | PARTIALLY VERIFIED | Railway DPA points to its Trust Center as the authoritative current list and requires notice before new subprocessors are enabled; exact current list should be retained from the Trust Center for the legal/customer pack |
 
 ## D. UK legal review — hard blocker to paid start
 
