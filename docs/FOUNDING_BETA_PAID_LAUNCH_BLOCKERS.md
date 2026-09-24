@@ -30,11 +30,11 @@ The Founding Beta can continue as an experimental, controlled pre-paid/private b
 |---|---|---|
 | Support contact | DECIDED | `krzysztofsliwka@yahoo.co.uk` |
 | Security/privacy incident contact | DECIDED | `krzysztofsliwka@yahoo.co.uk` |
-| Emergency escalation | OPEN | person/channel |
-| Named production operators | OPEN | who may access Railway/database |
-| Billing mechanism | OPEN | Stripe/manual invoice/other |
+| Emergency escalation | PROCEDURE READY / OWNER CONFIRMATION | severity, containment and escalation procedure documented; backup/escalation person still to confirm |
+| Named production operators | PROCEDURE READY / OWNER CONFIRMATION | minimum-access operator responsibilities/revocation documented; operator name(s) still to confirm |
+| Billing mechanism | RECOMMENDATION READY / OWNER DECISION | prefer Stripe Payment Link if legal/accounting setup is ready; otherwise manual invoice; do not build custom billing |
 | Refund policy | OPEN | commercial decision + legal review |
-| Minimum beta activity | OPEN | e.g. N real workflows/tests per month |
+| Minimum beta activity | RECOMMENDATION READY / OWNER DECISION | working first-wave expectation: about 5 bounded real cases + one structured feedback summary per company |
 | Paid vs no-charge first wave | OPEN | decide whether legal review precedes all external use or only payment |
 
 ## C. External factual verification

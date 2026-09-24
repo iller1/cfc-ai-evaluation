@@ -4,6 +4,8 @@
 
 Run this process internally before inviting the first company.
 
+For the current dedicated Founding Beta v2 live path and exact expected synthetic checks, use `FOUNDING_BETA_NEW_COMPANY_WALKTHROUGH.md`.
+
 The operator should behave as if they are unfamiliar with the project and should use only the materials intended for a beta participant.
 
 ## Test persona
