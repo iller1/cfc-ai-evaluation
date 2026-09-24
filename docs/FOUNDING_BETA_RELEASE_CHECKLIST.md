@@ -51,7 +51,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Architecture rule: **NO CUSTOMER CONTENT BY DEFAULT**; dedicated measurement API has no document/prompt/model-response fields.
 
 - [x] Working data/terms draft exists.
-- [x] Choose proposed retention duration — 30 days for Founding Beta measurement records; legal approval and automatic enforcement remain open.
+- [x] Retention duration set to 14 days for Founding Beta measurement records; automatic aggregate-report-then-delete enforcement is live in production (API commit `06ccbef5d1027627af7a2f687e66d6bf28a9782a`, Railway deployment `08ba2c70-12c9-4e0a-96f4-cac234124e80`, CI run `#259`: SUCCESS). Customer-facing legal wording and provider backup behavior remain subject to external verification/legal review.
 - [x] Define deletion process — authenticated workspace purge + operator-assisted SOP in `FOUNDING_BETA_DELETION_SOP.md`; live deletion dry run on 2026-09-24 deleted exactly 1 synthetic measurement, reported `customer content deleted: 0`, and left the workspace history empty after refresh.
 - [x] Define access roles — participant/workspace user, project operator, infrastructure/subprocessors in `FOUNDING_BETA_ACCESS_ROLES.md`; named operators and production-access procedure remain open.
 - [ ] Confirm hosting/data locations relevant to customer disclosure. Railway currently reports region code `sfo` for frontend/API/Postgres; customer-facing geography still TO VERIFY.
