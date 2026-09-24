@@ -20,7 +20,7 @@ The Founding Beta can continue as an experimental, controlled pre-paid/private b
 | Postgres 18 compatibility | READY | CI PASS |
 | Current production baseline health | READY | Railway latest deployments SUCCESS |
 | Frozen controller unchanged | READY | Anchor 0.2.90rc1 / Wrapper v1.23 remain frozen |
-| Automatic 30-day retention enforcement | BLOCKER | implement scheduled/credible cleanup before claiming automatic 30-day deletion |
+| Automatic 14-day retention enforcement | IMPLEMENTED / DEPLOYMENT PENDING | internal hourly worker creates a content-minimized aggregate report, then deletes exact expired measurement rows transactionally; requires CI + production deployment verification before customer-facing guarantee |
 | Live Founding Beta deployment | READY | deployed live on Railway 2026-09-23 after explicit authorization |
 | Live onboarding dry run | READY | synthetic end-to-end run completed live: STOP/SUPPORTED, ALLOW/VERIFIED, STOP/UNRESOLVED; measurements persisted without customer content |
 
