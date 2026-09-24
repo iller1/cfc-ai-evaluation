@@ -116,6 +116,15 @@ create table if not exists founding_beta_measurements (
   created_at timestamptz not null default now()
 );
 
+create table if not exists founding_beta_retention_reports (
+  report_id text primary key,
+  retention_days integer not null check (retention_days > 0),
+  cutoff_at timestamptz not null,
+  source_record_count integer not null check (source_record_count > 0),
+  summary jsonb not null,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists usage_events (
   event_id text primary key,
   user_id text not null references users(user_id) on delete cascade,
@@ -134,6 +143,8 @@ create index if not exists idx_benchmark_runs_case_created on benchmark_runs(cas
 create index if not exists idx_benchmark_labels_run on benchmark_manual_labels(benchmark_run_id);
 create index if not exists idx_benchmark_labels_label on benchmark_manual_labels(label);
 create index if not exists idx_founding_beta_measurements_workspace_created on founding_beta_measurements(workspace_id, created_at);
+create index if not exists idx_founding_beta_measurements_created on founding_beta_measurements(created_at);
+create index if not exists idx_founding_beta_retention_reports_created on founding_beta_retention_reports(created_at);
 create index if not exists idx_usage_user_created on usage_events(user_id, created_at);
 
 -- Intentionally absent: passwords, password hashes, provider API keys, access tokens.
