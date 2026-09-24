@@ -24,7 +24,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Feedback protocol exists.
 - [x] Select one real feedback channel — structured GitHub Founding Beta issue form (non-sensitive reports only).
 - [x] Run onboarding once as if we were a new company on the dedicated `/founding-beta` path — live synthetic dry run completed 2026-09-23 with STOP/SUPPORTED, ALLOW/VERIFIED, and STOP/UNRESOLVED outcomes recorded.
-- [ ] Measure time-to-first-use.
+- [ ] Measure time-to-first-use — exact measurement fields and live-path procedure prepared in `FOUNDING_BETA_NEW_COMPANY_WALKTHROUGH.md`; requires a fresh external-style run.
 - [x] Record onboarding friction — required non-sensitive `case_id` was not clearly signposted; UI validation/labeling was fixed and redeployed. Read-only mapped-input diagnostics were also added during the dry run.
 
 ## C. Observability
@@ -61,7 +61,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 ## F. Commercial
 
 - [x] Confirm Founding Beta price: £10/month as an engagement filter, not target valuation.
-- [ ] Choose billing mechanism.
+- [ ] Choose billing mechanism — decision note prepared in `FOUNDING_BETA_BILLING_DECISION.md`; owner/legal/accounting confirmation remains.
 - [ ] Confirm contracting entity/jurisdiction.
 - [ ] Confirm tax/VAT handling.
 - [ ] Finalize Founding Beta Terms / Beta Agreement and obtain UK SaaS/data-protection/AI legal review before paid launch.
@@ -69,7 +69,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 
 ## G. First-user gate
 
-- [ ] At least 3–5 genuinely engaged companies identified for initial start (up to 10 in first group).
+- [ ] At least 3–5 genuinely engaged companies identified for initial start (up to 10 in first group) — recruitment package/runbook ready.
 - [ ] Each company has one bounded workflow.
 - [ ] Each company accepts beta limitations.
 - [ ] Each company has a named human reviewer.
