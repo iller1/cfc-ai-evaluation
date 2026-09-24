@@ -63,6 +63,7 @@ jobs:
           pro_beta.test_http_server
           pro_beta.test_oidc_verifier
           pro_beta.test_persistence
+          pro_beta.test_retention
           pro_beta_frontend.test_frontend
           pro_beta.test_service
           pro_beta.test_postgres_persistence

@@ -457,6 +457,16 @@ def main() -> None:
 
     tables = bootstrap_from_environment()
     print("PRO_BETA_DATABASE_READY tables=" + ",".join(tables), flush=True)
+
+    from pro_beta.retention import start_retention_worker_from_environment
+
+    worker = start_retention_worker_from_environment()
+    print(
+        "FOUNDING_BETA_RETENTION_WORKER "
+        + ("STARTED" if worker is not None else "DISABLED"),
+        flush=True,
+    )
+
     port = int(os.environ.get("PORT", "8080"))
     make_server(port=port).serve_forever()
 
