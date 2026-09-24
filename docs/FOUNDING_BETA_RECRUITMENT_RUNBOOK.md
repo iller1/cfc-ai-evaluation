@@ -4,6 +4,8 @@
 
 Recruit 3–5 genuinely engaged companies for the first wave.
 
+Use `FOUNDING_BETA_RECRUITMENT_PACK.md` as the compact company-facing/outreach package.
+
 Do not optimize for sign-ups. Optimize for participants willing to run real bounded workflows and give usable feedback.
 
 ## Best target profile
