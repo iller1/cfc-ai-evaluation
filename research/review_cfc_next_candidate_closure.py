@@ -14,6 +14,7 @@ CANDIDATE = ROOT / "cfc_next_candidate" / "__init__.py"
 ACCEPTANCE = ROOT / "research" / "review_cfc_next_candidate_acceptance.py"
 MANIFEST = ROOT / "research" / "cfc_next_accounting_acceptance_manifest.json"
 REPAIR_SPEC = ROOT / "research" / "cfc_next_decision_accounting_repair_spec.json"
+CLOSURE_MANIFEST = ROOT / "research" / "cfc_next_0_3_0a1_candidate_closure_manifest.json"
 
 
 def sha256(path: Path) -> str:
@@ -50,6 +51,30 @@ def main():
 
     wheel_sha = demo_server.sha256(demo_server.WHEEL)
     assert wheel_sha == demo_server.EXPECTED_WHEEL
+
+    computed = {
+        "candidate_source_sha256": computed["candidate_source_sha256"],
+        "candidate_acceptance_harness_sha256": computed["candidate_acceptance_harness_sha256"],
+        "acceptance_manifest_sha256": computed["acceptance_manifest_sha256"],
+        "repair_spec_sha256": computed["repair_spec_sha256"],
+        "closure_manifest_verified": True,
+        "frozen_reference_wheel_sha256": wheel_sha,
+    }
+    pinned = json.loads(CLOSURE_MANIFEST.read_text(encoding="utf-8"))
+    assert pinned["candidate"] == "CFC-next 0.3.0a1"
+    assert pinned["candidate_status"] == "ACCEPTED_EXPERIMENTAL_CANDIDATE"
+    assert pinned["promotion_status"] == "NOT_FROZEN_NOT_RELEASE_BASELINE"
+    assert pinned["frozen_reference"] == "CFC Anchor 0.2.90rc1"
+    assert pinned["commitments"] == computed
+    assert pinned["acceptance"] == {
+        "positive_count": 14,
+        "positive_pass_count": 14,
+        "negative_count": 12,
+        "negative_fail_closed_count": 12,
+        "unexpected_bound_negative_paths": 0,
+    }
+    assert pinned["historical_rescore_performed"] is False
+    assert pinned["frozen_reference_modified"] is False
 
     result = {
         "test": "CFC_NEXT_0_3_0A1_CANDIDATE_CLOSURE",
