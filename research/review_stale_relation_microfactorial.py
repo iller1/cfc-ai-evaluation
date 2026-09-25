@@ -37,7 +37,6 @@ ORIGIN_FACTORS = (
     "root_origin_shared",
     "origin_shared",
     "extractor_shared",
-    "lineage_chain_shared",
 )
 
 DEPENDENCY_KEYS = (
@@ -166,16 +165,12 @@ def build_case(
             origin_mask["extractor_shared"], idx, "extractor"
         )
 
-        if origin_mask["lineage_chain_shared"]:
-            lineage = [
-                "general-record:lineage:shared:root",
-                "general-record:lineage:shared:origin",
-            ]
-        else:
-            lineage = [
-                f"general-record:lineage:{tag}:e{idx}:root",
-                f"general-record:lineage:{tag}:e{idx}:origin",
-            ]
+        root_origin_id = f"general-record:{root_token}"
+        origin_id = f"general-record:{origin_token}"
+        # Lineage is structurally dependent on its endpoints. It is not an
+        # independent binary factor: the frozen API requires a unique path
+        # from root_origin_id to origin_id.
+        lineage = [root_origin_id, origin_id]
 
         dependencies = {}
         for key in DEPENDENCY_KEYS:
@@ -188,8 +183,8 @@ def build_case(
 
         provenance = {
             "source_id": f"general-record:{source_token}",
-            "root_origin_id": f"general-record:{root_token}",
-            "origin_id": f"general-record:{origin_token}",
+            "root_origin_id": root_origin_id,
+            "origin_id": origin_id,
             "referent_entity_id": "entity:demo-subject",
             "referent_event_id": "event:current",
             "referent_version_id": "v1",
@@ -479,7 +474,7 @@ if __name__ == "__main__":
         if args.single_mode == "origin":
             bits = args.single_value or ""
             if len(bits) != len(ORIGIN_FACTORS) or any(ch not in "01" for ch in bits):
-                raise SystemExit("origin mask must be four binary digits")
+                raise SystemExit("origin mask must match the three origin factors")
             origin_mask = {
                 name: bit == "1"
                 for name, bit in zip(ORIGIN_FACTORS, bits)
