@@ -1,114 +1,141 @@
 # CFC-next 0.3.0a2 peer-context isolation review
 
-## Why this review exists
+## Scope
 
-CFC-next 0.3.0a2 intentionally uses registries provided by the frozen engine
-inside one Python interpreter. The previous state-isolation review established
-that candidate accounting authorization does not authorize an ordinary frozen
-Controller.
+This review does not modify the frozen CFC-next 0.3.0a2 baseline and does not
+rescore any historical benchmark.
+
+It investigates same-interpreter cross-context behavior before any decision
+accounting authorization is installed.
+
+## Initial observation
 
 The first peer-controller harness attempted to build candidate contexts A and B
-with the same blocker family. It failed before any accounting authorization was
-installed: after context A existed, context B no longer exposed the single
-required decision-level obligation expected by the harness.
+with the same blocker family. It failed before accounting installation: after A
+existed, B no longer exposed the single required decision-level obligation
+expected by the harness.
 
-That first failure is preserved as evidence. It is not classified as an
-accounting-authorization leak because no accounting row had yet been installed.
+The first failure is preserved as evidence. It was not an accounting
+authorization leak because no accounting row had yet been installed.
 
-## Diagnostic split
+## Diagnostic 1: relation identity
 
-The revised harness separates two cases.
+The harness separates:
 
 ### GLOBAL_SHARED_RELATION_ID
 
 A and B use different evidence IDs, source IDs, identity registry entries,
-retrieval scopes and snapshots, but the blocker relation itself uses the exact
-same identifier in both contexts, for example:
-
-- `general-record:root:shared`
-- `extractor:shared`
-- `data:shared:data_source`
-
-This reproduces the original taxonomy fixture semantics and tests whether exact
-relation-identity reuse creates observable cross-context interference.
+retrieval scopes and snapshots, but the blocker relation itself has the exact
+same identifier in both contexts.
 
 ### TENANT_NAMESPACED_RELATION_ID
 
 The relation remains shared between E1 and E2 inside each context, but its
-identity is distinct across A and B, for example:
+identifier is different across A and B.
 
-- A: `general-record:root:shared:A`
-- B: `general-record:root:shared:B`
-
-This distinguishes global relation-ID collision from broader peer-controller
-state interference.
-
-## Execution order controls
-
-For each of the 14 blocker families and each namespace mode, fresh subprocesses run:
+For every one of the 14 blocker families and both namespace modes, fresh
+subprocesses run:
 
 1. A only;
 2. B only;
 3. A then B;
 4. B then A.
 
-The harness compares the second-built context with its standalone baseline and
-records:
+Result: **112 scenarios**.
 
-- claim state;
-- control closure;
-- false gates;
-- decision-support-closure gate;
-- required decision-level accounting obligations;
-- selected support map.
+Observed in all 14 blocker families under both relation-ID modes:
 
-No accounting authorization is installed in this diagnostic phase.
+- a standalone context is VERIFIED;
+- it exposes one required decision-level accounting obligation;
+- it remains fail-closed because decision-support closure is not yet satisfied;
+- when a second independently registered context for the same canonical
+  identity already exists in the interpreter, the later evaluated context is
+  UNRESOLVED;
+- its selected support map is empty;
+- its required decision-level obligation count is zero;
+- control closure remains false.
 
-## Classification
+Changing only the relation identifier therefore does not remove the
+interference.
 
-Possible bounded classifications include:
+## Diagnostic 2: canonical identity
 
-- `SHARED_RELATION_ID_CROSS_CONTEXT_INTERFERENCE`
-- `PEER_CONTROLLER_CONTEXT_ISOLATION_FINDING`
-- `PEER_CONTEXT_CONSTRUCTION_ISOLATION_PASS`
+The second diagnostic keeps relation identifiers tenant-namespaced and varies
+the identity target.
 
-A finding limited to exact shared relation IDs must not be generalized into an
-arbitrary peer-controller or multi-user authorization leak without further
-evidence.
+### SHARED_CANONICAL_IDENTITY
 
-The frozen CFC-next 0.3.0a2 source and frozen CFC Anchor reference remain
-unchanged. Historical results are not rescored.
+A and B use different identity registry entry IDs, evidence IDs, scopes and
+snapshots, but both identity records refer to the same surface
+subject/entity/event/version.
 
+### TENANT_NAMESPACED_CANONICAL_IDENTITY
 
-## Canonical identity axis
+A and B use distinct surface subjects, entity IDs and event IDs in addition to
+distinct identity registry entries and relation identifiers.
 
-The relation-ID diagnostic showed interference even when A and B used distinct
-relation identifiers. The full identity diagnostic holds relation identifiers tenant-namespaced and varies the canonical identity target across all 14 blocker families:
+Again all 14 blocker families are executed in A-only, B-only, A-then-B and
+B-then-A fresh-process controls: **112 scenarios**.
 
-- **SHARED_CANONICAL_IDENTITY** — A and B have different identity registry
-  entry IDs but both refer to the same surface subject/entity/event/version;
-- **TENANT_NAMESPACED_CANONICAL_IDENTITY** — A and B use distinct surface
-  subjects, entity IDs and event IDs as well as distinct registry entries.
+Result:
 
-This determines whether the observed second-context transition to UNRESOLVED
-is specifically caused by multiple registry entries for the same canonical
-identity or persists even for fully separate identities.
+- shared canonical identity: interference reproduced in **14/14** blocker
+  families;
+- tenant-namespaced canonical identity: interference reproduced in **0/14**
+  blocker families;
+- no scenario produced unauthorized control closure;
+- no accounting authorization was installed in either diagnostic.
 
-This phase still installs no decision accounting authorization. It is a
-construction/evaluation isolation diagnostic, not an authorization-leak test.
+## Adjudication
 
+Machine-readable classification:
 
-## Full-matrix promotion
+`FAIL_CLOSED_SHARED_CANONICAL_IDENTITY_CROSS_CONTEXT_INTERFERENCE`
 
-After the three-family diagnostic reproduced the same pattern in all tested
-families, both diagnostic axes were expanded to the complete 14-family blocker
-taxonomy.
+This is a same-process global-registry boundary, not evidence of a
+decision-accounting authorization leak.
 
-Each diagnostic now executes 14 x 2 x 4 = 112 fresh-process scenarios:
+The observed transition is fail-closed:
 
-- 14 blocker families;
-- 2 namespace/identity modes;
-- 4 build-order controls.
+`VERIFIED -> UNRESOLVED`
 
-Together the peer-context and peer-identity layers produce 224 fresh-process
-scenarios before any accounting authorization is installed.
+rather than an unauthorized transition to closure.
+
+The evidence supports the narrower statement that independently registering
+the same canonical entity/event/version in multiple same-interpreter contexts
+can affect identity resolution across those contexts. When canonical identity
+is distinct across A and B, the tested interference disappears in all 14
+blocker families.
+
+## Deployment implication
+
+A service that wants independent request/session semantics must not assume that
+separate Controller objects imply separate frozen runtime registries.
+
+Until registry-level canonical identity coordination or explicit context
+isolation is designed and validated, safe integration should use one of these
+boundaries:
+
+1. process isolation for independent CFC runs; or
+2. an explicitly coordinated canonical identity registry that prevents
+   independent duplicate registrations from competing in the global runtime.
+
+The current Pro Beta prepared-CFC execution path already invokes the frozen
+custom case runner through a subprocess, so this finding does not establish a
+cross-session defect in the currently deployed Beta path.
+
+Do not replace that process boundary with a long-lived shared in-process
+Controller pool without a separately validated isolation design.
+
+## Claim boundary
+
+This review does not claim:
+
+- arbitrary multithreaded safety or unsafety;
+- an authorization bypass;
+- production readiness;
+- cross-process interference;
+- that every possible identity-registry pattern has been tested.
+
+It establishes the bounded 224-scenario result above across the complete
+14-family decision-accounting blocker taxonomy.
