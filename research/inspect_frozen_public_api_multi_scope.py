@@ -1,0 +1,165 @@
+from __future__ import annotations
+
+import inspect
+import json
+import sys
+from pathlib import Path
+
+from demonstrator import server as demo_server
+
+demo_server.ensure_runtime()
+sys.path.insert(0, str(demo_server.RUNTIME))
+
+from cfc_anchor import Controller, HostTrustPolicy, RetrievalAuthorityAttestation
+import cfc_anchor._engine as frozen_engine
+
+
+TARGETS = (
+    "__init__",
+    "draft_snapshot",
+    "install_verified_snapshot",
+    "evaluate_snapshot",
+    "evaluate",
+    "decision_context_commitment",
+    "inspect_snapshot",
+    "inspect_retrieval_authority",
+)
+
+
+def _signature(obj):
+    try:
+        return str(inspect.signature(obj))
+    except Exception as exc:
+        return f"<signature-error:{type(exc).__name__}:{exc}>"
+
+
+def _doc(obj):
+    try:
+        return inspect.getdoc(obj)
+    except Exception:
+        return None
+
+
+def _relevant_source_lines(obj):
+    try:
+        src = inspect.getsource(obj)
+    except Exception as exc:
+        return [f"<source-error:{type(exc).__name__}:{exc}>"]
+    out = []
+    for no, line in enumerate(src.splitlines(), 1):
+        if any(token in line.lower() for token in (
+            "scope",
+            "snapshot",
+            "retrieval",
+            "audit",
+            "context",
+        )):
+            out.append(f"{no}: {line}")
+    return out[:120]
+
+
+def _source_excerpt(obj, start: int, end: int):
+    try:
+        src = inspect.getsource(obj).splitlines()
+    except Exception as exc:
+        return [f"<source-error:{type(exc).__name__}:{exc}>"]
+    lo = max(1, start)
+    hi = min(len(src), end)
+    return [f"{no}: {src[no - 1]}" for no in range(lo, hi + 1)]
+
+
+def main():
+    methods = {}
+    for name in TARGETS:
+        obj = getattr(Controller, name)
+        methods[name] = {
+            "signature": _signature(obj),
+            "doc": _doc(obj),
+            "relevant_source_lines": _relevant_source_lines(obj),
+        }
+
+    all_public_methods = []
+    relevant_public_methods = []
+    for name in dir(Controller):
+        if name.startswith("_"):
+            continue
+        obj = getattr(Controller, name)
+        if callable(obj):
+            all_public_methods.append({
+                "name": name,
+                "signature": _signature(obj),
+                "doc": _doc(obj),
+            })
+        if any(token in name.lower() for token in (
+            "scope",
+            "snapshot",
+            "retrieval",
+            "audit",
+            "context",
+            "evaluate",
+        )):
+            relevant_public_methods.append({
+                "name": name,
+                "signature": _signature(obj) if callable(obj) else None,
+                "doc": _doc(obj) if callable(obj) else None,
+            })
+
+    result = {
+        "controller_anchor": "0.2.90rc1",
+        "test": "FROZEN_PUBLIC_API_MULTI_SCOPE_CONTRACT_INSPECTION",
+        "controller_signature": _signature(Controller),
+        "host_trust_policy_signature": _signature(HostTrustPolicy),
+        "host_trust_policy_source": _source_excerpt(HostTrustPolicy, 1, 220),
+        "retrieval_attestation_signature": _signature(RetrievalAuthorityAttestation),
+        "retrieval_attestation_source": _source_excerpt(RetrievalAuthorityAttestation, 1, 180),
+        "draft_snapshot_full_source": _source_excerpt(Controller.draft_snapshot, 1, 180),
+        "supersession_named_engine_objects": [
+            {
+                "name": name,
+                "signature": _signature(getattr(frozen_engine, name)) if callable(getattr(frozen_engine, name)) else None,
+                "source": _source_excerpt(getattr(frozen_engine, name), 1, 220) if callable(getattr(frozen_engine, name)) else None,
+            }
+            for name in dir(frozen_engine)
+            if "supersess" in name.lower()
+        ],
+        "targets": methods,
+        "evaluate_source_90_215": _source_excerpt(Controller.evaluate, 90, 215),
+        "evaluate_snapshot_source": _source_excerpt(Controller.evaluate_snapshot, 1, 80),
+        "install_verified_snapshot_source": _source_excerpt(Controller.install_verified_snapshot, 1, 90),
+        "engine_candidate_map_signature": _signature(frozen_engine.decision_relevant_candidate_map),
+        "engine_candidate_map_source": _source_excerpt(frozen_engine.decision_relevant_candidate_map, 1, 220),
+        "engine_make_supersession_certificate_signature": _signature(frozen_engine.make_snapshot_supersession_certificate),
+        "engine_make_supersession_certificate_source": _source_excerpt(frozen_engine.make_snapshot_supersession_certificate, 1, 300),
+        "engine_valid_supersession_graph_signature": _signature(frozen_engine._valid_supersession_graph),
+        "engine_valid_supersession_graph_source": _source_excerpt(frozen_engine._valid_supersession_graph, 1, 300),
+        "engine_resolve_snapshot_winner_signature": _signature(frozen_engine.resolve_claim_snapshot_winner),
+        "engine_resolve_snapshot_winner_source": _source_excerpt(frozen_engine.resolve_claim_snapshot_winner, 1, 260),
+        "engine_partition_signature": _signature(frozen_engine.retrieval_universe_partition_adequate),
+        "engine_partition_source": _source_excerpt(frozen_engine.retrieval_universe_partition_adequate, 1, 220),
+        "engine_overlap_signature": _signature(frozen_engine.make_decision_relevant_overlap_certificate),
+        "engine_overlap_source": _source_excerpt(frozen_engine.make_decision_relevant_overlap_certificate, 1, 240),
+        "engine_snapshot_competition_signature": _signature(frozen_engine.make_snapshot_competition),
+        "engine_snapshot_competition_source": _source_excerpt(frozen_engine.make_snapshot_competition, 1, 220),
+        "engine_snapshot_applicability_signature": _signature(frozen_engine.make_snapshot_applicability),
+        "engine_snapshot_applicability_source": _source_excerpt(frozen_engine.make_snapshot_applicability, 1, 220),
+        "engine_make_context_signature": _signature(frozen_engine.make_context),
+        "engine_make_context_source": _source_excerpt(frozen_engine.make_context, 1, 180),
+        "engine_validate_context_signature": _signature(frozen_engine.validate_context),
+        "engine_validate_context_relevant_source_lines": _relevant_source_lines(frozen_engine.validate_context),
+        "engine_prepare_signature": _signature(frozen_engine.prepare),
+        "engine_prepare_relevant_source_lines": _relevant_source_lines(frozen_engine.prepare),
+        "engine_audit_text_signature": _signature(frozen_engine.audit_text),
+        "engine_audit_text_relevant_source_lines": _relevant_source_lines(frozen_engine.audit_text),
+        "engine_audit_text_source_1_70": _source_excerpt(frozen_engine.audit_text, 1, 70),
+        "relevant_public_methods": relevant_public_methods,
+        "all_public_methods": all_public_methods,
+    }
+    Path("frozen_public_api_multi_scope_contract.json").write_text(
+        json.dumps(result, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+    print(json.dumps(result, indent=2, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
