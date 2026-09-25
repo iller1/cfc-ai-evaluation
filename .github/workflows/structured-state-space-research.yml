@@ -24,7 +24,7 @@ jobs:
       - name: Static state-space tests
         run: python -m unittest research.test_structured_input_state_space -v
       - name: Execute all admissible states against frozen CFC
-        run: python research/run_structured_state_space_against_frozen.py
+        run: python -m research.run_structured_state_space_against_frozen
       - name: Upload full result
         uses: actions/upload-artifact@v4
         with:
