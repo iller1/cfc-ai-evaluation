@@ -315,6 +315,45 @@
           "decision_support_closure_valid"
         ],
         "result": "STALE_AGE_INSENSITIVE_RELATION_LEVEL_AUTHORIZATION_PERSISTENCE"
+      },
+      "decision_support_closure_path_review": {
+        "baseline_signature": "VERIFIED/STOP with only decision_support_closure_valid=false",
+        "engine_selected_support_map": "E1 only",
+        "stale_endpoint": "E2 participates in decision-level generic-dependency obligation but is not selected/claim-owned",
+        "closure_failure_path": [
+          "_decision_support_dependency_graph",
+          "_decision_level_generic_dependency_assessments",
+          "make_decision_level_generic_dependency_universe",
+          "_find_bound_decision_generic_dependency_accounting -> None",
+          "make_decision_support_closure_certificate -> None"
+        ],
+        "public_reachability": {
+          "generic_dependency:data_source": {
+            "exact_engine_selected_map": "REJECTED: generic dependency endpoints must be selected supports",
+            "expanded_endpoint_selected_map": "DRAFT_CREATED, but changes selected-support state by adding stale E2"
+          },
+          "common_mode_group": {
+            "engine_node": [
+              "COMMON_MODE",
+              "",
+              "group:shared"
+            ],
+            "exact_engine_selected_map": "REJECTED: invalid generic dependency node",
+            "expanded_endpoint_selected_map": "REJECTED: invalid generic dependency node"
+          },
+          "root_origin": {
+            "engine_node": [
+              "LINEAGE",
+              "",
+              "general-record:root:shared"
+            ],
+            "exact_engine_selected_map": "REJECTED: invalid generic dependency node",
+            "expanded_endpoint_selected_map": "REJECTED: invalid generic dependency node"
+          }
+        },
+        "source_accounting_control": "Public source-dependency accounting is a separate channel and also requires both endpoints to be selected supports; the observed closure path searches for bound generic accounting.",
+        "result": "DECISION_ACCOUNTING_PUBLIC_REACHABILITY_BOUNDARY",
+        "classification_limit": "Contract/reachability boundary only; not classified as false block without a normative external contract requiring closure."
       }
     },
     {
