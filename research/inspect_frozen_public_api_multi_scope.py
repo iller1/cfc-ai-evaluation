@@ -57,6 +57,16 @@ def _relevant_source_lines(obj):
     return out[:120]
 
 
+def _source_excerpt(obj, start: int, end: int):
+    try:
+        src = inspect.getsource(obj).splitlines()
+    except Exception as exc:
+        return [f"<source-error:{type(exc).__name__}:{exc}>"]
+    lo = max(1, start)
+    hi = min(len(src), end)
+    return [f"{no}: {src[no - 1]}" for no in range(lo, hi + 1)]
+
+
 def main():
     methods = {}
     for name in TARGETS:
@@ -98,6 +108,8 @@ def main():
         "test": "FROZEN_PUBLIC_API_MULTI_SCOPE_CONTRACT_INSPECTION",
         "controller_signature": _signature(Controller),
         "targets": methods,
+        "evaluate_source_90_215": _source_excerpt(Controller.evaluate, 90, 215),
+        "evaluate_snapshot_source": _source_excerpt(Controller.evaluate_snapshot, 1, 80),
         "relevant_public_methods": relevant_public_methods,
         "all_public_methods": all_public_methods,
     }
