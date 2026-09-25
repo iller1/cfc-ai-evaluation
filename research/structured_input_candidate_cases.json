@@ -193,8 +193,8 @@
       },
       "observed": "STOP/SUPPORTED -> STOP/VERIFIED; only decision_support_closure_valid remains false",
       "isolation_control": "Single E1 with preserved shared-lineage/common-mode provenance closes with control_closure=true and no false gates.",
-      "classification": "BOUNDARY_FINDING_REFINED",
-      "review_result": "Fresh-process 16-state factorial reproduced the original full-shared fixture. Origin/lineage sharing, common-mode-group sharing, or dependency-ID sharing each independently preserve STOP/VERIFIED through decision_support_closure_valid when E2 is stale. Source-semantics sharing alone does not.",
+      "classification": "BOUNDARY_FINDING_RELATION_LEVEL_REFINED",
+      "review_result": "Fresh-process microfactorials show that any single tested shared provenance/dependency identity can preserve STOP/VERIFIED through decision_support_closure_valid when E2 is stale. Root origin, origin, extractor, common-mode group, and all 10 generic dependency dimensions independently trigger the authorization block. Shared source semantics alone does not.",
       "factorial_result": {
         "states": 16,
         "allow": 2,
@@ -206,6 +206,31 @@
           "dependencies_shared"
         ],
         "non_blocking_single_factor": "source_semantics_shared"
+      },
+      "microfactorial_result": {
+        "origin_states": 8,
+        "origin_allow": 1,
+        "origin_stop": 7,
+        "minimal_origin_blockers": [
+          "root_origin_shared",
+          "origin_shared",
+          "extractor_shared"
+        ],
+        "dependency_singleton_blockers": [
+          "data_source",
+          "sensor_input",
+          "transform",
+          "model",
+          "extractor",
+          "cache",
+          "upstream_db",
+          "operator",
+          "preprocessing",
+          "runtime"
+        ],
+        "dependency_singleton_allows": [],
+        "equivalence_controls_passed": true,
+        "structural_note": "lineage path is not an independent bit; it must run uniquely from root_origin_id to origin_id"
       }
     }
   ]
