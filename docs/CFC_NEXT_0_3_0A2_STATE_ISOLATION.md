@@ -42,3 +42,49 @@ insufficient for a frozen-baseline promotion.
 That outcome should be classified as a shared-state authorization boundary and
 should trigger a state-isolation repair, not a weakening of the acceptance
 tests.
+
+## Observed result
+
+The same-process state-isolation probe passes for both representative
+mechanisms.
+
+### root_origin_shared
+
+- candidate before accounting: STOP / VERIFIED;
+- candidate after exact accounting: closure true;
+- shared accounting row: present and BOUND;
+- frozen Controller created before candidate accounting: remains closure false
+  after candidate accounting;
+- newly created frozen Controller after candidate accounting: closure false;
+- candidate authorization visible to frozen evaluation: **false**.
+
+### dependency:data_source
+
+- candidate before accounting: STOP / VERIFIED;
+- candidate after exact accounting: closure true;
+- shared accounting row: present and BOUND;
+- frozen Controller created before candidate accounting: remains closure false
+  after candidate accounting;
+- newly created frozen Controller after candidate accounting: closure false;
+- candidate authorization visible to frozen evaluation: **false**.
+
+The machine-readable classification is:
+
+**STATE_ISOLATION_GATE_PASS**
+
+The probe also confirms that shared registry state exists. The important
+boundary is therefore not physical separation of every registry object, but
+authorization separation: candidate-installed state does not authorize an
+ordinary frozen Controller evaluation in the tested same-process contexts.
+
+## Freeze-readiness meaning
+
+Together with the 0.3.0a2 promotion-readiness gate, this removes the two
+candidate-specific isolation blockers found during the 0.3.0a1 review:
+
+- no import-time frozen-engine function mutation;
+- no candidate authorization leakage into ordinary frozen evaluation for the
+  tested Repair-A and Repair-B representatives.
+
+This still does not rewrite or rescore frozen 0.2.90rc1 or pinned 0.3.0a1.
+
