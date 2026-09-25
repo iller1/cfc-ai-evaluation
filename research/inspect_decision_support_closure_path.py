@@ -11,6 +11,7 @@ demo_server.ensure_runtime()
 sys.path.insert(0, str(demo_server.RUNTIME))
 
 from cfc_anchor import Controller
+import cfc_anchor as anchor_api
 import cfc_anchor._engine as frozen_engine
 
 
@@ -115,6 +116,17 @@ def main():
         "controller_decision_dependency_accounting_integration_source": _source(Controller._decision_dependency_accounting_integration_errors, 320),
         "controller_canonical_decision_evidence_source": _source(Controller._canonical_decision_evidence, 220),
         "controller_canonical_evidence_draft_source": _source(Controller._canonical_evidence_draft, 220),
+        "anchor_api_decision_accounting_types": [
+            {
+                "name": name,
+                "signature": _signature(getattr(anchor_api, name)) if callable(getattr(anchor_api, name)) else None,
+                "source": _source(getattr(anchor_api, name), 220) if callable(getattr(anchor_api, name)) else None,
+                "repr": None if callable(getattr(anchor_api, name)) else repr(getattr(anchor_api, name))[:1200],
+            }
+            for name in dir(anchor_api)
+            if "DecisionGenericDependencyAccounting" in name
+            or "DECISION_GENERIC_DEPENDENCY_ACCOUNTING" in name
+        ],
         "controller_accounting_methods": [
             {
                 "name": name,
