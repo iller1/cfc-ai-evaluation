@@ -194,7 +194,7 @@
       "observed": "STOP/SUPPORTED -> STOP/VERIFIED; only decision_support_closure_valid remains false",
       "isolation_control": "Single E1 with preserved shared-lineage/common-mode provenance closes with control_closure=true and no false gates.",
       "classification": "BOUNDARY_FINDING_RELATION_LEVEL_REFINED",
-      "review_result": "Fresh-process microfactorials show that any single tested shared provenance/dependency identity can preserve STOP/VERIFIED through decision_support_closure_valid when E2 is stale. Root origin, origin, extractor, common-mode group, and all 10 generic dependency dimensions independently trigger the authorization block. Shared source semantics alone does not.",
+      "review_result": "Fresh-process factorial and polarity reviews show relation-level stale authorization persistence. Any tested shared provenance/dependency identity can preserve STOP/VERIFIED through decision_support_closure_valid when E2 is stale, and the effect is unchanged when stale E2 polarity flips POSITIVE<->NEGATIVE.",
       "factorial_result": {
         "states": 16,
         "allow": 2,
@@ -231,6 +231,21 @@
         "dependency_singleton_allows": [],
         "equivalence_controls_passed": true,
         "structural_note": "lineage path is not an independent bit; it must run uniquely from root_origin_id to origin_id"
+      },
+      "polarity_review": {
+        "relations_tested": [
+          "common_mode_group",
+          "root_origin",
+          "generic_dependency:data_source"
+        ],
+        "stale_polarities": [
+          "POSITIVE",
+          "NEGATIVE"
+        ],
+        "all_pairs_same_claim_state": true,
+        "all_pairs_same_control_closure": true,
+        "all_pairs_same_false_gates": true,
+        "result": "POLARITY_INVARIANT_RELATION_LEVEL_STALE_AUTHORIZATION_PERSISTENCE"
       }
     }
   ]
