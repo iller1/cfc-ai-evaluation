@@ -67,7 +67,10 @@ def main():
     private_contract = {}
     if controller_module is not None:
         for name in dir(controller_module):
-            if "DECISION_GENERIC_DEPENDENCY_ACCOUNTING" in name:
+            if (
+                "DECISION_GENERIC_DEPENDENCY_ACCOUNTING" in name
+                or "DECISION_DEPENDENCY_ACCOUNTING" in name
+            ):
                 value = getattr(controller_module, name)
                 if isinstance(value, (str, int, float, bool, type(None))):
                     private_contract[name] = value
