@@ -1,0 +1,27 @@
+name: Pure E2 addition review
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run pure E2 addition minimal pairs
+        run: python -m research.review_pure_e2_addition
+      - name: Upload review result
+        uses: actions/upload-artifact@v4
+        with:
+          name: pure-e2-addition-review
+          path: pure_e2_addition_review.json
