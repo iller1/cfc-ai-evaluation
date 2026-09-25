@@ -1,0 +1,40 @@
+name: CFC-next 0.3.0a2 external replication
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  external-replication:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout replication layer
+        uses: actions/checkout@v4
+        with:
+          path: review
+      - name: Checkout frozen CFC-next baseline
+        uses: actions/checkout@v4
+        with:
+          ref: frozen/cfc-next-0.3.0a2
+          path: frozen
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify frozen checkout identity
+        run: |
+          test "$(git -C frozen rev-parse HEAD)" = "568282c1f66af9f1f2fad8cf2b04b08226b9aea6"
+      - name: Run external replication verifier
+        working-directory: review
+        run: |
+          python replication/cfc-next-0.3.0a2/external/verify_external_replication.py --repo ../frozen
+      - name: Upload external replication result
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfc-next-0.3.0a2-external-replication
+          path: review/cfc_next_0_3_0a2_external_replication.json
