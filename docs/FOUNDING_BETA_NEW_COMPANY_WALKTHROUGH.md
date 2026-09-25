@@ -1,6 +1,6 @@
 # CFC + HAWM Founding Beta v2 — New Company Walkthrough
 
-**Status:** ready for external-style dry run.
+**Status:** internal external-style walkthrough completed 2026-09-25; exact step timings were not recorded.
 
 ## Goal
 
@@ -150,3 +150,43 @@ Pass when:
 The frozen Demonstrator presentation can show `Decision: STOP` with `Claim state: UNRESOLVED`.
 
 The product documentation must not silently reinterpret that as a three-valued presentation decision. The claim state and presentation decision remain separate.
+
+
+## Internal external-style walkthrough result — 2026-09-25
+
+A fresh synthetic walkthrough was completed on the live dedicated Founding Beta path.
+
+Observed path:
+
+1. new test workspace available;
+2. structured case executed with:
+   - Conclusion = POSITIVE
+   - Required supports = 1
+   - Scope = EXPECTED
+   - Provenance = DISTINCT
+   - Independence authority = NONE
+   - E1 = POSITIVE / CURRENT
+   - E2 = OMIT
+3. frozen CFC result:
+   - Anchor = `0.2.90rc1`
+   - Decision = `ALLOW`
+   - Claim state = `VERIFIED`
+   - Reason = `policy-satisfied support set (1)`
+   - mapped input visible
+   - `Customer content persisted: false`
+4. measurement saved successfully:
+   - workflow = `document_review`
+   - case ID = `test 1`
+   - Human assessment = `AGREE`
+   - Final action = `ACTED`
+   - Problem = `NONE`
+5. refresh/history preserved the same measurement record;
+6. workspace beta measurement deletion returned:
+   - `Deleted measurement records: 1`
+   - `customer content deleted: 0`
+7. refreshed history showed:
+   - `No Founding Beta measurements yet.`
+
+Result: **PASS for the exercised end-to-end path**.
+
+No blocking error was observed in this walkthrough. Exact timing metrics were not captured, so the timing portion of this document remains open. The STOP/UNRESOLVED explanatory step and participant-understanding questions were not re-run in this specific walkthrough and should not be marked complete based on this result alone.
