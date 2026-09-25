@@ -1,0 +1,155 @@
+{
+  "schema_version": "1",
+  "controller_anchor": "0.2.90rc1",
+  "status": "CANDIDATE_EXTERNAL_TESTS_NOT_YET_SEMANTICALLY_CLASSIFIED",
+  "cases": [
+    {
+      "id": "SSM_001_SUPPORT_THRESHOLD_REVERSAL_POSITIVE",
+      "family": "SUPPORT_THRESHOLD_SUPPORT_SET_COUPLING",
+      "before": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 1,
+        "scope": "EXPECTED",
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "VERIFIED",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      },
+      "after": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 2,
+        "scope": "EXPECTED",
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "VERIFIED",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      },
+      "observed": "STOP/SUPPORTED -> ALLOW/VERIFIED",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "id": "SSM_002_EXTRA_SUPPORT_BLOCKS_ONE_SUPPORT_POLICY",
+      "family": "SUPPORT_UNIVERSE_EXPANSION",
+      "before": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 1,
+        "scope": "EXPECTED",
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "NONE",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      },
+      "after": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 1,
+        "scope": "EXPECTED",
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "NONE",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      },
+      "observed": "ALLOW/VERIFIED -> STOP/SUPPORTED",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "id": "SSM_003_STALE_EXTRA_SUPPORT_RESTORES_CLOSURE",
+      "family": "ACTIVE_UNIVERSE_CONTRACTION",
+      "before": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 1,
+        "scope": "EXPECTED",
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "NONE",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      },
+      "after": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 1,
+        "scope": "EXPECTED",
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "NONE",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "STALE"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      },
+      "observed": "STOP/SUPPORTED -> ALLOW/VERIFIED",
+      "classification": "REVIEW_REQUIRED"
+    },
+    {
+      "id": "SSM_004_SCOPE_REMOVES_AUTHORIZATION_NOT_CLAIM_STATUS",
+      "family": "SCOPE",
+      "before": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 1,
+        "scope": "EXPECTED",
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "NONE",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      },
+      "after": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 1,
+        "scope": "WRONG",
+        "provenance_shape": "DISTINCT",
+        "independence_authority": "NONE",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      },
+      "observed": "ALLOW/VERIFIED -> STOP/VERIFIED",
+      "classification": "EXPECTED_BOUNDARY_BEHAVIOR"
+    }
+  ]
+}
