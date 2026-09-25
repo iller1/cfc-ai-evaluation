@@ -1,0 +1,27 @@
+name: CFC-next 0.3.0a2 state isolation
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  state-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Review same-process candidate/frozen state isolation
+        run: python -m research.review_cfc_next_0_3_0a2_state_isolation
+      - name: Upload state-isolation result
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfc-next-0.3.0a2-state-isolation
+          path: cfc_next_0_3_0a2_state_isolation.json
