@@ -20,8 +20,12 @@ jobs:
           python-version: "3.11"
       - name: Inspect frozen accounting repair surface
         run: python -m research.review_cfc_next_accounting_repair_surface
+      - name: Validate repair spec consistency
+        run: python -m research.review_cfc_next_repair_spec_consistency
       - name: Upload inspection
         uses: actions/upload-artifact@v4
         with:
           name: cfc-next-accounting-repair-surface
-          path: cfc_next_accounting_repair_surface.json
+          path: |
+            cfc_next_accounting_repair_surface.json
+            cfc_next_repair_spec_consistency.json
