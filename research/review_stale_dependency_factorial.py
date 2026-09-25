@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import argparse
 import itertools
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -315,11 +317,23 @@ def original_fixture_control() -> dict:
     }
 
 
+def run_isolated(mask_bits: str) -> dict:
+    cp = subprocess.run(
+        [sys.executable, str(Path(__file__).resolve()), "--single-mask", mask_bits],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    if cp.returncode != 0:
+        raise RuntimeError(cp.stderr.strip() or cp.stdout.strip())
+    return json.loads(cp.stdout)
+
+
 def main() -> dict:
     rows = []
     for bits in itertools.product((False, True), repeat=len(FACTOR_NAMES)):
-        mask = dict(zip(FACTOR_NAMES, bits))
-        rows.append(build_case(mask))
+        mask_bits = "".join("1" if bit else "0" for bit in bits)
+        rows.append(run_isolated(mask_bits))
 
     blockers = [r for r in rows if not r["control_closure"]]
     allowers = [r for r in rows if r["control_closure"]]
@@ -380,4 +394,19 @@ def main() -> dict:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--single-mask")
+    args = parser.parse_args()
+
+    if args.single_mask is not None:
+        if len(args.single_mask) != len(FACTOR_NAMES) or any(
+            ch not in "01" for ch in args.single_mask
+        ):
+            raise SystemExit("single mask must be exactly four binary digits")
+        mask = {
+            name: bit == "1"
+            for name, bit in zip(FACTOR_NAMES, args.single_mask)
+        }
+        print(json.dumps(build_case(mask), sort_keys=True))
+    else:
+        main()
