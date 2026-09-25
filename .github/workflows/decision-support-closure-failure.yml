@@ -1,0 +1,27 @@
+name: Decision support closure failure probe
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run closure failure probe
+        run: python -m research.probe_decision_support_closure_failure
+      - name: Upload probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: decision-support-closure-failure-probe
+          path: decision_support_closure_failure_probe.json
