@@ -18,6 +18,10 @@ TARGETS = (
     "draft_snapshot",
     "install_verified_snapshot",
     "evaluate_snapshot",
+    "evaluate",
+    "decision_context_commitment",
+    "inspect_snapshot",
+    "inspect_retrieval_authority",
 )
 
 
@@ -63,10 +67,18 @@ def main():
             "relevant_source_lines": _relevant_source_lines(obj),
         }
 
+    all_public_methods = []
     relevant_public_methods = []
     for name in dir(Controller):
         if name.startswith("_"):
             continue
+        obj = getattr(Controller, name)
+        if callable(obj):
+            all_public_methods.append({
+                "name": name,
+                "signature": _signature(obj),
+                "doc": _doc(obj),
+            })
         if any(token in name.lower() for token in (
             "scope",
             "snapshot",
@@ -75,7 +87,6 @@ def main():
             "context",
             "evaluate",
         )):
-            obj = getattr(Controller, name)
             relevant_public_methods.append({
                 "name": name,
                 "signature": _signature(obj) if callable(obj) else None,
@@ -88,6 +99,7 @@ def main():
         "controller_signature": _signature(Controller),
         "targets": methods,
         "relevant_public_methods": relevant_public_methods,
+        "all_public_methods": all_public_methods,
     }
     Path("frozen_public_api_multi_scope_contract.json").write_text(
         json.dumps(result, indent=2, sort_keys=True),
