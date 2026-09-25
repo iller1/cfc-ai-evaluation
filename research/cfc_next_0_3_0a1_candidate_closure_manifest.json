@@ -1,0 +1,24 @@
+{
+  "schema_version": "1",
+  "candidate": "CFC-next 0.3.0a1",
+  "candidate_status": "ACCEPTED_EXPERIMENTAL_CANDIDATE",
+  "promotion_status": "NOT_FROZEN_NOT_RELEASE_BASELINE",
+  "candidate_merge_commit": "a6446886feebde0926be5a5917b50e23079c2be3",
+  "frozen_reference": "CFC Anchor 0.2.90rc1",
+  "commitments": {
+    "candidate_source_sha256": "c8012d897ccbf0c44c6f298f408c5d0b850489e311c88fb0ebb385e845312dbe",
+    "candidate_acceptance_harness_sha256": "edb6f92dd29a80d8b2b52759a1038df97f0f320a1c67c2dab87380f61abcfb83",
+    "acceptance_manifest_sha256": "31191438ea7ceffd8acdceb352c79f38f58900b5a4b3c991119e6d4c8e0ede60",
+    "repair_spec_sha256": "275e261279e1861dd5b2233829b60d535a9f95b6fc57a763dd30d4d2f0f38f56",
+    "frozen_reference_wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303"
+  },
+  "acceptance": {
+    "positive_count": 14,
+    "positive_pass_count": 14,
+    "negative_count": 12,
+    "negative_fail_closed_count": 12,
+    "unexpected_bound_negative_paths": 0
+  },
+  "historical_rescore_performed": false,
+  "frozen_reference_modified": false
+}
