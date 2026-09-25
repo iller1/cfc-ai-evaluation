@@ -113,6 +113,8 @@ def main():
         "evaluate_snapshot_source": _source_excerpt(Controller.evaluate_snapshot, 1, 80),
         "engine_candidate_map_signature": _signature(frozen_engine.decision_relevant_candidate_map),
         "engine_candidate_map_source": _source_excerpt(frozen_engine.decision_relevant_candidate_map, 1, 220),
+        "engine_valid_supersession_graph_signature": _signature(frozen_engine._valid_supersession_graph),
+        "engine_valid_supersession_graph_source": _source_excerpt(frozen_engine._valid_supersession_graph, 1, 300),
         "engine_resolve_snapshot_winner_signature": _signature(frozen_engine.resolve_claim_snapshot_winner),
         "engine_resolve_snapshot_winner_source": _source_excerpt(frozen_engine.resolve_claim_snapshot_winner, 1, 260),
         "engine_partition_signature": _signature(frozen_engine.retrieval_universe_partition_adequate),
