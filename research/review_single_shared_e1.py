@@ -4,8 +4,10 @@ import json
 from pathlib import Path
 
 from demonstrator import server as demo_server
+import sys
 
 demo_server.ensure_runtime()
+sys.path.insert(0, str(demo_server.RUNTIME))
 
 from cfc_anchor import (
     Controller, HostTrustPolicy, HostTrustRegistration,
