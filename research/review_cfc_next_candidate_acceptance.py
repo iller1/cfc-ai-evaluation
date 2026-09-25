@@ -6,8 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-from demonstrator.custom_case_runner import ASOF, VALID_FROM, VALID_TO
 from cfc_next_candidate import Controller, CANDIDATE_VERSION, FROZEN_REFERENCE
+from demonstrator.custom_case_runner import ASOF, VALID_FROM, VALID_TO
 
 from cfc_anchor import DecisionGenericDependencyAccountingAttestation
 import cfc_anchor._engine as engine
