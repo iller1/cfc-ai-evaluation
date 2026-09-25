@@ -1,0 +1,79 @@
+{
+  "schema_version": "1",
+  "target": "CFC-next",
+  "frozen_reference": "CFC Anchor 0.2.90rc1",
+  "status": "DESIGN_SPEC_ONLY",
+  "empirical_basis": {
+    "minimal_blockers": 14,
+    "engine_emitted_accounting_schema_incompatibility": 3,
+    "public_selected_excluded_reachability_core_bindable": 11
+  },
+  "repair_A": {
+    "name": "SHARED_GENERIC_NODE_VALIDATOR",
+    "change": "Align internal registry and public draft structural validation with the node domain emitted/canonicalized by the engine.",
+    "must_preserve": [
+      "3-tuple string identity",
+      "nonblank node type",
+      "nonblank identifier",
+      "source-semantic exclusion",
+      "canonical blank dimension for LINEAGE and COMMON_MODE",
+      "typed dependency ontology constraints",
+      "exact node hashing"
+    ],
+    "must_not": "Rewrite LINEAGE/COMMON_MODE identities merely to satisfy the old all-fields-nonblank guard."
+  },
+  "repair_B": {
+    "name": "EXACT_REQUIRED_OBLIGATION_ENDPOINT_ADMISSION",
+    "remove_guard": "evidence_ids must all be selected supports",
+    "replace_with": [
+      "all endpoints present in exact evaluated snapshot/evidence",
+      "selected_support_map equals current decision graph",
+      "node equals fresh decision_level_required obligation node",
+      "endpoint set equals fresh obligation endpoint set",
+      "same retrieval scope and snapshot",
+      "same claim set and requirements",
+      "same decision-context commitment"
+    ],
+    "safety_boundary": "Existing exact bind/universe/hash/attestation checks remain unchanged."
+  },
+  "unchanged_components": [
+    "_decision_level_generic_dependency_assessments",
+    "decision generic universe construction",
+    "_find_bound_decision_generic_dependency_accounting",
+    "exact context/hash binding",
+    "attestation verification",
+    "make_decision_support_closure_certificate",
+    "persistence commitments"
+  ],
+  "positive_acceptance": [
+    "root_origin_shared",
+    "origin_shared",
+    "common_mode_group_shared",
+    "extractor_shared",
+    "dependency:data_source",
+    "dependency:sensor_input",
+    "dependency:transform",
+    "dependency:model",
+    "dependency:extractor",
+    "dependency:cache",
+    "dependency:upstream_db",
+    "dependency:operator",
+    "dependency:preprocessing",
+    "dependency:runtime"
+  ],
+  "negative_controls": [
+    "wrong node with correct endpoints",
+    "correct node with extra or missing endpoint",
+    "non-selected endpoint absent from evaluated snapshot",
+    "non-selected endpoint with no fresh required obligation",
+    "wrong selected-support map",
+    "wrong retrieval scope or snapshot",
+    "wrong claim set or requirements",
+    "stale decision-context commitment",
+    "source-semantic node in generic channel",
+    "invalid arity/type/blank identifier",
+    "unverified or mismatched external attestation",
+    "record that fails exact fresh-universe bind"
+  ],
+  "historical_rule": "Do not rescore frozen historical results."
+}
