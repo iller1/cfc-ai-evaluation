@@ -17,11 +17,7 @@ from research.review_decision_generic_accounting_reachability import (
 )
 
 
-REPRESENTATIVE_RELATIONS = (
-    "root_origin_shared",
-    "extractor_shared",
-    "dependency:data_source",
-)
+RELATIONS = tuple(taxonomy.BLOCKERS)
 
 MUTATIONS = (
     "EXACT_REPLAY",
@@ -411,7 +407,7 @@ def _run_isolated(blocker: str, mutation: str) -> dict:
 def main() -> None:
     rows = [
         _run_isolated(blocker, mutation)
-        for blocker in REPRESENTATIVE_RELATIONS
+        for blocker in RELATIONS
         for mutation in MUTATIONS
     ]
 
@@ -447,13 +443,13 @@ def main() -> None:
     elif failed_contracts:
         classification = "LIFECYCLE_CONTROL_FAILURE"
     else:
-        classification = "ACCOUNTING_LIFECYCLE_REPRESENTATIVE_PASS"
+        classification = "ACCOUNTING_LIFECYCLE_FULL_PASS"
 
     result = {
         "test": "CFC_NEXT_0_3_0A2_ACCOUNTING_LIFECYCLE_REVIEW",
         "candidate_version": "0.3.0a2",
         "frozen_reference": "CFC Anchor 0.2.90rc1",
-        "relations_tested": list(REPRESENTATIVE_RELATIONS),
+        "relations_tested": list(RELATIONS),
         "mutations_tested": list(MUTATIONS),
         "case_count": len(rows),
         "exact_replay_controls_pass": all(
@@ -486,7 +482,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--single-blocker",
-        choices=REPRESENTATIVE_RELATIONS,
+        choices=RELATIONS,
     )
     parser.add_argument(
         "--single-mutation",
