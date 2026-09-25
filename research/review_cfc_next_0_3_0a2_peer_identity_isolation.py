@@ -18,7 +18,7 @@ from cfc_anchor import (
 from demonstrator.custom_case_runner import ASOF, VALID_FROM, VALID_TO, STALE_TO
 from research import review_minimal_blocker_accounting_taxonomy as taxonomy
 from research.review_cfc_next_0_3_0a2_peer_controller_isolation import (
-    REPRESENTATIVE_RELATIONS,
+    RELATIONS,
     _build_context,
 )
 
@@ -387,7 +387,7 @@ def _last_signature(row):
 def main():
     rows = [
         _run_isolated(blocker, identity_mode, order_mode)
-        for blocker in REPRESENTATIVE_RELATIONS
+        for blocker in RELATIONS
         for identity_mode in IDENTITY_MODES
         for order_mode in ORDER_MODES
     ]
@@ -397,7 +397,7 @@ def main():
     }
 
     comparisons = []
-    for blocker in REPRESENTATIVE_RELATIONS:
+    for blocker in RELATIONS:
         for identity_mode in IDENTITY_MODES:
             a_only = _last_signature(
                 by_key[(blocker, identity_mode, "A_ONLY")]
@@ -475,7 +475,7 @@ def main():
     result = {
         "test": "CFC_NEXT_0_3_0A2_PEER_IDENTITY_ISOLATION",
         "candidate_version": "0.3.0a2",
-        "relations_tested": list(REPRESENTATIVE_RELATIONS),
+        "relations_tested": list(RELATIONS),
         "identity_modes": list(IDENTITY_MODES),
         "order_modes": list(ORDER_MODES),
         "scenario_count": len(rows),
@@ -507,7 +507,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--single-blocker",
-        choices=REPRESENTATIVE_RELATIONS,
+        choices=RELATIONS,
     )
     parser.add_argument(
         "--identity-mode",
