@@ -14,13 +14,14 @@ sys.path.insert(0, str(demo_server.RUNTIME))
 from cfc_anchor import Controller
 from demonstrator.custom_case_runner import ASOF
 from research.review_stale_relation_snapshot_locality import (
-    RELATION_MODES,
     _trust_policy,
     _install_identity,
     _install_topology,
     _build_record,
     _install_snapshot,
 )
+
+RELATION_MODES = ("COMMON_MODE", "ROOT_ORIGIN", "GENERIC_DEPENDENCY")
 
 NODES = {
     "COMMON_MODE": ("COMMON_MODE", "", "group:shared"),
