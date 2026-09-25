@@ -112,6 +112,7 @@ def main():
         "controller_relevant_lines": _relevant_controller_lines(),
         "controller_evaluate_source": _source(Controller.evaluate, 360),
         "controller_evaluate_snapshot_source": _source(Controller.evaluate_snapshot, 220),
+        "controller_decision_dependency_accounting_integration_source": _source(Controller._decision_dependency_accounting_integration_errors, 320),
         "non_mutation": (
             "Read-only runtime introspection only. No frozen controller state, "
             "source, registry, or policy is modified."
