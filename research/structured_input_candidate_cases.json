@@ -194,7 +194,7 @@
       "observed": "STOP/SUPPORTED -> STOP/VERIFIED; only decision_support_closure_valid remains false",
       "isolation_control": "Single E1 with preserved shared-lineage/common-mode provenance closes with control_closure=true and no false gates.",
       "classification": "BOUNDARY_FINDING_RELATION_LEVEL_REFINED",
-      "review_result": "Fresh-process factorial and polarity reviews show relation-level stale authorization persistence. Any tested shared provenance/dependency identity can preserve STOP/VERIFIED through decision_support_closure_valid when E2 is stale, and the effect is unchanged when stale E2 polarity flips POSITIVE<->NEGATIVE.",
+      "review_result": "Fresh-process factorial, polarity, and subject-relevance reviews show relation-level stale authorization persistence. Any tested shared provenance/dependency identity can preserve STOP/VERIFIED through decision_support_closure_valid when E2 is stale; the effect is unchanged when stale E2 polarity flips POSITIVE<->NEGATIVE and when stale E2 is rebound as a fully valid record about a different subject.",
       "factorial_result": {
         "states": 16,
         "allow": 2,
@@ -246,6 +246,28 @@
         "all_pairs_same_control_closure": true,
         "all_pairs_same_false_gates": true,
         "result": "POLARITY_INSENSITIVE_RELATION_LEVEL_STALE_AUTHORIZATION_PERSISTENCE"
+      },
+      "subject_relevance_review": {
+        "relations_tested": [
+          "common_mode_group",
+          "root_origin",
+          "generic_dependency:data_source"
+        ],
+        "subject_modes": [
+          "SAME_SUBJECT",
+          "OTHER_SUBJECT"
+        ],
+        "both_identities_installed_in_all_cases": true,
+        "all_pairs_same_claim_state": true,
+        "all_pairs_same_control_closure": true,
+        "all_pairs_same_false_gates": true,
+        "other_subject_errors": {
+          "evidence_errors": [],
+          "identity_errors": [],
+          "integration_errors": [],
+          "global_consistency_violations": []
+        },
+        "result": "CLAIM_SUBJECT_INSENSITIVE_RELATION_LEVEL_STALE_AUTHORIZATION_PERSISTENCE"
       }
     }
   ]
