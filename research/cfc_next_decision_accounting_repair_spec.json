@@ -6,7 +6,11 @@
   "empirical_basis": {
     "minimal_blockers": 14,
     "engine_emitted_accounting_schema_incompatibility": 3,
-    "public_selected_excluded_reachability_core_bindable": 11
+    "public_selected_excluded_reachability_core_bindable": 11,
+    "negative_controls": 12,
+    "negative_controls_fail_closed": 12,
+    "negative_controls_masked_by_legacy_selected_support_guard": 3,
+    "unexpected_bound_negative_paths": 0
   },
   "repair_A": {
     "name": "SHARED_GENERIC_NODE_VALIDATOR",
@@ -75,5 +79,18 @@
     "unverified or mismatched external attestation",
     "record that fails exact fresh-universe bind"
   ],
-  "historical_rule": "Do not rescore frozen historical results."
+  "historical_rule": "Do not rescore frozen historical results.",
+  "readiness": {
+    "evidence_chain": [
+      "minimal blocker taxonomy",
+      "core bindability",
+      "public contract review",
+      "obligation schema compatibility",
+      "repair surface inspection",
+      "positive acceptance manifest",
+      "negative frozen-reference baseline"
+    ],
+    "implementation_status": "NOT_IMPLEMENTED",
+    "gate": "READY_FOR_SEPARATELY_VERSIONED_CFC_NEXT_CANDIDATE_IMPLEMENTATION_ONLY_AFTER_ACCEPTANCE_HARNESS_IS_REUSED_UNCHANGED"
+  }
 }
