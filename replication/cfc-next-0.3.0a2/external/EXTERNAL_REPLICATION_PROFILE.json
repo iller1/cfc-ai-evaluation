@@ -1,0 +1,45 @@
+{
+  "schema_version": "1",
+  "package": "CFC-next 0.3.0a2 external replication",
+  "frozen_ref": "frozen/cfc-next-0.3.0a2",
+  "freeze_merge_commit": "568282c1f66af9f1f2fad8cf2b04b08226b9aea6",
+  "candidate_source_path": "cfc_next_candidate_0_3_0a2/__init__.py",
+  "candidate_source_sha256": "dc8ae4f2d51296d68ecf5e75ac861faf1f50f062e1761e0814ce157f08a588a7",
+  "frozen_reference_wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303",
+  "required_modules": [
+    "research.review_cfc_next_0_3_0a2_acceptance",
+    "research.review_cfc_next_0_3_0a2_promotion_readiness",
+    "research.review_cfc_next_0_3_0a2_state_isolation",
+    "research.review_cfc_next_0_3_0a2_freeze_review"
+  ],
+  "expected": {
+    "acceptance": {
+      "status": "PASS",
+      "positive_pass_count": 14,
+      "negative_fail_closed_count": 12,
+      "unexpected_bound_negative_paths": []
+    },
+    "promotion_readiness": {
+      "status": "PASS",
+      "all_gates_pass": true,
+      "reproducible_full_acceptance": true,
+      "concurrent_process_pass": true
+    },
+    "state_isolation": {
+      "promotion_status": "STATE_ISOLATION_GATE_PASS",
+      "relations_tested_count": 14,
+      "candidate_authorization_visible_to_frozen_relations": []
+    },
+    "freeze_review": {
+      "status": "PASS",
+      "baseline_status": "PINNED_FREEZE_MANIFEST_VERIFIED",
+      "freeze_manifest_verified": true
+    }
+  },
+  "non_claims": [
+    "No claim of production readiness.",
+    "No claim of arbitrary same-interpreter multithreaded stateful safety.",
+    "No historical rescoring.",
+    "No modification of frozen CFC Anchor 0.2.90rc1."
+  ]
+}
