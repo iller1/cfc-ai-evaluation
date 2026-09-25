@@ -68,6 +68,9 @@ def _install_snapshot(
             ASOF,
             VALID_FROM,
             VALID_TO,
+            supersession_authority_id=(
+                AUTHORITIES["RETRIEVAL"] if supersedes is not None else None
+            ),
         ),
         VERIFIERS["RETRIEVAL"],
         as_of=ASOF,
