@@ -354,6 +354,31 @@
         "source_accounting_control": "Public source-dependency accounting is a separate channel and also requires both endpoints to be selected supports; the observed closure path searches for bound generic accounting.",
         "result": "DECISION_ACCOUNTING_PUBLIC_REACHABILITY_BOUNDARY",
         "classification_limit": "Contract/reachability boundary only; not classified as false block without a normative external contract requiring closure."
+      },
+      "core_bindability_review": {
+        "relation_tested": "generic_dependency:data_source",
+        "baseline": "VERIFIED/STOP; only decision_support_closure_valid=false",
+        "exact_engine_selected_support_map": {
+          "c1": [
+            "E1"
+          ]
+        },
+        "obligation_endpoints": [
+          "E1",
+          "E2"
+        ],
+        "stale_endpoint_state": "E2 is STALE, non-selected, and not claim-owned",
+        "internal_registration": "PENDING -> BOUND with no bind error; exact selected-support map preserved",
+        "direct_frozen_engine_after_bind": {
+          "claim_state": "VERIFIED",
+          "control_closure": true,
+          "decision_support_closure_valid": true,
+          "decision_support_closure_certificate_present": true,
+          "false_gates": []
+        },
+        "public_controller_after_internal_bind": "Stops before core audit with integration_decision_dependency_accounting_runtime_verified=false / DECISION_GENERIC_DEPENDENCY_ACCOUNTING_EXTERNAL_TRUST_NOT_VERIFIED because the localization probe bypasses the public external-trust verification/install workflow.",
+        "result": "CORE_BINDABLE_PUBLIC_REACHABILITY_DECISION_ACCOUNTING_BOUNDARY",
+        "classification_limit": "Localization result only; not a supported workaround and not classified as false block without a normative contract requiring public reachability for engine-required decision obligations."
       }
     },
     {
