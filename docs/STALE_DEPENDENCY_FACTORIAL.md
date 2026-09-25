@@ -47,3 +47,86 @@ Those masks isolate the smallest relation family, or interaction between
 families, sufficient to preserve downstream authorization effects from stale E2.
 
 Frozen CFC remains unchanged.
+
+
+## Result
+
+The final run executes every state in a fresh subprocess. This matters because
+the frozen engine enforces immutable identities and relation state; running all
+16 states in one process created cross-case fixture contamination.
+
+The isolated factorial passed its equivalence control:
+
+- original SHARED_LINEAGE fixture:
+  - claim state = VERIFIED
+  - control closure = false
+  - false gates = [`decision_support_closure_valid`]
+- factorial `1111`:
+  - claim state = VERIFIED
+  - control closure = false
+  - false gates = [`decision_support_closure_valid`]
+
+All three equivalence checks matched.
+
+### Counts
+
+- states: **16**
+- ALLOW: **2**
+- STOP: **14**
+
+The two ALLOW states are:
+
+- `0000` — no shared factor groups;
+- `1000` — source-semantics group shared only.
+
+Factor order is:
+
+`source semantics | origin/lineage | common-mode group | dependencies`
+
+### Minimal blocking masks
+
+Three one-factor masks are sufficient to produce:
+
+- claim state = VERIFIED
+- control closure = false
+- only false gate = `decision_support_closure_valid`
+
+They are:
+
+- `0100` — origin/lineage shared only;
+- `0010` — common-mode group shared only;
+- `0001` — dependency IDs shared only.
+
+By contrast:
+
+- `1000` — source semantics shared only — remains ALLOW / VERIFIED.
+
+## Refined boundary finding
+
+The stale-E2 authorization residue is therefore not explained by shared source
+semantics alone in this fixture.
+
+It is independently triggered by at least three provenance/dependency relation
+families:
+
+1. origin/lineage identity;
+2. explicit common-mode group;
+3. generic dependency identities.
+
+Observed rule:
+
+`STALE E2 + any active shared provenance/dependency relation -> claim may remain VERIFIED while closure authorization remains blocked`
+
+This remains a boundary finding rather than a false-block classification. The
+frozen contract still does not specify whether stale evidence must lose all
+relation-level authorization effects once it ceases to count as active claim
+evidence.
+
+## Next decomposition
+
+The next external experiment should split:
+
+- origin/lineage into root origin, origin, extractor and lineage-chain factors;
+- generic dependencies into their individual dependency dimensions.
+
+The common-mode-group factor is already atomic at this abstraction level.
