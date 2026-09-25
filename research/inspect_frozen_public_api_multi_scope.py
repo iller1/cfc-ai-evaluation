@@ -10,7 +10,7 @@ from demonstrator import server as demo_server
 demo_server.ensure_runtime()
 sys.path.insert(0, str(demo_server.RUNTIME))
 
-from cfc_anchor import Controller
+from cfc_anchor import Controller, HostTrustPolicy, RetrievalAuthorityAttestation
 import cfc_anchor._engine as frozen_engine
 
 
@@ -108,6 +108,20 @@ def main():
         "controller_anchor": "0.2.90rc1",
         "test": "FROZEN_PUBLIC_API_MULTI_SCOPE_CONTRACT_INSPECTION",
         "controller_signature": _signature(Controller),
+        "host_trust_policy_signature": _signature(HostTrustPolicy),
+        "host_trust_policy_source": _source_excerpt(HostTrustPolicy, 1, 220),
+        "retrieval_attestation_signature": _signature(RetrievalAuthorityAttestation),
+        "retrieval_attestation_source": _source_excerpt(RetrievalAuthorityAttestation, 1, 180),
+        "draft_snapshot_full_source": _source_excerpt(Controller.draft_snapshot, 1, 180),
+        "supersession_named_engine_objects": [
+            {
+                "name": name,
+                "signature": _signature(getattr(frozen_engine, name)) if callable(getattr(frozen_engine, name)) else None,
+                "source": _source_excerpt(getattr(frozen_engine, name), 1, 220) if callable(getattr(frozen_engine, name)) else None,
+            }
+            for name in dir(frozen_engine)
+            if "supersess" in name.lower()
+        ],
         "targets": methods,
         "evaluate_source_90_215": _source_excerpt(Controller.evaluate, 90, 215),
         "evaluate_snapshot_source": _source_excerpt(Controller.evaluate_snapshot, 1, 80),
