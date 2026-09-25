@@ -194,7 +194,7 @@
       "observed": "STOP/SUPPORTED -> STOP/VERIFIED; only decision_support_closure_valid remains false",
       "isolation_control": "Single E1 with preserved shared-lineage/common-mode provenance closes with control_closure=true and no false gates.",
       "classification": "BOUNDARY_FINDING_RELATION_LEVEL_REFINED",
-      "review_result": "Fresh-process factorial, polarity, subject-relevance, and snapshot-locality reviews show relation-level stale authorization persistence. Any tested shared provenance/dependency identity can preserve STOP/VERIFIED through decision_support_closure_valid when stale E2 participates in the evaluated snapshot. The effect is unchanged by stale polarity or claim-subject identity, but does not occur when E2 is merely verified outside the evaluated snapshot.",
+      "review_result": "Fresh-process factorial, polarity, subject-relevance, snapshot-locality, and stale-age reviews show relation-level stale authorization persistence. Any tested shared provenance/dependency identity can preserve STOP/VERIFIED through decision_support_closure_valid when stale E2 participates in the evaluated snapshot. The effect is unchanged by stale polarity, claim-subject identity, or stale age across 3-92 days, but does not occur when E2 is merely verified outside the evaluated snapshot.",
       "factorial_result": {
         "states": 16,
         "allow": 2,
@@ -296,6 +296,25 @@
           "interpretation": "separate multi-retrieval-scope boundary; not relation-specific"
         },
         "result": "EVALUATED_SNAPSHOT_BOUND_RELATION_LEVEL_STALE_AUTHORIZATION_PERSISTENCE"
+      },
+      "stale_age_review": {
+        "relations_tested": [
+          "common_mode_group",
+          "root_origin",
+          "generic_dependency:data_source"
+        ],
+        "stale_age_days": [
+          3,
+          31,
+          92
+        ],
+        "all_relations_same_authorization_signature": true,
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "result": "STALE_AGE_INSENSITIVE_RELATION_LEVEL_AUTHORIZATION_PERSISTENCE"
       }
     },
     {
