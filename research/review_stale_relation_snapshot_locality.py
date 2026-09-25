@@ -33,6 +33,7 @@ from demonstrator.custom_case_runner import (
 )
 
 RELATION_MODES = (
+    "DISTINCT",
     "COMMON_MODE",
     "ROOT_ORIGIN",
     "GENERIC_DEPENDENCY",
@@ -347,7 +348,10 @@ def build_case(relation_mode: str, placement_mode: str) -> dict:
         "evaluated_record_ids": [r.get("evidence_id") for r in eval_records],
         "claim_state": claim.get("status"),
         "claim_reason": claim.get("reason"),
+        "claim_record": claim,
+        "stop_type": result.stop_type,
         "control_closure": bool(result.control_closure),
+        "gates": result.gates,
         "false_gates": sorted(k for k, v in result.gates.items() if not v),
         "decision_support_closure_valid": bool(
             result.gates.get("decision_support_closure_valid")
@@ -420,8 +424,8 @@ def main() -> dict:
         "rows": rows,
         "interpretation_boundary": (
             "E1 is POSITIVE/CURRENT and alone satisfies required supports=1. "
-            "E2 is POSITIVE/STALE and shares exactly one tested provenance/dependency "
-            "relation with E1. E2 is either included in the evaluated snapshot, "
+            "E2 is POSITIVE/STALE. Relation shape is DISTINCT or exactly one tested "
+            "shared provenance/dependency relation. E2 is either included in the evaluated snapshot, "
             "installed in a separate verified retrieval snapshot before evaluation, "
             "or fully verified but not installed in any snapshot. Every state runs in "
             "a fresh subprocess."
