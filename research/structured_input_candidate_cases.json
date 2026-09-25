@@ -117,7 +117,8 @@
         ]
       },
       "observed": "STOP/SUPPORTED -> ALLOW/VERIFIED",
-      "classification": "REVIEW_REQUIRED"
+      "classification": "INTENDED_ACTIVE_UNIVERSE_CONTRACTION",
+      "review_result": "Stale E1 is excluded from the active support universe; remaining current support satisfies the one-support policy. No stale evidence is used to justify closure."
     },
     {
       "id": "SSM_004_SCOPE_REMOVES_AUTHORIZATION_NOT_CLAIM_STATUS",
