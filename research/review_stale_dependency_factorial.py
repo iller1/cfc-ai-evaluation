@@ -291,6 +291,30 @@ def build_case(mask: dict[str, bool]) -> dict:
     }
 
 
+def original_fixture_control() -> dict:
+    payload = {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 1,
+        "scope": "EXPECTED",
+        "provenance_shape": "SHARED_LINEAGE",
+        "independence_authority": "NONE",
+        "evidence": [
+            {"polarity": "POSITIVE", "validity": "CURRENT"},
+            {"polarity": "POSITIVE", "validity": "STALE"},
+        ],
+    }
+    out = demo_server.run_custom(payload)
+    p = out["presentation"]
+    r = out["result"]
+    return {
+        "decision": p.get("decision"),
+        "claim_state": p.get("claim_state"),
+        "reason": p.get("reason"),
+        "control_closure": bool(r.get("control_closure")),
+        "false_gates": p.get("false_gates") or [],
+    }
+
+
 def main() -> dict:
     rows = []
     for bits in itertools.product((False, True), repeat=len(FACTOR_NAMES)):
@@ -309,6 +333,20 @@ def main() -> dict:
         ):
             minimal_blockers.append(row)
 
+    original = original_fixture_control()
+    full_shared = next(r for r in rows if r["mask_bits"] == "1111")
+    equivalence = {
+        "original_fixture": original,
+        "factorial_1111": {
+            "claim_state": full_shared["claim_state"],
+            "control_closure": full_shared["control_closure"],
+            "false_gates": full_shared["false_gates"],
+        },
+        "matches_claim_state": original["claim_state"] == full_shared["claim_state"],
+        "matches_control_closure": original["control_closure"] == full_shared["control_closure"],
+        "matches_false_gates": original["false_gates"] == full_shared["false_gates"],
+    }
+
     result = {
         "controller_anchor": "0.2.90rc1",
         "test": "STALE_E2_SHARED_DEPENDENCY_FACTORIAL_2X2X2X2",
@@ -316,6 +354,7 @@ def main() -> dict:
         "state_count": len(rows),
         "allow_count": len(allowers),
         "stop_count": len(blockers),
+        "fixture_equivalence_control": equivalence,
         "minimal_blocking_masks": [
             {
                 "mask_bits": r["mask_bits"],
