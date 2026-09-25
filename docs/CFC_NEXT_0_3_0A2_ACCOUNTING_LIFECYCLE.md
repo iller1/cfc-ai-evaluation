@@ -9,14 +9,12 @@ accounting row has been installed, finalized, and shown to permit closure in
 its original decision context, can that authorization incorrectly survive a
 material context mutation?
 
-The representative phase covers three blocker families:
+The first representative phase covered three blocker families and passed 15/15
+cases. The review is now expanded to all 14 blocker families from the frozen
+decision-accounting taxonomy.
 
-- `root_origin_shared`
-- `extractor_shared`
-- `dependency:data_source`
-
-For each family the harness first proves an exact authorized baseline, then
-tests:
+For every blocker family the harness first proves an exact authorized baseline,
+then tests:
 
 1. exact replay control;
 2. as-of date shift;
@@ -24,15 +22,16 @@ tests:
 4. retrieval-scope change;
 5. support requirement change.
 
-Each case runs in a fresh subprocess.
+That is a 14 x 5 = 70-case lifecycle matrix. Each case runs in a fresh
+subprocess.
 
 ## Two lifecycle paths
 
 The harness records two distinct behaviors:
 
-- **direct evaluate after mutation** — useful for identifying whether a caller
-  can continue evaluating on previously finalized accounting state without
-  re-running the prepare/finalize lifecycle;
+- **direct evaluate after mutation** — checks whether previously finalized
+  accounting state remains visible when a caller evaluates a changed context
+  without re-running the prepare/finalize lifecycle;
 - **re-finalize then evaluate** — the stronger lifecycle check. A material
   context change must either fail closed during re-finalization or evaluate
   without stale authorization.
@@ -45,8 +44,11 @@ A closure that remains authorized after successful re-finalization of a
 materially changed context is classified more strongly as stale accounting
 authorization persistence.
 
-## Expansion rule
+## Claim boundary
 
-If the representative phase does not reveal a harness/design error, expand
-the same mutation matrix to all 14 blocker families before drawing a general
-0.3.0a2 lifecycle conclusion.
+A clean 70-case result supports only the tested mutation classes over the 14
+known blocker families. It is not a claim of arbitrary lifecycle correctness,
+thread safety, production readiness, or immunity to untested state mutations.
+
+The frozen CFC-next 0.3.0a2 source and frozen CFC Anchor reference are not
+modified and historical benchmark results are not rescored.
