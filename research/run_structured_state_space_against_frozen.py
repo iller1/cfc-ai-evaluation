@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, replace
 from pathlib import Path
 
@@ -17,18 +17,10 @@ def state_key(state: StructuredState) -> str:
     return json.dumps(asdict(state), sort_keys=True, separators=(",", ":"))
 
 
-def load_frozen_executor():
-    demo_server.ensure_runtime()
-    runtime = str(demo_server.RUNTIME)
-    if runtime not in sys.path:
-        sys.path.insert(0, runtime)
-    from demonstrator.custom_case_runner import execute
-    return execute
-
-
-def execute_state(state: StructuredState, execute) -> dict:
-    result = execute(state.as_cfc_structured())
-    p = demo_server.presentation(result)
+def execute_state(state: StructuredState) -> dict:
+    payload = demo_server.run_custom(state.as_cfc_structured())
+    p = payload["presentation"]
+    result = payload["result"]
     return {
         "decision": p.get("decision"),
         "claim_state": p.get("claim_state"),
@@ -37,7 +29,6 @@ def execute_state(state: StructuredState, execute) -> dict:
         "control_closure": bool(result.get("control_closure")),
         "engine_sha256": result.get("engine_sha256"),
     }
-
 
 def invert_polarity(value: str | None) -> str | None:
     if value == "POSITIVE":
@@ -108,12 +99,17 @@ def closure_delta(before: dict, after: dict) -> str:
 
 def main() -> dict:
     states = admissible_states()
-    execute = load_frozen_executor()
+    demo_server.ensure_runtime()
     outcomes = {}
-    for index, state in enumerate(states, 1):
-        outcomes[state_key(state)] = execute_state(state, execute)
-        if index % 50 == 0:
-            print(f"EXECUTED_STATES={index}", flush=True)
+    completed = 0
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {pool.submit(execute_state, state): state for state in states}
+        for future in as_completed(futures):
+            state = futures[future]
+            outcomes[state_key(state)] = future.result()
+            completed += 1
+            if completed % 50 == 0:
+                print(f"EXECUTED_STATES={completed}", flush=True)
 
     family_summary = {}
     edge_records = []
