@@ -23,12 +23,6 @@ from research.review_stale_relation_snapshot_locality import (
 
 RELATION_MODES = ("COMMON_MODE", "ROOT_ORIGIN", "GENERIC_DEPENDENCY")
 
-NODES = {
-    "COMMON_MODE": ("COMMON_MODE", "", "group:shared"),
-    "ROOT_ORIGIN": ("LINEAGE", "", "general-record:root:shared"),
-    "GENERIC_DEPENDENCY": ("DEPENDENCY", "data_source", "shared"),
-}
-
 
 def build_fixture(relation_mode: str):
     tag=f"accounting-reachability:{relation_mode.lower()}"
@@ -73,17 +67,51 @@ def attempt(relation_mode: str) -> dict:
     text="DemoSubject is safe."
     claim_map={"c1": identity_id}
     req={"c1":{"required_independent_supports":1}}
-    node=NODES[relation_mode]
 
     baseline=c.evaluate_snapshot(
         snapshot,text,records,claim_map,as_of=ASOF,requirements=req
     )
     baseline_claim=baseline.claims[0] if baseline.claims else {}
 
+    assessments=baseline.raw.get("decision_level_generic_dependency_assessments", [])
+    required_assessments=[
+        row for row in assessments
+        if isinstance(row,dict) and row.get("decision_level_required")
+    ]
+    if len(required_assessments)!=1:
+        return {
+            "relation_mode":relation_mode,
+            "baseline":{
+                "claim_state":baseline_claim.get("status"),
+                "control_closure":bool(baseline.control_closure),
+                "false_gates":sorted(k for k,v in baseline.gates.items() if not v),
+            },
+            "extraction_error":(
+                f"expected exactly one decision-level required generic dependency "
+                f"obligation, got {len(required_assessments)}"
+            ),
+            "required_assessments":required_assessments,
+        }
+
+    obligation=required_assessments[0]
+    node=tuple(obligation["generic_dependency_node"])
+    obligation_eids=list(obligation["evidence_ids"])
+
+    graph=baseline.raw.get("decision_support_dependency_graph") or {}
+    raw_selected=graph.get("selected_support_map") or ()
+    actual_selected_map={
+        cid:list(vals)
+        for cid,vals in raw_selected
+    }
+    expanded_selected_map={
+        cid:sorted(set(vals).union(obligation_eids))
+        for cid,vals in actual_selected_map.items()
+    }
+
     attempts={}
     for label,selected_map in (
-        ("EXACT_ENGINE_SELECTED_MAP",{"c1":[e1]}),
-        ("EXPANDED_ENDPOINT_SELECTED_MAP",{"c1":[e1,e2]}),
+        ("EXACT_ENGINE_SELECTED_MAP",actual_selected_map),
+        ("EXPANDED_ENDPOINT_SELECTED_MAP",expanded_selected_map),
     ):
         try:
             draft=c.draft_decision_generic_dependency_accounting(
@@ -92,7 +120,7 @@ def attempt(relation_mode: str) -> dict:
                 claim_ids=["c1"],
                 selected_support_map=selected_map,
                 generic_dependency_node=node,
-                evidence_ids=[e1,e2],
+                evidence_ids=obligation_eids,
                 reason="Reachability control for stale mixed endpoint obligation.",
                 text=text,
                 evidence=decision_evidence,
@@ -123,8 +151,13 @@ def attempt(relation_mode: str) -> dict:
         },
         "obligation":{
             "generic_dependency_node":list(node),
-            "evidence_ids":[e1,e2],
-            "actual_selected_support_map":{"c1":[e1]},
+            "evidence_ids":obligation_eids,
+            "actual_selected_support_map":actual_selected_map,
+            "expanded_endpoint_selected_support_map":expanded_selected_map,
+            "endpoint_classifications":obligation.get("endpoint_classifications"),
+            "endpoint_claim_ownership":obligation.get("endpoint_claim_ownership"),
+            "selected_support_path_relevant":obligation.get("selected_support_path_relevant"),
+            "selected_support_path_anchor_ids":obligation.get("selected_support_path_anchor_ids"),
             "stale_endpoint":e2,
         },
         "attempts":attempts,
