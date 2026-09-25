@@ -1,0 +1,27 @@
+name: Multi-scope supersession control
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run multi-scope supersession control
+        run: python -m research.review_multi_scope_supersession_control
+      - name: Upload supersession control result
+        uses: actions/upload-artifact@v4
+        with:
+          name: multi-scope-supersession-control
+          path: multi_scope_supersession_control.json
