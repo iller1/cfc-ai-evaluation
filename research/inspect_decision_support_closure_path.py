@@ -22,6 +22,9 @@ TOKENS = (
     "selected_support",
     "support_universe",
     "dependency_relation",
+    "generic_dependency_accounting",
+    "decision_dependency_accounting",
+    "accounting",
 )
 
 
