@@ -62,6 +62,14 @@ def _safe(value):
                 "source_relation_records",
                 "candidate_disposition_records",
                 "equivalence_resolution_records",
+                "generic_dependency_node",
+                "evidence_ids",
+                "decision_level_required",
+                "relevance_classification",
+                "selected_support_path_relevant",
+                "selected_support_path_anchor_ids",
+                "endpoint_classifications",
+                "endpoint_claim_ownership",
             }:
                 out[str(k)] = _safe(v)
         if out:
