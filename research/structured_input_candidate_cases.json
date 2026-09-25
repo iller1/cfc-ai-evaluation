@@ -194,7 +194,7 @@
       "observed": "STOP/SUPPORTED -> STOP/VERIFIED; only decision_support_closure_valid remains false",
       "isolation_control": "Single E1 with preserved shared-lineage/common-mode provenance closes with control_closure=true and no false gates.",
       "classification": "BOUNDARY_FINDING_RELATION_LEVEL_REFINED",
-      "review_result": "Fresh-process factorial, polarity, and subject-relevance reviews show relation-level stale authorization persistence. Any tested shared provenance/dependency identity can preserve STOP/VERIFIED through decision_support_closure_valid when E2 is stale; the effect is unchanged when stale E2 polarity flips POSITIVE<->NEGATIVE and when stale E2 is rebound as a fully valid record about a different subject.",
+      "review_result": "Fresh-process factorial, polarity, subject-relevance, and snapshot-locality reviews show relation-level stale authorization persistence. Any tested shared provenance/dependency identity can preserve STOP/VERIFIED through decision_support_closure_valid when stale E2 participates in the evaluated snapshot. The effect is unchanged by stale polarity or claim-subject identity, but does not occur when E2 is merely verified outside the evaluated snapshot.",
       "factorial_result": {
         "states": 16,
         "allow": 2,
@@ -268,7 +268,57 @@
           "global_consistency_violations": []
         },
         "result": "CLAIM_SUBJECT_INSENSITIVE_RELATION_LEVEL_STALE_AUTHORIZATION_PERSISTENCE"
+      },
+      "snapshot_locality_review": {
+        "relation_shapes": [
+          "DISTINCT",
+          "common_mode_group",
+          "root_origin",
+          "generic_dependency:data_source"
+        ],
+        "placement_modes": [
+          "EVALUATED_SNAPSHOT",
+          "OTHER_SNAPSHOT",
+          "VERIFIED_ONLY"
+        ],
+        "evaluated_snapshot": {
+          "distinct": "ALLOW/VERIFIED",
+          "shared_relations": "STOP/VERIFIED",
+          "shared_relation_false_gate": "decision_support_closure_valid"
+        },
+        "verified_only": {
+          "all_relation_shapes": "ALLOW/VERIFIED"
+        },
+        "other_snapshot": {
+          "all_relation_shapes": "STOP/UNRESOLVED",
+          "gates": {},
+          "stop_type": "NONE",
+          "interpretation": "separate multi-retrieval-scope boundary; not relation-specific"
+        },
+        "result": "EVALUATED_SNAPSHOT_BOUND_RELATION_LEVEL_STALE_AUTHORIZATION_PERSISTENCE"
       }
+    },
+    {
+      "id": "SSM_006_MULTI_RETRIEVAL_SCOPE_CONTEXT_BOUNDARY",
+      "family": "MULTI_RETRIEVAL_SCOPE_CONTEXT",
+      "baseline": {
+        "provenance_shape": "DISTINCT",
+        "e1": "POSITIVE/CURRENT in evaluated snapshot",
+        "e2": "POSITIVE/STALE fully verified but unsnapshotted",
+        "observed": "ALLOW/VERIFIED"
+      },
+      "mutation": {
+        "e2": "installed in a separate verified retrieval snapshot under a different scope_id",
+        "install_orders": [
+          "AUX_FIRST",
+          "EVAL_FIRST"
+        ]
+      },
+      "observed": "Both different-scope installation orders produce STOP/UNRESOLVED with gates={}, false_gates=[], stop_type=NONE, and no claim-support-policy, critical-unresolved, global-consistency, evidence, identity, or integration errors.",
+      "same_scope_control": "A second snapshot with the same scope_id but different content or authority is rejected in both install orders with ValueError: retrieval scope_id already exists with different content or authority.",
+      "classification": "BOUNDARY_FINDING_MULTI_RETRIEVAL_SCOPE_CONTEXT",
+      "contract_status": "OPEN",
+      "review_result": "The behavior is independent of shared provenance/dependency relations and installation order in the tested reducer. It is recorded separately from stale relation persistence and is not classified as a false block."
     }
   ]
 }
