@@ -414,6 +414,46 @@
         "core_control": "Exact mixed obligation is core-bindable and yields VERIFIED/ALLOW with decision_support_closure_valid=true and closure certificate present.",
         "result": "UNSATISFIABLE_PUBLIC_DECISION_ACCOUNTING_OBLIGATION_FROZEN_CONTRACT_INCONSISTENCY",
         "classification_note": "Do not use shorthand false-block label; demonstrated result is a frozen-policy-required obligation that cannot be represented through the supported public accounting lifecycle."
+      },
+      "obligation_schema_compatibility_review": {
+        "common_mode": {
+          "engine_node": [
+            "COMMON_MODE",
+            "",
+            "group:shared"
+          ],
+          "decision_level_required": true,
+          "relevance_classification": "DECISION_GENERIC_MODELED_SNAPSHOT_MIXED_UNCOVERED",
+          "internal_registry": "REJECTED: invalid generic dependency node",
+          "public_draft": "REJECTED: invalid generic dependency node",
+          "result": "ENGINE_EMITTED_ACCOUNTING_SCHEMA_INCOMPATIBILITY"
+        },
+        "root_origin": {
+          "engine_node": [
+            "LINEAGE",
+            "",
+            "general-record:root:shared"
+          ],
+          "decision_level_required": true,
+          "relevance_classification": "DECISION_GENERIC_MODELED_SNAPSHOT_MIXED_UNCOVERED",
+          "internal_registry": "REJECTED: invalid generic dependency node",
+          "public_draft": "REJECTED: invalid generic dependency node",
+          "result": "ENGINE_EMITTED_ACCOUNTING_SCHEMA_INCOMPATIBILITY"
+        },
+        "generic_dependency_data_source": {
+          "engine_node": [
+            "DEPENDENCY",
+            "data_source",
+            "shared"
+          ],
+          "decision_level_required": true,
+          "relevance_classification": "DECISION_GENERIC_MODELED_SNAPSHOT_MIXED_UNCOVERED",
+          "internal_registry": "ACCEPTED: binding_state=PENDING",
+          "public_draft": "REJECTED: generic dependency endpoints must be selected supports",
+          "result": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY"
+        },
+        "result": "TWO_DISTINCT_DECISION_ACCOUNTING_CONTRACT_FAILURE_MECHANISMS",
+        "note": "Do not collapse COMMON_MODE/ROOT_ORIGIN node-schema incompatibility into the data_source selected/excluded endpoint reachability inconsistency."
       }
     },
     {
