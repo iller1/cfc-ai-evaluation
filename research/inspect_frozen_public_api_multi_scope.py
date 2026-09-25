@@ -11,6 +11,7 @@ demo_server.ensure_runtime()
 sys.path.insert(0, str(demo_server.RUNTIME))
 
 from cfc_anchor import Controller
+import cfc_anchor._engine as frozen_engine
 
 
 TARGETS = (
@@ -110,6 +111,10 @@ def main():
         "targets": methods,
         "evaluate_source_90_215": _source_excerpt(Controller.evaluate, 90, 215),
         "evaluate_snapshot_source": _source_excerpt(Controller.evaluate_snapshot, 1, 80),
+        "engine_prepare_signature": _signature(frozen_engine.prepare),
+        "engine_prepare_relevant_source_lines": _relevant_source_lines(frozen_engine.prepare),
+        "engine_audit_text_signature": _signature(frozen_engine.audit_text),
+        "engine_audit_text_relevant_source_lines": _relevant_source_lines(frozen_engine.audit_text),
         "relevant_public_methods": relevant_public_methods,
         "all_public_methods": all_public_methods,
     }
