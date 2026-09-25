@@ -59,13 +59,30 @@ def main():
         )
     )
     controller_names = sorted(
-        name
-        for name in dir(Controller)
-        if "decision_generic_dependency_accounting" in name.lower()
+        set(
+            name
+            for name in dir(Controller)
+            if (
+                "decision_generic_dependency_accounting" in name.lower()
+                or name in {
+                    "_validate_decision_attestation",
+                    "_require_host_trust",
+                    "_decision_accounting_runtime_commitment",
+                }
+            )
+        )
     )
     controller_module = inspect.getmodule(Controller)
     private_contract = {}
+    module_helper_symbols = []
     if controller_module is not None:
+        for helper_name in (
+            "_requires_host_trust",
+            "_validate_decision_attestation",
+        ):
+            helper = getattr(controller_module, helper_name, None)
+            if helper is not None:
+                module_helper_symbols.append(describe(helper_name, helper))
         for name in dir(controller_module):
             if (
                 "DECISION_GENERIC_DEPENDENCY_ACCOUNTING" in name
@@ -89,6 +106,7 @@ def main():
             for name in controller_names
         ],
         "controller_private_contract": private_contract,
+        "module_helper_symbols": module_helper_symbols,
         "engine_constants": {
             key: repr(getattr(frozen_engine, key))
             for key in dir(frozen_engine)
