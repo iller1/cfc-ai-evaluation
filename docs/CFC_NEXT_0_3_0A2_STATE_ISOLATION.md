@@ -55,3 +55,41 @@ insufficient for a frozen-baseline promotion.
 That outcome should be classified as a shared-state authorization boundary and
 should trigger a state-isolation repair, not a weakening of the acceptance
 tests.
+
+## Observed result
+
+The full 14-case state-isolation matrix passes.
+
+For every minimal blocker:
+
+- candidate baseline remains STOP / VERIFIED before exact accounting;
+- candidate reaches closure after its exact verified accounting is finalized;
+- the candidate accounting row is present in the shared registry and BOUND;
+- a frozen Controller instance created before candidate accounting remains
+  closure false after candidate accounting;
+- a newly created frozen Controller instance also remains closure false;
+- candidate authorization visible to frozen evaluation is **false**.
+
+The aggregate machine-readable result is:
+
+- relations tested: **14**;
+- candidate authorization visible to frozen relations: **[]**;
+- shared registry state detected: **true**;
+- promotion status: **STATE_ISOLATION_GATE_PASS**.
+
+This demonstrates authorization isolation across the complete minimal blocker
+taxonomy even though the underlying runtime registry object is shared.
+
+## Freeze-readiness meaning
+
+Together with the 0.3.0a2 promotion-readiness gate, the full matrix now shows:
+
+- no import-time frozen-engine mutation;
+- no operation-time frozen-engine mutation;
+- no candidate authorization leakage into ordinary frozen evaluation across
+  all 14 minimal Repair-A / Repair-B blocker families;
+- unchanged frozen wheel and no historical rescore.
+
+A separate explicit freeze/closure step is still required before 0.3.0a2 can be
+treated as a frozen CFC-next baseline.
+
