@@ -138,3 +138,30 @@ The state-space approach exposed test families that are easy to miss when cases 
 Do not change the frozen controller.
 
 For each non-monotonic finding: reduce to the smallest before/after pair; inspect exact false-gate differences; state the expected semantic rule before judging the behavior; classify as intended behavior, boundary finding, or candidate false-closure/false-block issue; only then create a permanent external regression fixture.
+
+
+## Refinement — logical mutation vs runtime mutation
+
+The combinatorial sweep exposed an important fixture-level coupling in the custom builder.
+
+An E2 OMIT -> INCLUDE mutation is not always a pure evidence-addition operation:
+
+- **DISTINCT + NONE**: pure E2 addition; E1 provenance is unchanged and no independence certificate is installed.
+- **DISTINCT + VERIFIED**: adding E2 also activates installation of the explicit E1/E2 support-set independence certificate, because the custom fixture only installs that certificate when two evidence records exist.
+- **SHARED_LINEAGE + NONE**: adding E2 also causes the fixture to rebuild E1 with shared lineage/dependency identifiers, because shared lineage is only materialized when more than one evidence record exists.
+
+Therefore the 384 SUPPORT_COMPLETENESS edges must be split into three 128-edge runtime classes before interpreting them as metamorphic tests.
+
+This is a test-harness finding, not a frozen-controller defect.
+
+It also explains why some apparent 'stale extra evidence' or 'adding evidence' effects can be confounded by provenance/authority changes that are derived by the fixture rather than represented as a second explicit UI-field mutation.
+
+### Consequence
+
+Future semantic classification must distinguish:
+
+1. **logical input delta** — what the HAWM form field changed;
+2. **derived runtime delta** — what the adapter/fixture changed in the actual frozen-CFC API objects;
+3. **controller output delta** — what the frozen controller returned.
+
+Only edges with a controlled derived runtime delta should be used as clean one-factor metamorphic tests.

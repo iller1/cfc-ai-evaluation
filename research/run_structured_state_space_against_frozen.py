@@ -97,6 +97,24 @@ def closure_delta(before: dict, after: dict) -> str:
     return "SAME"
 
 
+def support_completeness_runtime_coupling(
+    before_state: StructuredState, after_state: StructuredState
+) -> str:
+    """Classify hidden runtime changes induced by E2 OMIT -> INCLUDE.
+
+    The custom fixture derives provenance and independence installation from the
+    number of evidence records. Therefore adding E2 is a pure evidence-count
+    mutation only for DISTINCT + NONE.
+    """
+    if before_state.e2_mode != "OMIT" or after_state.e2_mode != "INCLUDE":
+        return "NOT_SUPPORT_COMPLETENESS"
+    if after_state.provenance_shape == "SHARED_LINEAGE":
+        return "E2_PLUS_E1_PROVENANCE_REWRITE"
+    if after_state.independence_authority == "VERIFIED":
+        return "E2_PLUS_INDEPENDENCE_CERT_INSTALL"
+    return "PURE_E2_ADDITION"
+
+
 def main() -> dict:
     states = admissible_states()
     demo_server.ensure_runtime()
@@ -126,6 +144,10 @@ def main() -> dict:
             "closure_delta": closure_delta(before, after),
             "transition": transition_name(before, after),
         }
+        if family == "SUPPORT_COMPLETENESS":
+            record["runtime_coupling"] = support_completeness_runtime_coupling(
+                before_state, after_state
+            )
         edge_records.append(record)
         bucket = family_summary.setdefault(
             family,
@@ -194,12 +216,25 @@ def main() -> dict:
         key = f'{outcome["decision"]}/{outcome["claim_state"]}'
         outcome_counts[key] = outcome_counts.get(key, 0) + 1
 
+    support_completeness_coupling = {}
+    for record in edge_records:
+        if record["family"] != "SUPPORT_COMPLETENESS":
+            continue
+        key = record["runtime_coupling"]
+        bucket = support_completeness_coupling.setdefault(
+            key,
+            {"total": 0, "closure_increase": 0, "closure_decrease": 0, "closure_same": 0},
+        )
+        bucket["total"] += 1
+        bucket["closure_" + record["closure_delta"].lower()] += 1
+
     result = {
         "controller_anchor": "0.2.90rc1",
         "states_executed": len(states),
         "outcome_counts": dict(sorted(outcome_counts.items())),
         "semantic_edges_checked": len(edge_records),
         "families": family_summary,
+        "support_completeness_runtime_coupling": support_completeness_coupling,
         "polarity_inversion": {
             "pairs_checked": inversion_total,
             "mismatches": len(inversion_mismatches),

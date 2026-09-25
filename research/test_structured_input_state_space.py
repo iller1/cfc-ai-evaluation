@@ -10,6 +10,9 @@ from research.structured_input_state_space import (
     semantic_mutation_edges,
     summary,
 )
+from research.run_structured_state_space_against_frozen import (
+    support_completeness_runtime_coupling,
+)
 
 
 class StructuredInputStateSpaceTests(unittest.TestCase):
@@ -50,6 +53,44 @@ class StructuredInputStateSpaceTests(unittest.TestCase):
 
     def test_semantic_edges_include_field_and_e2_operations(self):
         self.assertEqual(len(list(semantic_mutation_edges())), 2288)
+
+    def test_e2_runtime_coupling_classes(self):
+        base = StructuredState(
+            "POSITIVE", 1, "EXPECTED", "DISTINCT", "NONE",
+            "POSITIVE", "CURRENT", "OMIT", None, None
+        )
+        pure = StructuredState(
+            "POSITIVE", 1, "EXPECTED", "DISTINCT", "NONE",
+            "POSITIVE", "CURRENT", "INCLUDE", "POSITIVE", "CURRENT"
+        )
+        cert = StructuredState(
+            "POSITIVE", 1, "EXPECTED", "DISTINCT", "VERIFIED",
+            "POSITIVE", "CURRENT", "INCLUDE", "POSITIVE", "CURRENT"
+        )
+        cert_before = StructuredState(
+            "POSITIVE", 1, "EXPECTED", "DISTINCT", "VERIFIED",
+            "POSITIVE", "CURRENT", "OMIT", None, None
+        )
+        shared = StructuredState(
+            "POSITIVE", 1, "EXPECTED", "SHARED_LINEAGE", "NONE",
+            "POSITIVE", "CURRENT", "INCLUDE", "POSITIVE", "CURRENT"
+        )
+        shared_before = StructuredState(
+            "POSITIVE", 1, "EXPECTED", "SHARED_LINEAGE", "NONE",
+            "POSITIVE", "CURRENT", "OMIT", None, None
+        )
+        self.assertEqual(
+            support_completeness_runtime_coupling(base, pure),
+            "PURE_E2_ADDITION",
+        )
+        self.assertEqual(
+            support_completeness_runtime_coupling(cert_before, cert),
+            "E2_PLUS_INDEPENDENCE_CERT_INSTALL",
+        )
+        self.assertEqual(
+            support_completeness_runtime_coupling(shared_before, shared),
+            "E2_PLUS_E1_PROVENANCE_REWRITE",
+        )
 
     def test_current_to_stale_is_single_mutation(self):
         a = StructuredState(
