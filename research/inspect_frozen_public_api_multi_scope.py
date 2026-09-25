@@ -111,6 +111,7 @@ def main():
         "targets": methods,
         "evaluate_source_90_215": _source_excerpt(Controller.evaluate, 90, 215),
         "evaluate_snapshot_source": _source_excerpt(Controller.evaluate_snapshot, 1, 80),
+        "install_verified_snapshot_source": _source_excerpt(Controller.install_verified_snapshot, 1, 90),
         "engine_candidate_map_signature": _signature(frozen_engine.decision_relevant_candidate_map),
         "engine_candidate_map_source": _source_excerpt(frozen_engine.decision_relevant_candidate_map, 1, 220),
         "engine_make_supersession_certificate_signature": _signature(frozen_engine.make_snapshot_supersession_certificate),
