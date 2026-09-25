@@ -1,43 +1,80 @@
-# CFC-next 0.3.0a2 peer-controller isolation review
+# CFC-next 0.3.0a2 peer-context isolation review
 
-## Question
+## Why this review exists
 
-CFC-next 0.3.0a2 intentionally shares the frozen engine registries inside one
-Python interpreter. The previous state-isolation review showed that candidate
-accounting authorization does not authorize an ordinary frozen Controller.
+CFC-next 0.3.0a2 intentionally uses registries provided by the frozen engine
+inside one Python interpreter. The previous state-isolation review established
+that candidate accounting authorization does not authorize an ordinary frozen
+Controller.
 
-This review asks the next multi-user question:
+The first peer-controller harness attempted to build candidate contexts A and B
+with the same blocker family. It failed before any accounting authorization was
+installed: after context A existed, context B no longer exposed the single
+required decision-level obligation expected by the harness.
 
-> Can accounting authorized by candidate Controller A accidentally authorize a
-> distinct candidate Controller B with different identity, evidence, retrieval
-> scope and accounting context in the same interpreter?
+That first failure is preserved as evidence. It is not classified as an
+accounting-authorization leak because no accounting row had yet been installed.
 
-## Representative phase
+## Diagnostic split
 
-The first phase covers:
+The revised harness separates two cases.
 
-- root-origin shared relation;
-- extractor shared relation;
-- generic dependency / data source.
+### GLOBAL_SHARED_RELATION_ID
 
-Each relation is executed in a fresh subprocess.
+A and B use different evidence IDs, source IDs, identity registry entries,
+retrieval scopes and snapshots, but the blocker relation itself uses the exact
+same identifier in both contexts, for example:
 
-For each case:
+- `general-record:root:shared`
+- `extractor:shared`
+- `data:shared:data_source`
 
-1. build independent A and B contexts;
-2. verify both start blocked;
-3. install and finalize valid accounting only for A;
-4. verify A closes;
-5. evaluate pre-existing B;
-6. evaluate a fresh B Controller over B's context;
-7. deliberately attempt to reuse A's accounting ID for B and require fail-closed rejection;
-8. verify B remains blocked after the collision attempt.
+This reproduces the original taxonomy fixture semantics and tests whether exact
+relation-identity reuse creates observable cross-context interference.
 
-## Claim boundary
+### TENANT_NAMESPACED_RELATION_ID
 
-This is not a claim of arbitrary thread safety or concurrent writes. It tests
-same-interpreter peer-controller authorization isolation under distinct
-contexts and a deliberate accounting-ID collision.
+The relation remains shared between E1 and E2 inside each context, but its
+identity is distinct across A and B, for example:
 
-If the representative phase is clean, expand the identical test to all 14
-known blocker families before drawing a general result.
+- A: `general-record:root:shared:A`
+- B: `general-record:root:shared:B`
+
+This distinguishes global relation-ID collision from broader peer-controller
+state interference.
+
+## Execution order controls
+
+For each representative relation and namespace mode, fresh subprocesses run:
+
+1. A only;
+2. B only;
+3. A then B;
+4. B then A.
+
+The harness compares the second-built context with its standalone baseline and
+records:
+
+- claim state;
+- control closure;
+- false gates;
+- decision-support-closure gate;
+- required decision-level accounting obligations;
+- selected support map.
+
+No accounting authorization is installed in this diagnostic phase.
+
+## Classification
+
+Possible bounded classifications include:
+
+- `SHARED_RELATION_ID_CROSS_CONTEXT_INTERFERENCE`
+- `PEER_CONTROLLER_CONTEXT_ISOLATION_FINDING`
+- `PEER_CONTEXT_CONSTRUCTION_ISOLATION_PASS`
+
+A finding limited to exact shared relation IDs must not be generalized into an
+arbitrary peer-controller or multi-user authorization leak without further
+evidence.
+
+The frozen CFC-next 0.3.0a2 source and frozen CFC Anchor reference remain
+unchanged. Historical results are not rescored.
