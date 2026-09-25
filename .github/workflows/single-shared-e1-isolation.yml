@@ -1,0 +1,27 @@
+name: Single shared-E1 isolation
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run single-E1 shared-lineage isolation
+        run: python -m research.review_single_shared_e1
+      - name: Upload isolation result
+        uses: actions/upload-artifact@v4
+        with:
+          name: single-shared-e1-isolation
+          path: single_shared_e1_isolation.json

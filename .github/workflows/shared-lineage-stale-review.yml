@@ -1,0 +1,27 @@
+name: Shared-lineage stale review
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run shared-lineage stale-record review
+        run: python -m research.review_shared_lineage_stale
+      - name: Upload review result
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-lineage-stale-review
+          path: shared_lineage_stale_review.json
