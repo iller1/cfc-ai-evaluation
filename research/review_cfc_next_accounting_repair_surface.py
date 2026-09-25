@@ -14,6 +14,7 @@ from cfc_anchor import Controller
 import cfc_anchor._engine as frozen_engine
 
 ENGINE_SYMBOLS = (
+    "dependency_nodes",
     "raw_generic_dependency_nodes",
     "generic_dependency_representation_records",
     "_semantic_identifier",
@@ -54,6 +55,14 @@ def main():
         "controller_anchor": "0.2.90rc1",
         "test": "CFC_NEXT_ACCOUNTING_REPAIR_SURFACE_INSPECTION",
         "policy": frozen_engine.SUPPORT_UNIVERSE_POLICY,
+        "constants": {
+            "SOURCE_SEMANTIC_NODE_TYPES": sorted(
+                getattr(frozen_engine, "SOURCE_SEMANTIC_NODE_TYPES", ())
+            ),
+            "DEPENDENCY_PREFIX": getattr(
+                frozen_engine, "DEPENDENCY_PREFIX", {}
+            ),
+        },
         "engine_symbols": [],
         "controller_methods": [],
         "non_mutation": (
