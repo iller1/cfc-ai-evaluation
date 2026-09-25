@@ -110,6 +110,8 @@ def main():
         "engine_objects": objects,
         "source_mentions": source_mentions,
         "controller_relevant_lines": _relevant_controller_lines(),
+        "controller_evaluate_source": _source(Controller.evaluate, 360),
+        "controller_evaluate_snapshot_source": _source(Controller.evaluate_snapshot, 220),
         "non_mutation": (
             "Read-only runtime introspection only. No frozen controller state, "
             "source, registry, or policy is modified."
