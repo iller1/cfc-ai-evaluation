@@ -7,14 +7,15 @@ import sys
 from pathlib import Path
 
 from cfc_next_candidate_0_3_0a2 import Controller
-from cfc_anchor import DecisionGenericDependencyAccountingAttestation
-
-from demonstrator.custom_case_runner import ASOF, VALID_FROM, VALID_TO
-from research import review_minimal_blocker_accounting_taxonomy as taxonomy
-from research import review_cfc_next_negative_control_baseline as negative
-from research.review_decision_generic_accounting_reachability import (
-    _mapping_to_draft,
+from cfc_anchor import (
+    SourceSemanticsAuthorityAttestation,
+    ProvenanceAuthorityAttestation,
+    EvidenceAuthorityAttestation,
+    EpistemicRoleAuthorityAttestation,
 )
+
+from demonstrator.custom_case_runner import ASOF, VALID_FROM, VALID_TO, STALE_TO
+from research import review_minimal_blocker_accounting_taxonomy as taxonomy
 
 
 REPRESENTATIVE_RELATIONS = (
@@ -23,64 +24,220 @@ REPRESENTATIVE_RELATIONS = (
     "dependency:data_source",
 )
 
+NAMESPACE_MODES = (
+    "GLOBAL_SHARED_RELATION_ID",
+    "TENANT_NAMESPACED_RELATION_ID",
+)
 
-def _sig(result):
-    claims = result.claims if hasattr(result, "claims") else []
-    claim = claims[0] if claims else {}
-    return {
-        "claim_state": claim.get("status"),
-        "control_closure": bool(result.control_closure),
-        "decision_support_closure_valid": bool(
-            result.gates.get("decision_support_closure_valid")
+ORDER_MODES = (
+    "A_ONLY",
+    "B_ONLY",
+    "A_THEN_B",
+    "B_THEN_A",
+)
+
+
+def _build_record_namespaced(
+    c: Controller,
+    *,
+    tag: str,
+    tenant: str,
+    identity_id: str,
+    blocker: str,
+    idx: int,
+    validity: str,
+) -> dict:
+    """Keep the relation shared within a tenant, but not across tenants."""
+    eid = f"E{idx}:{tag}"
+    source_token = f"peer-isolation:{tag}:e{idx}"
+
+    sem_id = f"sem:{source_token}"
+    semantics = c.draft_source_semantics(
+        semantics_registry_entry_id=sem_id,
+        source_id=f"general-record:{source_token}",
+        repository_id=f"repo:iso:{tag}:e{idx}",
+        producer_id=f"producer:iso:{tag}:e{idx}",
+        process_id=f"process:iso:{tag}:e{idx}",
+        failure_domain_id=f"fd:iso:{tag}:e{idx}",
+        resolution_state="KNOWN",
+    )
+    c.install_verified_source_semantics(
+        semantics,
+        SourceSemanticsAuthorityAttestation(
+            f"att:{source_token}:semantics",
+            taxonomy.AUTHORITIES["SOURCE_SEMANTICS"],
+            c.source_semantics_commitment(semantics),
+            ASOF,
+            VALID_FROM,
+            VALID_TO,
         ),
-        "false_gates": sorted(
-            key for key, value in result.gates.items() if not value
-        ),
+        taxonomy.VERIFIERS["SOURCE_SEMANTICS"],
+        as_of=ASOF,
+    )
+
+    root_origin_id = (
+        f"general-record:root:shared:{tenant}"
+        if blocker == "root_origin_shared"
+        else f"general-record:root:iso:{tag}:e{idx}"
+    )
+    origin_id = (
+        f"general-record:origin:shared:{tenant}"
+        if blocker == "origin_shared"
+        else f"general-record:origin:iso:{tag}:e{idx}"
+    )
+    extractor_id = (
+        f"extractor:shared:{tenant}"
+        if blocker == "extractor_shared"
+        else f"extractor:iso:{tag}:e{idx}"
+    )
+    common_mode_group = (
+        f"group:shared:{tenant}"
+        if blocker == taxonomy.COMMON_MODE_BLOCKER
+        else f"group:iso:{tag}:e{idx}"
+    )
+
+    dependencies = {}
+    for key in taxonomy.DEPENDENCY_KEYS:
+        prefix = taxonomy.DEPENDENCY_PREFIX[key]
+        dep_id = (
+            f"{prefix}:shared:{tenant}:{key}"
+            if blocker == f"dependency:{key}"
+            else f"{prefix}:iso:{tag}:e{idx}:{key}"
+        )
+        dependencies[key] = {"state": "KNOWN", "id": dep_id}
+
+    provenance = {
+        "source_id": f"general-record:{source_token}",
+        "root_origin_id": root_origin_id,
+        "origin_id": origin_id,
+        "referent_entity_id": "entity:demo-subject",
+        "referent_event_id": "event:current",
+        "referent_version_id": "v1",
+        "extractor_id": extractor_id,
+        "common_mode_group": common_mode_group,
+        "lineage": [root_origin_id, origin_id],
+        "dependencies": dependencies,
     }
 
+    observed_at = "2026-08-30" if validity == "STALE" else ASOF
+    valid_to = STALE_TO if validity == "STALE" else VALID_TO
 
-def _capture(fn):
-    try:
-        return {"ok": True, "error": None, "value": _sig(fn())}
-    except Exception as exc:
-        return {
-            "ok": False,
-            "error": f"{type(exc).__name__}: {exc}",
-            "value": None,
-        }
-
-
-def _build_fixture(blocker: str, tenant: str):
-    verifier = negative.DecisionVerifier(
-        verifier_id=f"a2-peer:{tenant}:{blocker}:v1"
+    evidence = c.draft_evidence_record(
+        evidence_id=eid,
+        subject="DemoSubject",
+        predicate="state",
+        value="safe",
+        source=f"display:{source_token}",
+        identity_registry_entry_id=identity_id,
+        authority_id="GENERAL_RECORD_V5",
+        authority_record_entity_id="entity:demo-subject",
+        authority_record_event_id="event:current",
+        authority_record_version_id="v1",
+        valid_from=VALID_FROM,
+        valid_to=valid_to,
+        observed_at=observed_at,
+        available_at=observed_at,
+        provenance=provenance,
+        polarity="POSITIVE",
+        source_semantics_id=sem_id,
     )
-    trust = negative._trust_policy(verifier)
+    c.verify_evidence_provenance(
+        evidence,
+        ProvenanceAuthorityAttestation(
+            f"att:{source_token}:prov",
+            taxonomy.AUTHORITIES["PROVENANCE"],
+            eid,
+            c.provenance_commitment(evidence),
+            ASOF,
+            VALID_FROM,
+            VALID_TO,
+        ),
+        taxonomy.VERIFIERS["PROVENANCE"],
+        as_of=ASOF,
+    )
+    c.verify_evidence_authority(
+        evidence,
+        EvidenceAuthorityAttestation(
+            f"att:{source_token}:evidence",
+            taxonomy.AUTHORITIES["EVIDENCE_AUTHORITY"],
+            eid,
+            "GENERAL_RECORD_V5",
+            c.evidence_authority_commitment(evidence),
+            ASOF,
+            VALID_FROM,
+            VALID_TO,
+        ),
+        taxonomy.VERIFIERS["EVIDENCE_AUTHORITY"],
+        as_of=ASOF,
+    )
+    role = c.draft_epistemic_role(
+        evidence,
+        epistemic_role="DIRECT_WORLD_RECORD",
+    )
+    role_installation = c.install_verified_epistemic_role(
+        evidence,
+        role,
+        EpistemicRoleAuthorityAttestation(
+            f"att:{source_token}:role",
+            taxonomy.AUTHORITIES["EPISTEMIC_ROLE"],
+            eid,
+            "DIRECT_WORLD_RECORD",
+            role.role_commitment,
+            ASOF,
+            VALID_FROM,
+            VALID_TO,
+        ),
+        taxonomy.VERIFIERS["EPISTEMIC_ROLE"],
+        as_of=ASOF,
+    )
+    evidence = c.evidence_with_epistemic_role(
+        evidence,
+        role_installation,
+    )
+    return c.evidence_record_mapping(evidence)
+
+
+def _build_context(
+    blocker: str,
+    tenant: str,
+    namespace_mode: str,
+) -> dict:
     tag = f"a2-peer-{tenant.lower()}-" + blocker.replace(":", "-")
+    c = Controller(trust_policy=taxonomy._trust_policy())
+    identity_id = taxonomy._install_identity(c, tag)
+    taxonomy._install_topology(c, tag)
 
-    controller = Controller(trust_policy=trust)
-    identity_id = taxonomy._install_identity(controller, tag)
-    taxonomy._install_topology(controller, tag)
+    builder = (
+        taxonomy._build_record
+        if namespace_mode == "GLOBAL_SHARED_RELATION_ID"
+        else None
+    )
 
-    records = [
-        taxonomy._build_record(
-            controller,
-            tag=tag,
-            identity_id=identity_id,
-            blocker=blocker,
-            idx=1,
-            validity="CURRENT",
-        ),
-        taxonomy._build_record(
-            controller,
-            tag=tag,
-            identity_id=identity_id,
-            blocker=blocker,
-            idx=2,
-            validity="STALE",
-        ),
-    ]
+    records = []
+    for idx, validity in ((1, "CURRENT"), (2, "STALE")):
+        if builder is not None:
+            record = builder(
+                c,
+                tag=tag,
+                identity_id=identity_id,
+                blocker=blocker,
+                idx=idx,
+                validity=validity,
+            )
+        else:
+            record = _build_record_namespaced(
+                c,
+                tag=tag,
+                tenant=tenant,
+                identity_id=identity_id,
+                blocker=blocker,
+                idx=idx,
+                validity=validity,
+            )
+        records.append(record)
+
     snapshot = taxonomy._install_snapshot(
-        controller,
+        c,
         tag=tag,
         label="evaluated",
         records=records,
@@ -89,7 +246,8 @@ def _build_fixture(blocker: str, tenant: str):
     text = "DemoSubject is safe."
     claim_map = {"c1": identity_id}
     requirements = {"c1": {"required_independent_supports": 1}}
-    baseline = controller.evaluate_snapshot(
+
+    result = c.evaluate_snapshot(
         snapshot,
         text,
         records,
@@ -98,204 +256,118 @@ def _build_fixture(blocker: str, tenant: str):
         requirements=requirements,
     )
 
-    assessments = baseline.raw.get(
-        "decision_level_generic_dependency_assessments", ()
+    assessments = result.raw.get(
+        "decision_level_generic_dependency_assessments",
+        (),
     )
     required = [
-        row
-        for row in assessments
-        if isinstance(row, dict) and row.get("decision_level_required")
+        row for row in assessments
+        if isinstance(row, dict)
+        and row.get("decision_level_required")
     ]
-    if len(required) != 1:
-        raise AssertionError(
-            f"{tenant}/{blocker}: expected one required obligation"
-        )
-
-    graph = baseline.raw.get("decision_support_dependency_graph") or {}
-    selected_map = {
-        claim_id: list(evidence_ids)
-        for claim_id, evidence_ids
-        in (graph.get("selected_support_map") or ())
-    }
-    decision_evidence = [
-        _mapping_to_draft(controller, row) for row in records
-    ]
+    graph = result.raw.get("decision_support_dependency_graph") or {}
 
     return {
         "tenant": tenant,
-        "controller": controller,
-        "trust": trust,
-        "verifier": verifier,
+        "namespace_mode": namespace_mode,
+        "controller": c,
         "identity_id": identity_id,
         "records": records,
         "snapshot": snapshot,
-        "text": text,
-        "claim_map": claim_map,
-        "requirements": requirements,
-        "baseline": baseline,
-        "obligation": required[0],
-        "selected_map": selected_map,
-        "decision_evidence": decision_evidence,
+        "result": result,
+        "signature": {
+            "claim_state": (
+                result.claims[0].get("status")
+                if result.claims else None
+            ),
+            "control_closure": bool(result.control_closure),
+            "decision_support_closure_valid": bool(
+                result.gates.get("decision_support_closure_valid")
+            ),
+            "false_gates": sorted(
+                key for key, value in result.gates.items()
+                if not value
+            ),
+            "required_obligation_count": len(required),
+            "required_obligations": [
+                {
+                    "generic_dependency_node": list(
+                        row.get("generic_dependency_node") or ()
+                    ),
+                    "evidence_ids": list(
+                        row.get("evidence_ids") or ()
+                    ),
+                    "decision_level_required": row.get(
+                        "decision_level_required"
+                    ),
+                }
+                for row in required
+            ],
+            "selected_support_map": [
+                [claim_id, list(evidence_ids)]
+                for claim_id, evidence_ids
+                in (graph.get("selected_support_map") or ())
+            ],
+        },
     }
 
 
-def _install_accounting(fixture: dict, accounting_id: str):
-    c = fixture["controller"]
-    obligation = fixture["obligation"]
-    draft = c.draft_decision_generic_dependency_accounting(
-        accounting_id=accounting_id,
-        retrieval_scope_id=fixture["snapshot"].scope_id,
-        claim_ids=["c1"],
-        selected_support_map=fixture["selected_map"],
-        generic_dependency_node=obligation["generic_dependency_node"],
-        evidence_ids=obligation["evidence_ids"],
-        reason=f"Peer isolation accounting for {fixture['tenant']}.",
-        text=fixture["text"],
-        evidence=fixture["decision_evidence"],
-        claim_identity_map=fixture["claim_map"],
-        as_of=ASOF,
-        requirements=fixture["requirements"],
-    )
-    commitment = c.decision_generic_dependency_accounting_commitment(
-        draft, fixture["decision_evidence"]
-    )
-    attestation = DecisionGenericDependencyAccountingAttestation(
-        f"att:{fixture['tenant']}:{accounting_id}",
-        negative.DECISION_AUTHORITY,
-        commitment,
-        ASOF,
-        VALID_FROM,
-        VALID_TO,
-    )
-    installation = c.install_verified_decision_generic_dependency_accounting(
-        draft,
-        fixture["decision_evidence"],
-        attestation,
-        fixture["verifier"],
-        text=fixture["text"],
-        claim_identity_map=fixture["claim_map"],
-        as_of=ASOF,
-        requirements=fixture["requirements"],
-    )
-    c.finalize_verified_decision_dependency_accountings_for_prepare(
-        fixture["text"],
-        fixture["decision_evidence"],
-        fixture["claim_map"],
-        as_of=ASOF,
-        retrieval_scope=fixture["snapshot"].scope_id,
-        requirements=fixture["requirements"],
-    )
-    return draft, installation
-
-
-def _evaluate_fixture(controller, fixture):
-    return controller.evaluate_snapshot(
-        fixture["snapshot"],
-        fixture["text"],
-        fixture["records"],
-        fixture["claim_map"],
-        as_of=ASOF,
-        requirements=fixture["requirements"],
-    )
-
-
-def run_relation(blocker: str) -> dict:
-    a = _build_fixture(blocker, "A")
-    b = _build_fixture(blocker, "B")
-
-    if a["baseline"].control_closure or b["baseline"].control_closure:
-        raise AssertionError(
-            f"{blocker}: peer-isolation baselines must both start blocked"
-        )
-
-    accounting_id = "acct:a2-peer:" + blocker.replace(":", "-")
-    _install_accounting(a, accounting_id)
-
-    a_after = _evaluate_fixture(a["controller"], a)
-    if not a_after.control_closure:
-        raise AssertionError(
-            f"{blocker}: tenant A accounting did not authorize A"
-        )
-
-    b_same = _capture(lambda: _evaluate_fixture(b["controller"], b))
-
-    b_fresh_controller = Controller(trust_policy=b["trust"])
-    b_fresh = _capture(
-        lambda: _evaluate_fixture(b_fresh_controller, b)
-    )
-
-    duplicate_error = None
-    duplicate_installation = None
+def _capture_build(blocker: str, tenant: str, namespace_mode: str):
     try:
-        _, duplicate_installation = _install_accounting(
-            b, accounting_id
-        )
+        ctx = _build_context(blocker, tenant, namespace_mode)
+        return {
+            "ok": True,
+            "error": None,
+            "signature": ctx["signature"],
+        }
     except Exception as exc:
-        duplicate_error = f"{type(exc).__name__}: {exc}"
+        return {
+            "ok": False,
+            "error": f"{type(exc).__name__}: {exc}",
+            "signature": None,
+        }
 
-    b_after_duplicate_attempt = _capture(
-        lambda: _evaluate_fixture(b["controller"], b)
-    )
 
-    b_same_closure = (
-        b_same["value"]["control_closure"]
-        if b_same["ok"] and b_same["value"] is not None
-        else None
-    )
-    b_fresh_closure = (
-        b_fresh["value"]["control_closure"]
-        if b_fresh["ok"] and b_fresh["value"] is not None
-        else None
-    )
-    b_after_duplicate_closure = (
-        b_after_duplicate_attempt["value"]["control_closure"]
-        if (
-            b_after_duplicate_attempt["ok"]
-            and b_after_duplicate_attempt["value"] is not None
-        )
-        else None
-    )
+def run_scenario(
+    blocker: str,
+    namespace_mode: str,
+    order_mode: str,
+) -> dict:
+    sequence = {
+        "A_ONLY": ("A",),
+        "B_ONLY": ("B",),
+        "A_THEN_B": ("A", "B"),
+        "B_THEN_A": ("B", "A"),
+    }[order_mode]
 
-    peer_visibility = (
-        b_same_closure is True or b_fresh_closure is True
-    )
-    duplicate_collision_authorized = (
-        duplicate_installation is not None
-        or b_after_duplicate_closure is True
-    )
-
-    contract_pass = (
-        peer_visibility is False
-        and duplicate_error is not None
-        and duplicate_collision_authorized is False
-    )
+    rows = []
+    for tenant in sequence:
+        rows.append({
+            "tenant": tenant,
+            **_capture_build(blocker, tenant, namespace_mode),
+        })
 
     return {
         "blocker": blocker,
-        "tenant_a_before": _sig(a["baseline"]),
-        "tenant_b_before": _sig(b["baseline"]),
-        "tenant_a_after_accounting": _sig(a_after),
-        "tenant_b_same_controller_after_a_accounting": b_same,
-        "tenant_b_fresh_controller_after_a_accounting": b_fresh,
-        "peer_candidate_authorization_visible": peer_visibility,
-        "duplicate_accounting_id_attempt": {
-            "error": duplicate_error,
-            "installation_created": duplicate_installation is not None,
-            "tenant_b_after_attempt": b_after_duplicate_attempt,
-            "authorized": duplicate_collision_authorized,
-        },
-        "contract_pass": contract_pass,
+        "namespace_mode": namespace_mode,
+        "order_mode": order_mode,
+        "sequence": rows,
     }
 
 
-def _run_isolated(blocker: str) -> dict:
+def _run_isolated(
+    blocker: str,
+    namespace_mode: str,
+    order_mode: str,
+) -> dict:
     cp = subprocess.run(
         [
             sys.executable,
             "-m",
             "research.review_cfc_next_0_3_0a2_peer_controller_isolation",
-            "--single",
-            blocker,
+            "--single-blocker", blocker,
+            "--namespace-mode", namespace_mode,
+            "--order-mode", order_mode,
         ],
         capture_output=True,
         text=True,
@@ -303,54 +375,144 @@ def _run_isolated(blocker: str) -> dict:
     )
     if cp.returncode != 0:
         raise RuntimeError(
-            f"{blocker}: {cp.stderr.strip() or cp.stdout.strip()}"
+            f"{blocker}/{namespace_mode}/{order_mode}: "
+            f"{cp.stderr.strip() or cp.stdout.strip()}"
         )
     return json.loads(cp.stdout)
 
 
+def _last_signature(row: dict):
+    seq = row.get("sequence") or []
+    if not seq:
+        return None
+    last = seq[-1]
+    return last.get("signature") if last.get("ok") else None
+
+
 def main():
     rows = [
-        _run_isolated(blocker)
+        _run_isolated(blocker, namespace_mode, order_mode)
         for blocker in REPRESENTATIVE_RELATIONS
+        for namespace_mode in NAMESPACE_MODES
+        for order_mode in ORDER_MODES
     ]
 
-    leaks = [
-        row["blocker"]
+    by_key = {
+        (
+            row["blocker"],
+            row["namespace_mode"],
+            row["order_mode"],
+        ): row
         for row in rows
-        if row["peer_candidate_authorization_visible"]
-    ]
-    duplicate_failures = [
+    }
+
+    comparisons = []
+    for blocker in REPRESENTATIVE_RELATIONS:
+        for namespace_mode in NAMESPACE_MODES:
+            a_only = _last_signature(
+                by_key[(blocker, namespace_mode, "A_ONLY")]
+            )
+            b_only = _last_signature(
+                by_key[(blocker, namespace_mode, "B_ONLY")]
+            )
+            a_then_b = _last_signature(
+                by_key[(blocker, namespace_mode, "A_THEN_B")]
+            )
+            b_then_a = _last_signature(
+                by_key[(blocker, namespace_mode, "B_THEN_A")]
+            )
+
+            comparisons.append({
+                "blocker": blocker,
+                "namespace_mode": namespace_mode,
+                "a_changed_after_b": (
+                    a_only is not None
+                    and b_then_a is not None
+                    and a_only != b_then_a
+                ),
+                "b_changed_after_a": (
+                    b_only is not None
+                    and a_then_b is not None
+                    and b_only != a_then_b
+                ),
+                "a_only": a_only,
+                "a_after_b": b_then_a,
+                "b_only": b_only,
+                "b_after_a": a_then_b,
+            })
+
+    global_interference = [
         row["blocker"]
-        for row in rows
-        if row["duplicate_accounting_id_attempt"]["authorized"]
-        or row["duplicate_accounting_id_attempt"]["error"] is None
+        for row in comparisons
+        if (
+            row["namespace_mode"] == "GLOBAL_SHARED_RELATION_ID"
+            and (
+                row["a_changed_after_b"]
+                or row["b_changed_after_a"]
+            )
+        )
     ]
-    failed = [
-        row["blocker"] for row in rows if not row["contract_pass"]
+    namespaced_interference = [
+        row["blocker"]
+        for row in comparisons
+        if (
+            row["namespace_mode"]
+            == "TENANT_NAMESPACED_RELATION_ID"
+            and (
+                row["a_changed_after_b"]
+                or row["b_changed_after_a"]
+            )
+        )
     ]
 
-    if leaks:
-        classification = "PEER_CANDIDATE_AUTHORIZATION_LEAK"
-    elif duplicate_failures:
-        classification = "CROSS_CONTEXT_ACCOUNTING_ID_COLLISION"
-    elif failed:
-        classification = "PEER_CONTROLLER_ISOLATION_FAILURE"
+    scenario_errors = [
+        {
+            "blocker": row["blocker"],
+            "namespace_mode": row["namespace_mode"],
+            "order_mode": row["order_mode"],
+            "errors": [
+                item["error"]
+                for item in row["sequence"]
+                if not item["ok"]
+            ],
+        }
+        for row in rows
+        if any(not item["ok"] for item in row["sequence"])
+    ]
+
+    if namespaced_interference:
+        classification = (
+            "PEER_CONTROLLER_CONTEXT_ISOLATION_FINDING"
+        )
+    elif global_interference:
+        classification = (
+            "SHARED_RELATION_ID_CROSS_CONTEXT_INTERFERENCE"
+        )
+    elif scenario_errors:
+        classification = "PEER_DIAGNOSTIC_BUILD_ERROR"
     else:
-        classification = "PEER_CONTROLLER_ISOLATION_REPRESENTATIVE_PASS"
+        classification = "PEER_CONTEXT_CONSTRUCTION_ISOLATION_PASS"
 
     result = {
-        "test": "CFC_NEXT_0_3_0A2_PEER_CONTROLLER_ISOLATION",
+        "test": "CFC_NEXT_0_3_0A2_PEER_CONTEXT_DIAGNOSTIC",
         "candidate_version": "0.3.0a2",
         "relations_tested": list(REPRESENTATIVE_RELATIONS),
-        "case_count": len(rows),
-        "peer_candidate_authorization_visible_relations": leaks,
-        "duplicate_accounting_id_failures": duplicate_failures,
-        "failed_contracts": failed,
+        "namespace_modes": list(NAMESPACE_MODES),
+        "order_modes": list(ORDER_MODES),
+        "scenario_count": len(rows),
+        "global_shared_relation_id_interference": sorted(
+            set(global_interference)
+        ),
+        "tenant_namespaced_relation_id_interference": sorted(
+            set(namespaced_interference)
+        ),
+        "scenario_errors": scenario_errors,
         "classification": classification,
-        "same_interpreter_stateful_concurrency_claimed": False,
+        "accounting_authorization_installed": False,
         "frozen_candidate_modified": False,
         "frozen_reference_modified": False,
         "historical_rescore_performed": False,
+        "comparisons": comparisons,
         "rows": rows,
     }
 
@@ -366,10 +528,37 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--single", choices=REPRESENTATIVE_RELATIONS
+        "--single-blocker",
+        choices=REPRESENTATIVE_RELATIONS,
+    )
+    parser.add_argument(
+        "--namespace-mode",
+        choices=NAMESPACE_MODES,
+    )
+    parser.add_argument(
+        "--order-mode",
+        choices=ORDER_MODES,
     )
     args = parser.parse_args()
-    if args.single:
-        print(json.dumps(run_relation(args.single), sort_keys=True))
+
+    supplied = (
+        args.single_blocker,
+        args.namespace_mode,
+        args.order_mode,
+    )
+    if any(supplied):
+        if not all(supplied):
+            raise SystemExit(
+                "--single-blocker, --namespace-mode and "
+                "--order-mode must be used together"
+            )
+        print(json.dumps(
+            run_scenario(
+                args.single_blocker,
+                args.namespace_mode,
+                args.order_mode,
+            ),
+            sort_keys=True,
+        ))
     else:
         main()
