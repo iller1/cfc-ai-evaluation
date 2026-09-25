@@ -73,7 +73,7 @@ For all three relation families:
 
 ## Classification
 
-**POLARITY-INVARIANT RELATION-LEVEL STALE AUTHORIZATION PERSISTENCE**
+**POLARITY-INSENSITIVE RELATION-LEVEL STALE AUTHORIZATION PERSISTENCE**
 
 Within the tested boundary, the downstream authorization residue does not depend
 on whether stale E2 supports or opposes the claim.
