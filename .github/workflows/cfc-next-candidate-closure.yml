@@ -1,0 +1,27 @@
+name: CFC-next 0.3.0a1 candidate closure
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  closure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate accepted experimental candidate
+        run: python -m research.review_cfc_next_candidate_closure
+      - name: Upload closure record
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfc-next-0.3.0a1-candidate-closure
+          path: cfc_next_0_3_0a1_candidate_closure.json
