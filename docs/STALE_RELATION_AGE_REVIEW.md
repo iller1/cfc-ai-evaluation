@@ -44,3 +44,55 @@ pair and identify which gate or consistency layer changes.
 
 This is an external research-harness review. It does not classify the behavior
 as a false block without a contract-level basis.
+
+
+## Result
+
+All nine isolated states completed successfully.
+
+For each tested shared-relation family:
+
+- common-mode group;
+- root-origin identity;
+- generic dependency identity (`data_source`);
+
+the authorization signature was identical at all three stale ages:
+
+- 3 days after E2 `valid_to`;
+- 31 days after E2 `valid_to`;
+- 92 days after E2 `valid_to`.
+
+At D3, D31, and D92:
+
+- claim state = VERIFIED
+- control closure = false
+- false gates = [`decision_support_closure_valid`]
+- no claim-support-policy violation
+- no critical unresolved item
+- no global-consistency violation
+
+For all three relation families:
+
+- same authorization signature across all windows = true.
+
+## Classification
+
+**STALE-AGE-INSENSITIVE RELATION-LEVEL AUTHORIZATION PERSISTENCE**
+
+Within the tested interval, the observed downstream authorization residue does not
+decay or change as the same stale E2 ages from 3 to 92 days beyond its `valid_to`.
+
+Observed rule:
+
+`stale age increases, shared relation and evaluated-snapshot membership held fixed -> authorization result unchanged`
+
+Combined with the previous polarity, subject-relevance, and snapshot-locality
+reviews, the tested persistence is currently characterized as:
+
+- polarity-insensitive;
+- claim-subject-insensitive;
+- stale-age-insensitive over 3-92 days;
+- bound to stale E2 participating in the evaluated snapshot;
+- relation-specific through `decision_support_closure_valid`.
+
+This remains a boundary finding rather than a false-block classification.
