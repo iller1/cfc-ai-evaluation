@@ -78,3 +78,22 @@ evidence.
 
 The frozen CFC-next 0.3.0a2 source and frozen CFC Anchor reference remain
 unchanged. Historical results are not rescored.
+
+
+## Canonical identity axis
+
+The relation-ID diagnostic showed interference even when A and B used distinct
+relation identifiers. The next diagnostic therefore holds relation identifiers
+tenant-namespaced and varies the canonical identity target:
+
+- **SHARED_CANONICAL_IDENTITY** — A and B have different identity registry
+  entry IDs but both refer to the same surface subject/entity/event/version;
+- **TENANT_NAMESPACED_CANONICAL_IDENTITY** — A and B use distinct surface
+  subjects, entity IDs and event IDs as well as distinct registry entries.
+
+This determines whether the observed second-context transition to UNRESOLVED
+is specifically caused by multiple registry entries for the same canonical
+identity or persists even for fully separate identities.
+
+This phase still installs no decision accounting authorization. It is a
+construction/evaluation isolation diagnostic, not an authorization-leak test.
