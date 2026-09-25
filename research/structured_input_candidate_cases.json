@@ -193,8 +193,20 @@
       },
       "observed": "STOP/SUPPORTED -> STOP/VERIFIED; only decision_support_closure_valid remains false",
       "isolation_control": "Single E1 with preserved shared-lineage/common-mode provenance closes with control_closure=true and no false gates.",
-      "classification": "BOUNDARY_FINDING_REVIEW_REQUIRED",
-      "review_result": "Stale E2 ceases to block claim qualification but still affects downstream closure authorization. Frozen contract does not yet establish whether this is intended conservative behavior or an avoidable false block."
+      "classification": "BOUNDARY_FINDING_REFINED",
+      "review_result": "Fresh-process 16-state factorial reproduced the original full-shared fixture. Origin/lineage sharing, common-mode-group sharing, or dependency-ID sharing each independently preserve STOP/VERIFIED through decision_support_closure_valid when E2 is stale. Source-semantics sharing alone does not.",
+      "factorial_result": {
+        "states": 16,
+        "allow": 2,
+        "stop": 14,
+        "equivalent_to_original_fixture": true,
+        "minimal_blocking_factors": [
+          "origin_lineage_shared",
+          "common_mode_group_shared",
+          "dependencies_shared"
+        ],
+        "non_blocking_single_factor": "source_semantics_shared"
+      }
     }
   ]
 }
