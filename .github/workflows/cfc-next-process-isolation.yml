@@ -1,0 +1,27 @@
+name: CFC-next 0.3.0a1 process isolation readiness
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Review candidate process isolation
+        run: python -m research.review_cfc_next_process_isolation
+      - name: Upload isolation result
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfc-next-0.3.0a1-process-isolation
+          path: cfc_next_0_3_0a1_process_isolation_readiness.json
