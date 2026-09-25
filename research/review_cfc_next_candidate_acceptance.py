@@ -140,8 +140,8 @@ def _positive(blocker: str) -> dict:
             ],
         },
         "installation": {
-            "verified": installation.verified,
-            "bound": installation.bound,
+            "type": type(installation).__name__,
+            "repr": repr(installation),
         },
         "registry_binding_state": (
             registry.get("binding_state")
