@@ -125,6 +125,36 @@ def main():
 
     bound_row = frozen_engine.SUPPORT_SELECTION_REGISTRY.get(accounting_id)
 
+    core_error = None
+    core_result = None
+    try:
+        bundle = frozen_engine.prepare(
+            text,
+            records,
+            claim_map,
+            ASOF,
+            c.scope,
+            c.extraction,
+            snapshot.scope_id,
+            req,
+            None,
+        )
+        core_result = frozen_engine.audit_text(
+            text,
+            records,
+            claim_map,
+            ASOF,
+            c.scope,
+            c.extraction,
+            snapshot.scope_id,
+            req,
+            None,
+            *bundle,
+            resource_exhausted=False,
+        )
+    except Exception as exc:
+        core_error = f"{type(exc).__name__}: {exc}"
+
     after = c.evaluate_snapshot(
         snapshot,
         text,
@@ -181,6 +211,34 @@ def main():
             "evidence_ids": (
                 bound_row.get("evidence_ids")
                 if isinstance(bound_row, dict)
+                else None
+            ),
+        },
+        "direct_frozen_engine_after_bind": {
+            "error": core_error,
+            "claim_state": (
+                (core_result.get("claims") or [{}])[0].get("status")
+                if isinstance(core_result, dict)
+                else None
+            ),
+            "control_closure": (
+                bool(core_result.get("control_closure"))
+                if isinstance(core_result, dict)
+                else None
+            ),
+            "false_gates": (
+                sorted(k for k, v in core_result.get("gates", {}).items() if not v)
+                if isinstance(core_result, dict)
+                else None
+            ),
+            "decision_support_closure_valid": (
+                bool(core_result.get("gates", {}).get("decision_support_closure_valid"))
+                if isinstance(core_result, dict)
+                else None
+            ),
+            "decision_support_closure_certificate_present": (
+                core_result.get("decision_support_closure_certificate") is not None
+                if isinstance(core_result, dict)
                 else None
             ),
         },
