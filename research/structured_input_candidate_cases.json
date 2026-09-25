@@ -335,9 +335,17 @@
       },
       "observed": "Both different-scope installation orders produce STOP/UNRESOLVED with gates={}, false_gates=[], stop_type=NONE, and no claim-support-policy, critical-unresolved, global-consistency, evidence, identity, or integration errors.",
       "same_scope_control": "A second snapshot with the same scope_id but different content or authority is rejected in both install orders with ValueError: retrieval scope_id already exists with different content or authority.",
-      "classification": "BOUNDARY_FINDING_MULTI_RETRIEVAL_SCOPE_CONTEXT",
-      "contract_status": "OPEN",
-      "review_result": "The behavior is independent of shared provenance/dependency relations and installation order in the tested reducer. It is recorded separately from stale relation persistence and is not classified as a false block."
+      "classification": "INTENDED_MULTI_SCOPE_COMPETITION_REQUIRES_UNIQUE_VALID_SUPERSESSION_WINNER",
+      "contract_status": "RESOLVED",
+      "review_result": "Frozen public API/source inspection and a five-mode supersession control show that multiple decision-relevant retrieval scopes are fail-closed unless exactly one valid supersession winner exists. A successor with higher snapshot_version, explicit supersedes binding, same retrieval authority, and supersession_authority_id equal to the retrieval authority resolves as the unique winner and evaluates VERIFIED/ALLOW when that successor scope is evaluated. Parallel scopes without supersession, invalid non-increasing supersession, or evaluating the predecessor while the successor is the winner remain UNRESOLVED/STOP with empty gates and stop_type=NONE.",
+      "contract_evidence": {
+        "single_scope": "VERIFIED/ALLOW",
+        "parallel_no_supersession": "UNRESOLVED/STOP; winner=null; supersession_certificates=0",
+        "valid_successor_evaluated": "VERIFIED/ALLOW; winner=successor; supersession_certificates=1",
+        "valid_predecessor_evaluated": "UNRESOLVED/STOP; resolved winner=successor; evaluated scope=predecessor",
+        "supersedes_without_version_increase": "UNRESOLVED/STOP; winner=null; supersession_certificates=0",
+        "public_surface": "RetrievalAuthorityAttestation.supersession_authority_id"
+      }
     }
   ]
 }
