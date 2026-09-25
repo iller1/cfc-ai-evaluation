@@ -1,0 +1,359 @@
+{
+  "schema_version": "1",
+  "harness": "CFC_NEXT_DECISION_ACCOUNTING_ACCEPTANCE",
+  "frozen_reference": "CFC Anchor 0.2.90rc1",
+  "status": "REFERENCE_BASELINE_PLUS_TARGET_CONTRACT",
+  "target_scope": "Separately versioned CFC-next candidate only; never rescore frozen historical results.",
+  "blockers": [
+    {
+      "id": "root_origin_shared",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "ENGINE_EMITTED_ACCOUNTING_SCHEMA_INCOMPATIBILITY"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "origin_shared",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "ENGINE_EMITTED_ACCOUNTING_SCHEMA_INCOMPATIBILITY"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "extractor_shared",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "common_mode_group_shared",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "ENGINE_EMITTED_ACCOUNTING_SCHEMA_INCOMPATIBILITY"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "dependency:data_source",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "dependency:sensor_input",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "dependency:transform",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "dependency:model",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "dependency:extractor",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "dependency:cache",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "dependency:upstream_db",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "dependency:operator",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "dependency:preprocessing",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    },
+    {
+      "id": "dependency:runtime",
+      "frozen_reference_expected": {
+        "claim_state": "VERIFIED",
+        "control_closure": false,
+        "false_gates": [
+          "decision_support_closure_valid"
+        ],
+        "mechanism": "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE"
+      },
+      "cfc_next_target": {
+        "exact_obligation_publicly_representable": true,
+        "selected_support_map_must_remain_engine_exact": true,
+        "exact_verified_accounting_must_bind": true,
+        "claim_state": "VERIFIED",
+        "decision_support_closure_valid": true,
+        "decision_support_closure_certificate_present": true,
+        "control_closure": true,
+        "false_gates": []
+      }
+    }
+  ],
+  "negative_controls": [
+    {
+      "id": "NEG_WRONG_NODE_CORRECT_ENDPOINTS",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_CORRECT_NODE_WRONG_ENDPOINT_SET",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_NONSEL_ENDPOINT_OUTSIDE_EVALUATED_SNAPSHOT",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_NONSEL_ENDPOINT_WITHOUT_REQUIRED_OBLIGATION",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_WRONG_SELECTED_SUPPORT_MAP",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_WRONG_RETRIEVAL_SCOPE_OR_SNAPSHOT",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_WRONG_CLAIM_SET_OR_REQUIREMENTS",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_STALE_DECISION_CONTEXT_COMMITMENT",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_SOURCE_SEMANTIC_NODE_IN_GENERIC_CHANNEL",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_INVALID_NODE_ARITY_TYPE_OR_BLANK_IDENTIFIER",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_UNVERIFIED_OR_MISMATCHED_EXTERNAL_ATTESTATION",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    },
+    {
+      "id": "NEG_ACCOUNTING_FAILS_EXACT_FRESH_UNIVERSE_BIND",
+      "target": "REJECT_OR_NONAUTHORIZE"
+    }
+  ],
+  "invariants": [
+    "Frozen CFC Anchor 0.2.90rc1 remains unchanged.",
+    "Historical benchmark results are never rescored.",
+    "CFC-next must not satisfy a formerly unreachable obligation by adding stale E2 to selected_support_map.",
+    "Exact context, universe, node, endpoint, attestation and binding checks remain fail-closed."
+  ]
+}
