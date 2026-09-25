@@ -113,6 +113,8 @@ def main():
         "controller_evaluate_source": _source(Controller.evaluate, 360),
         "controller_evaluate_snapshot_source": _source(Controller.evaluate_snapshot, 220),
         "controller_decision_dependency_accounting_integration_source": _source(Controller._decision_dependency_accounting_integration_errors, 320),
+        "controller_canonical_decision_evidence_source": _source(Controller._canonical_decision_evidence, 220),
+        "controller_canonical_evidence_draft_source": _source(Controller._canonical_evidence_draft, 220),
         "controller_accounting_methods": [
             {
                 "name": name,
