@@ -77,7 +77,8 @@
         ]
       },
       "observed": "ALLOW/VERIFIED -> STOP/SUPPORTED",
-      "classification": "REVIEW_REQUIRED"
+      "classification": "INTENDED_SUPPORT_UNIVERSE_EXPANSION",
+      "review_result": "Adding a second current matching support expands the active support universe. Under required=1, prior single-support closure is not inherited without justified subset selection and universe coverage."
     },
     {
       "id": "SSM_003_STALE_EXTRA_SUPPORT_RESTORES_CLOSURE",
