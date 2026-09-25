@@ -147,26 +147,61 @@ def mutation_family(field: str) -> str:
         "independence_authority": "INDEPENDENCE_AUTHORITY",
         "e1_polarity": "EVIDENCE_POLARITY",
         "e1_validity": "FRESHNESS",
-        "e2_mode": "SUPPORT_COMPLETENESS",
         "e2_polarity": "SECOND_EVIDENCE_POLARITY",
         "e2_validity": "SECOND_EVIDENCE_FRESHNESS",
     }[field]
 
 
+def e2_add_remove_pairs(states: list[StructuredState] | None = None):
+    """Treat E2 OMIT/INCLUDE as one semantic operation.
+
+    At the data-structure level this changes e2_mode plus the newly materialized
+    polarity and validity fields. Logically it is one operation: add/remove a
+    second evidence item with a specified state.
+    """
+    rows = states or admissible_states()
+    omitted = [s for s in rows if s.e2_mode == "OMIT"]
+    included = [s for s in rows if s.e2_mode == "INCLUDE"]
+
+    base_fields = (
+        "conclusion",
+        "required_independent_supports",
+        "scope",
+        "provenance_shape",
+        "independence_authority",
+        "e1_polarity",
+        "e1_validity",
+    )
+    for a in omitted:
+        aa = asdict(a)
+        for b in included:
+            bb = asdict(b)
+            if all(aa[field] == bb[field] for field in base_fields):
+                yield a, b, "SUPPORT_COMPLETENESS"
+
+
+def semantic_mutation_edges(states: list[StructuredState] | None = None):
+    rows = states or admissible_states()
+    for a, b, field in one_field_mutation_pairs(rows):
+        yield a, b, mutation_family(field)
+    yield from e2_add_remove_pairs(rows)
+
+
 def summary() -> dict:
     canonical = canonical_states()
     admissible = [s for s in canonical if s.admissible]
-    pairs = list(one_field_mutation_pairs(admissible))
+    field_pairs = list(one_field_mutation_pairs(admissible))
+    semantic_edges = list(semantic_mutation_edges(admissible))
     families: dict[str, int] = {}
-    for _, _, field in pairs:
-        family = mutation_family(field)
+    for _, _, family in semantic_edges:
         families[family] = families.get(family, 0) + 1
     return {
         "raw_ui_configurations": 1024,
         "canonical_logical_states": len(canonical),
         "admissible_states": len(admissible),
         "rejected_contradictory_states": len(canonical) - len(admissible),
-        "one_field_mutation_pairs": len(pairs),
+        "one_field_mutation_pairs": len(field_pairs),
+        "semantic_mutation_edges": len(semantic_edges),
         "mutation_families": dict(sorted(families.items())),
     }
 
