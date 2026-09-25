@@ -3,6 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from demonstrator import server as demo_server
+
+demo_server.ensure_runtime()
+
 from cfc_anchor import (
     Controller, HostTrustPolicy, HostTrustRegistration,
     IdentityAuthorityAttestation, IdentityAuthorityVerdict,
