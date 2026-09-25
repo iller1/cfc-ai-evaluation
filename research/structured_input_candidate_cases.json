@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "controller_anchor": "0.2.90rc1",
-  "status": "CANDIDATE_EXTERNAL_TESTS_NOT_YET_SEMANTICALLY_CLASSIFIED",
+  "status": "MIXED_CLASSIFIED_AND_OPEN_BOUNDARY_FINDINGS",
   "cases": [
     {
       "id": "SSM_001_SUPPORT_THRESHOLD_REVERSAL_POSITIVE",
@@ -41,7 +41,8 @@
         ]
       },
       "observed": "STOP/SUPPORTED -> ALLOW/VERIFIED",
-      "classification": "REVIEW_REQUIRED"
+      "classification": "INTENDED_SET_SPECIFIC_AUTHORIZATION",
+      "review_result": "The VERIFIED independence certificate is bound to E1+E2. required=1 selects an uncertified subset and remains unresolved; required=2 uses the exact certified pair and closes."
     },
     {
       "id": "SSM_002_EXTRA_SUPPORT_BLOCKS_ONE_SUPPORT_POLICY",
@@ -152,6 +153,48 @@
       },
       "observed": "ALLOW/VERIFIED -> STOP/VERIFIED",
       "classification": "EXPECTED_BOUNDARY_BEHAVIOR"
+    },
+    {
+      "id": "SSM_005_STALE_SHARED_LINEAGE_AUTHORIZATION_RESIDUE",
+      "family": "STALE_DEPENDENCY_AUTHORIZATION_RESIDUE",
+      "before": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 1,
+        "scope": "EXPECTED",
+        "provenance_shape": "SHARED_LINEAGE",
+        "independence_authority": "NONE",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          }
+        ]
+      },
+      "after": {
+        "conclusion": "POSITIVE",
+        "required_independent_supports": 1,
+        "scope": "EXPECTED",
+        "provenance_shape": "SHARED_LINEAGE",
+        "independence_authority": "NONE",
+        "evidence": [
+          {
+            "polarity": "POSITIVE",
+            "validity": "CURRENT"
+          },
+          {
+            "polarity": "POSITIVE",
+            "validity": "STALE"
+          }
+        ]
+      },
+      "observed": "STOP/SUPPORTED -> STOP/VERIFIED; only decision_support_closure_valid remains false",
+      "isolation_control": "Single E1 with preserved shared-lineage/common-mode provenance closes with control_closure=true and no false gates.",
+      "classification": "BOUNDARY_FINDING_REVIEW_REQUIRED",
+      "review_result": "Stale E2 ceases to block claim qualification but still affects downstream closure authorization. Frozen contract does not yet establish whether this is intended conservative behavior or an avoidable false block."
     }
   ]
 }
