@@ -19,9 +19,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Run single-E1 shared-lineage isolation
-        run: |
-          python demonstrator/server.py --help >/dev/null 2>&1 || true
-          python -m research.review_single_shared_e1
+        run: python -m research.review_single_shared_e1
       - name: Upload isolation result
         uses: actions/upload-artifact@v4
         with:
