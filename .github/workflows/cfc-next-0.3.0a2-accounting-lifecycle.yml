@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Run representative accounting lifecycle matrix
+      - name: Run full accounting lifecycle matrix
         run: |
           python -m research.review_cfc_next_0_3_0a2_accounting_lifecycle
       - name: Upload lifecycle evidence
