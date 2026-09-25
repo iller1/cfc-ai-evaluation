@@ -1,0 +1,27 @@
+name: Freshness reversal review
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run freshness reversal minimal pairs
+        run: python -m research.review_freshness_reversal
+      - name: Upload review result
+        uses: actions/upload-artifact@v4
+        with:
+          name: freshness-reversal-review
+          path: freshness_reversal_review.json
