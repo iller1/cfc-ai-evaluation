@@ -42,9 +42,33 @@ def build_fixture(relation_mode: str):
     return c, identity_id, records, snapshot
 
 
+def _mapping_to_draft(c: Controller, row: dict):
+    return c.draft_evidence_record(
+        evidence_id=row["evidence_id"],
+        subject=row["subject"],
+        predicate=row["predicate"],
+        value=row["value"],
+        source=row["source"],
+        identity_registry_entry_id=row["identity_registry_entry_id"],
+        authority_id=row["authority_id"],
+        authority_record_entity_id=row["authority_record_entity_id"],
+        authority_record_event_id=row["authority_record_event_id"],
+        authority_record_version_id=row["authority_record_version_id"],
+        valid_from=row["valid_from"],
+        valid_to=row["valid_to"],
+        observed_at=row["observed_at"],
+        available_at=row["available_at"],
+        provenance=row["provenance"],
+        polarity=row["polarity"],
+        source_semantics_id=row["source_semantics_id"],
+        epistemic_role_record_id=row.get("epistemic_role_record_id"),
+    )
+
+
 def attempt(relation_mode: str) -> dict:
     c, identity_id, records, snapshot = build_fixture(relation_mode)
     eids=[r["evidence_id"] for r in records]
+    decision_evidence=[_mapping_to_draft(c,r) for r in records]
     e1,e2=eids
     text="DemoSubject is safe."
     claim_map={"c1": identity_id}
@@ -71,7 +95,7 @@ def attempt(relation_mode: str) -> dict:
                 evidence_ids=[e1,e2],
                 reason="Reachability control for stale mixed endpoint obligation.",
                 text=text,
-                evidence=records,
+                evidence=decision_evidence,
                 claim_identity_map=claim_map,
                 as_of=ASOF,
                 requirements=req,
