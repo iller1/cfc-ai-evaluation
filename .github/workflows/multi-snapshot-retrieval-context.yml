@@ -1,0 +1,27 @@
+name: Multi-snapshot retrieval context reducer
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run multi-snapshot retrieval context reducer
+        run: python -m research.review_multi_snapshot_retrieval_context
+      - name: Upload reducer result
+        uses: actions/upload-artifact@v4
+        with:
+          name: multi-snapshot-retrieval-context
+          path: multi_snapshot_retrieval_context.json
