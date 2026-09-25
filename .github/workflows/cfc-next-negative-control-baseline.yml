@@ -1,0 +1,27 @@
+name: CFC-next negative-control baseline
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lifecycle-introspection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Inspect public accounting lifecycle
+        run: python -m research.review_decision_generic_accounting_lifecycle
+      - name: Upload lifecycle inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: decision-generic-accounting-lifecycle-introspection
+          path: decision_generic_accounting_lifecycle_introspection.json
