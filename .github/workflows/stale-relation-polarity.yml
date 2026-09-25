@@ -1,0 +1,27 @@
+name: Stale relation polarity review
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run stale relation polarity review
+        run: python -m research.review_stale_relation_polarity
+      - name: Upload polarity result
+        uses: actions/upload-artifact@v4
+        with:
+          name: stale-relation-polarity
+          path: stale_relation_polarity.json
