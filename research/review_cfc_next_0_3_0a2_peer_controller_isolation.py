@@ -18,11 +18,7 @@ from demonstrator.custom_case_runner import ASOF, VALID_FROM, VALID_TO, STALE_TO
 from research import review_minimal_blocker_accounting_taxonomy as taxonomy
 
 
-REPRESENTATIVE_RELATIONS = (
-    "root_origin_shared",
-    "extractor_shared",
-    "dependency:data_source",
-)
+RELATIONS = tuple(taxonomy.BLOCKERS)
 
 NAMESPACE_MODES = (
     "GLOBAL_SHARED_RELATION_ID",
@@ -392,7 +388,7 @@ def _last_signature(row: dict):
 def main():
     rows = [
         _run_isolated(blocker, namespace_mode, order_mode)
-        for blocker in REPRESENTATIVE_RELATIONS
+        for blocker in RELATIONS
         for namespace_mode in NAMESPACE_MODES
         for order_mode in ORDER_MODES
     ]
@@ -407,7 +403,7 @@ def main():
     }
 
     comparisons = []
-    for blocker in REPRESENTATIVE_RELATIONS:
+    for blocker in RELATIONS:
         for namespace_mode in NAMESPACE_MODES:
             a_only = _last_signature(
                 by_key[(blocker, namespace_mode, "A_ONLY")]
@@ -496,7 +492,7 @@ def main():
     result = {
         "test": "CFC_NEXT_0_3_0A2_PEER_CONTEXT_DIAGNOSTIC",
         "candidate_version": "0.3.0a2",
-        "relations_tested": list(REPRESENTATIVE_RELATIONS),
+        "relations_tested": list(RELATIONS),
         "namespace_modes": list(NAMESPACE_MODES),
         "order_modes": list(ORDER_MODES),
         "scenario_count": len(rows),
@@ -529,7 +525,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--single-blocker",
-        choices=REPRESENTATIVE_RELATIONS,
+        choices=RELATIONS,
     )
     parser.add_argument(
         "--namespace-mode",
