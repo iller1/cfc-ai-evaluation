@@ -454,6 +454,56 @@
         },
         "result": "TWO_DISTINCT_DECISION_ACCOUNTING_CONTRACT_FAILURE_MECHANISMS",
         "note": "Do not collapse COMMON_MODE/ROOT_ORIGIN node-schema incompatibility into the data_source selected/excluded endpoint reachability inconsistency."
+      },
+      "minimal_blocker_accounting_taxonomy": {
+        "blocker_count": 14,
+        "mechanism_counts": {
+          "ENGINE_EMITTED_ACCOUNTING_SCHEMA_INCOMPATIBILITY": 3,
+          "PUBLIC_SELECTED_EXCLUDED_ENDPOINT_REACHABILITY_INCONSISTENCY_CORE_BINDABLE": 11
+        },
+        "schema_incompatible_blockers": {
+          "root_origin_shared": [
+            "LINEAGE",
+            "",
+            "general-record:root:shared"
+          ],
+          "origin_shared": [
+            "LINEAGE",
+            "",
+            "general-record:origin:shared"
+          ],
+          "common_mode_group_shared": [
+            "COMMON_MODE",
+            "",
+            "group:shared"
+          ]
+        },
+        "core_bindable_public_unreachable_blockers": [
+          "extractor_shared",
+          "dependency:data_source",
+          "dependency:sensor_input",
+          "dependency:transform",
+          "dependency:model",
+          "dependency:extractor",
+          "dependency:cache",
+          "dependency:upstream_db",
+          "dependency:operator",
+          "dependency:preprocessing",
+          "dependency:runtime"
+        ],
+        "core_bindability_signature": {
+          "internal_registration": "ACCEPTED",
+          "exact_bind": "BOUND",
+          "direct_core_claim_state": "VERIFIED",
+          "direct_core_control_closure": true,
+          "direct_core_decision_support_closure_valid": true,
+          "direct_core_closure_certificate_present": true,
+          "direct_core_false_gates": [],
+          "public_draft": "REJECTED: generic dependency endpoints must be selected supports"
+        },
+        "extractor_shared_note": "The provenance extractor relation is normalized by the frozen engine to a schema-valid DEPENDENCY/extractor node, so it belongs to the public reachability class rather than the LINEAGE/COMMON_MODE schema-incompatibility class.",
+        "result": "TWO_BROAD_STRUCTURAL_DECISION_ACCOUNTING_FAILURE_CLASSES",
+        "unclassified_mechanisms": 0
       }
     },
     {

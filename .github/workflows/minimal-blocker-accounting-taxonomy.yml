@@ -1,0 +1,27 @@
+name: Minimal blocker accounting taxonomy
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run minimal blocker taxonomy
+        run: python -m research.review_minimal_blocker_accounting_taxonomy
+      - name: Upload taxonomy result
+        uses: actions/upload-artifact@v4
+        with:
+          name: minimal-blocker-accounting-taxonomy
+          path: minimal_blocker_accounting_taxonomy.json
