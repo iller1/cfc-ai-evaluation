@@ -20,8 +20,12 @@ jobs:
           python-version: "3.11"
       - name: Inspect public accounting lifecycle
         run: python -m research.review_decision_generic_accounting_lifecycle
+      - name: Run executable negative-control baseline
+        run: python -m research.review_cfc_next_negative_control_baseline
       - name: Upload lifecycle inspection
         uses: actions/upload-artifact@v4
         with:
           name: decision-generic-accounting-lifecycle-introspection
-          path: decision_generic_accounting_lifecycle_introspection.json
+          path: |
+            decision_generic_accounting_lifecycle_introspection.json
+            cfc_next_negative_control_baseline.json
