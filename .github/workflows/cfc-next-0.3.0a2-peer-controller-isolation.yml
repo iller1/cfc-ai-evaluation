@@ -18,11 +18,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Run representative peer-controller isolation
+      - name: Run peer relation/context diagnostic
         run: |
           python -m research.review_cfc_next_0_3_0a2_peer_controller_isolation
-      - name: Upload peer-controller isolation evidence
+      - name: Run peer canonical-identity diagnostic
+        run: |
+          python -m research.review_cfc_next_0_3_0a2_peer_identity_isolation
+      - name: Upload peer isolation evidence
         uses: actions/upload-artifact@v4
         with:
           name: cfc-next-0.3.0a2-peer-controller-isolation
-          path: cfc_next_0_3_0a2_peer_controller_isolation.json
+          path: |
+            cfc_next_0_3_0a2_peer_controller_isolation.json
+            cfc_next_0_3_0a2_peer_identity_isolation.json
