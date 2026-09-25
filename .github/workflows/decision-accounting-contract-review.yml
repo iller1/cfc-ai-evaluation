@@ -1,0 +1,27 @@
+name: Decision accounting contract review
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Inspect frozen accounting contract
+        run: python -m research.review_decision_accounting_contract
+      - name: Upload contract review
+        uses: actions/upload-artifact@v4
+        with:
+          name: decision-accounting-contract-review
+          path: decision_accounting_contract_review.json

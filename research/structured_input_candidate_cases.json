@@ -379,6 +379,41 @@
         "public_controller_after_internal_bind": "Stops before core audit with integration_decision_dependency_accounting_runtime_verified=false / DECISION_GENERIC_DEPENDENCY_ACCOUNTING_EXTERNAL_TRUST_NOT_VERIFIED because the localization probe bypasses the public external-trust verification/install workflow.",
         "result": "CORE_BINDABLE_PUBLIC_REACHABILITY_DECISION_ACCOUNTING_BOUNDARY",
         "classification_limit": "Localization result only; not a supported workaround and not classified as false block without a normative contract requiring public reachability for engine-required decision obligations."
+      },
+      "contract_review": {
+        "frozen_policy": {
+          "selection_does_not_delete_evidence_relations": true,
+          "selected_excluded_relation_coverage_required": true,
+          "generic_dependency_path_through_excluded_supports_preserved": true,
+          "generic_dependency_selected_support_path_closure_required": true,
+          "decision_level_relation_discovery_required": true,
+          "decision_level_relation_resolution_exact_binding_required": true,
+          "decision_dependency_accounting_exact_context_binding_required": true,
+          "decision_dependency_accounting_resolution_type": "DEPENDENCY_ACCOUNTED_NOT_COUNTED"
+        },
+        "mixed_endpoint_rule": "modeled_endpoints && snapshot_only_endpoints => decision_level_required=true / DECISION_GENERIC_MODELED_SNAPSHOT_MIXED_UNCOVERED",
+        "closure_contract": "Every decision_level_required generic candidate requires exact bound generic dependency accounting for decision support closure.",
+        "supported_public_lifecycle": [
+          "draft_decision_generic_dependency_accounting",
+          "install_verified_decision_generic_dependency_accounting",
+          "finalize_verified_decision_dependency_accountings_for_prepare"
+        ],
+        "public_constructor_constraint": "All generic accounting evidence_ids must be selected supports.",
+        "exact_state": {
+          "selected_support_map": {
+            "c1": [
+              "E1"
+            ]
+          },
+          "required_obligation_endpoints": [
+            "E1",
+            "E2"
+          ],
+          "e2_role": "STALE / snapshot-only / non-selected"
+        },
+        "core_control": "Exact mixed obligation is core-bindable and yields VERIFIED/ALLOW with decision_support_closure_valid=true and closure certificate present.",
+        "result": "UNSATISFIABLE_PUBLIC_DECISION_ACCOUNTING_OBLIGATION_FROZEN_CONTRACT_INCONSISTENCY",
+        "classification_note": "Do not use shorthand false-block label; demonstrated result is a frozen-policy-required obligation that cannot be represented through the supported public accounting lifecycle."
       }
     },
     {
