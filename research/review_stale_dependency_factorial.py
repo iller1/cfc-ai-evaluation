@@ -109,7 +109,8 @@ def build_case(mask: dict[str, bool]) -> dict:
 
     records = []
     for idx, validity in ((1, "CURRENT"), (2, "STALE")):
-        source_token = f"factorial:e{idx}"
+        eid = f"E{idx}:{mask_bits}"
+        source_token = f"factorial:{mask_bits}:e{idx}"
         semantic_token = token(mask["source_semantics_shared"], idx)
         lineage_token = token(mask["origin_lineage_shared"], idx)
         cm_token = token(mask["common_mode_group_shared"], idx)
@@ -163,7 +164,7 @@ def build_case(mask: dict[str, bool]) -> dict:
         observed_at = "2026-08-30" if validity == "STALE" else ASOF
 
         evidence = c.draft_evidence_record(
-            evidence_id=f"E{idx}",
+            evidence_id=eid,
             subject="DemoSubject",
             predicate="state",
             value="safe",
@@ -186,7 +187,7 @@ def build_case(mask: dict[str, bool]) -> dict:
             ProvenanceAuthorityAttestation(
                 f"att:{source_token}:prov",
                 AUTHORITIES["PROVENANCE"],
-                f"E{idx}",
+                eid,
                 c.provenance_commitment(evidence),
                 ASOF,
                 VALID_FROM,
@@ -200,7 +201,7 @@ def build_case(mask: dict[str, bool]) -> dict:
             EvidenceAuthorityAttestation(
                 f"att:{source_token}:evidence",
                 AUTHORITIES["EVIDENCE_AUTHORITY"],
-                f"E{idx}",
+                eid,
                 "GENERAL_RECORD_V5",
                 c.evidence_authority_commitment(evidence),
                 ASOF,
@@ -220,7 +221,7 @@ def build_case(mask: dict[str, bool]) -> dict:
             EpistemicRoleAuthorityAttestation(
                 f"att:{source_token}:role",
                 AUTHORITIES["EPISTEMIC_ROLE"],
-                f"E{idx}",
+                eid,
                 "DIRECT_WORLD_RECORD",
                 role.role_commitment,
                 ASOF,
