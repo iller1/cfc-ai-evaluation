@@ -303,51 +303,123 @@
   "negative_controls": [
     {
       "id": "NEG_WRONG_NODE_CORRECT_ENDPOINTS",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": true,
+        "terminal_error_contains": "generic dependency accounting did not bind to exact decision context",
+        "registry_binding_state": "PENDING"
+      }
     },
     {
       "id": "NEG_CORRECT_NODE_WRONG_ENDPOINT_SET",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": false,
+        "terminal_error_contains": "generic dependency accounting did not bind to exact decision context",
+        "registry_binding_state": "PENDING"
+      }
     },
     {
       "id": "NEG_NONSEL_ENDPOINT_OUTSIDE_EVALUATED_SNAPSHOT",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": true,
+        "terminal_error_contains": "generic dependency accounting did not bind to exact decision context",
+        "registry_binding_state": "PENDING"
+      }
     },
     {
       "id": "NEG_NONSEL_ENDPOINT_WITHOUT_REQUIRED_OBLIGATION",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": true,
+        "terminal_error_contains": "generic dependency accounting did not bind to exact decision context",
+        "registry_binding_state": "PENDING"
+      }
     },
     {
       "id": "NEG_WRONG_SELECTED_SUPPORT_MAP",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": false,
+        "terminal_error_contains": "generic dependency accounting did not bind to exact decision context",
+        "registry_binding_state": "PENDING"
+      }
     },
     {
       "id": "NEG_WRONG_RETRIEVAL_SCOPE_OR_SNAPSHOT",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": false,
+        "terminal_error_contains": "retrieval scope is not installed",
+        "registry_binding_state": null
+      }
     },
     {
       "id": "NEG_WRONG_CLAIM_SET_OR_REQUIREMENTS",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": false,
+        "terminal_error_contains": "accounting draft is not bound to this decision context",
+        "registry_binding_state": null
+      }
     },
     {
       "id": "NEG_STALE_DECISION_CONTEXT_COMMITMENT",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": false,
+        "terminal_error_contains": "accounting draft is not bound to this decision context",
+        "registry_binding_state": null
+      }
     },
     {
       "id": "NEG_SOURCE_SEMANTIC_NODE_IN_GENERIC_CHANNEL",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": false,
+        "terminal_error_contains": "generic dependency accounting did not bind to exact decision context",
+        "registry_binding_state": "PENDING"
+      }
     },
     {
       "id": "NEG_INVALID_NODE_ARITY_TYPE_OR_BLANK_IDENTIFIER",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": false,
+        "terminal_error_contains": "invalid generic dependency node",
+        "registry_binding_state": null
+      }
     },
     {
       "id": "NEG_UNVERIFIED_OR_MISMATCHED_EXTERNAL_ATTESTATION",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": false,
+        "terminal_error_contains": "attestation does not bind exact decision projection",
+        "registry_binding_state": null
+      }
     },
     {
       "id": "NEG_ACCOUNTING_FAILS_EXACT_FRESH_UNIVERSE_BIND",
-      "target": "REJECT_OR_NONAUTHORIZE"
+      "target": "REJECT_OR_NONAUTHORIZE",
+      "frozen_reference_expected": {
+        "outcome": "REJECTED_OR_STOPPED_FAIL_CLOSED",
+        "masked": false,
+        "terminal_error_contains": "generic dependency accounting did not bind to exact decision context",
+        "registry_binding_state": "PENDING"
+      }
     }
   ],
   "invariants": [
