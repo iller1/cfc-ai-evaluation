@@ -735,6 +735,31 @@ def main():
     rows = [run_isolated(control_id) for control_id in NEGATIVE_IDS]
     assert all(row["passes_negative_contract"] for row in rows)
 
+    manifest_expectations = {
+        row["id"]: row["frozen_reference_expected"]
+        for row in manifest["negative_controls"]
+    }
+    for row in rows:
+        expected = manifest_expectations[row["id"]]
+        assert row["frozen_outcome"] == expected["outcome"]
+        assert bool(row.get("masked_by_current_guard")) is bool(expected["masked"])
+        errors = [
+            stage.get("error")
+            for stage in row["stages"].values()
+            if stage.get("error")
+        ]
+        assert any(
+            expected["terminal_error_contains"] in error
+            for error in errors
+        )
+        registry = row.get("registry")
+        actual_binding = (
+            registry.get("binding_state")
+            if isinstance(registry, dict)
+            else None
+        )
+        assert actual_binding == expected["registry_binding_state"]
+
     unexpected = [
         row["id"]
         for row in rows
@@ -747,6 +772,7 @@ def main():
         "test": "CFC_NEXT_NEGATIVE_CONTROL_FROZEN_BASELINE",
         "control_count": len(rows),
         "all_reject_or_nonauthorize": True,
+        "manifest_frozen_expectations_match": True,
         "unexpected_bound_authorization_paths": unexpected,
         "masked_by_current_selected_support_guard": [
             row["id"]
