@@ -21,10 +21,7 @@ from research.review_decision_generic_accounting_reachability import (
     _mapping_to_draft,
 )
 
-RELATIONS = (
-    "root_origin_shared",
-    "dependency:data_source",
-)
+RELATIONS = tuple(taxonomy.BLOCKERS)
 
 
 def _result_signature(result):
