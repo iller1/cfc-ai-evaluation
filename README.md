@@ -62,6 +62,42 @@ The Demonstrator is an external layer over frozen CFC Anchor `0.2.90rc1`.
 
 Operator Wrapper v1.23 remains byte-for-byte frozen and separate.
 
+## CFC-next 0.3.0a2 — frozen decision-accounting baseline
+
+A separately versioned CFC-next decision-accounting track has now been frozen
+after the 0.3.0a1 process-isolation finding was repaired and re-tested.
+
+Frozen ref:
+
+`frozen/cfc-next-0.3.0a2`
+
+Freeze merge commit:
+
+`568282c1f66af9f1f2fad8cf2b04b08226b9aea6`
+
+Validation at freeze:
+
+- 14/14 positive decision-accounting fixtures PASS
+- 12/12 negative controls fail-closed
+- zero unexpected BOUND negative paths
+- promotion-readiness all gates PASS
+- 14/14 same-process state-isolation cases PASS
+- deterministic full acceptance rerun PASS
+- concurrent representative fresh-process positives PASS
+- full repository CI: 32/32 workflows PASS
+- frozen CFC Anchor 0.2.90rc1 unchanged
+- no historical rescore
+
+Candidate source SHA-256:
+
+`dc8ae4f2d51296d68ecf5e75ac861faf1f50f062e1761e0814ce157f08a588a7`
+
+See the [0.3.0a2 replication reference](replication/cfc-next-0.3.0a2/)
+for the pinned manifest, validation commands, and claim boundaries.
+
+This CFC-next baseline is separate from the historical frozen Anchor and from
+the Demonstrator v1.0 release.
+
 ## Integration Layer — experimental productization track
 
 A separate experimental integration layer is being developed over the frozen Anchor to reduce first-use friction without modifying controller behavior.
