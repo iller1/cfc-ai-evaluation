@@ -115,6 +115,7 @@ def main():
         "engine_prepare_relevant_source_lines": _relevant_source_lines(frozen_engine.prepare),
         "engine_audit_text_signature": _signature(frozen_engine.audit_text),
         "engine_audit_text_relevant_source_lines": _relevant_source_lines(frozen_engine.audit_text),
+        "engine_audit_text_source_1_70": _source_excerpt(frozen_engine.audit_text, 1, 70),
         "relevant_public_methods": relevant_public_methods,
         "all_public_methods": all_public_methods,
     }
