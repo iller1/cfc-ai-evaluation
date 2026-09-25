@@ -63,6 +63,16 @@ def main():
         for name in dir(Controller)
         if "decision_generic_dependency_accounting" in name.lower()
     )
+    controller_module = inspect.getmodule(Controller)
+    private_contract = {}
+    if controller_module is not None:
+        for name in dir(controller_module):
+            if "DECISION_GENERIC_DEPENDENCY_ACCOUNTING" in name:
+                value = getattr(controller_module, name)
+                if isinstance(value, (str, int, float, bool, type(None))):
+                    private_contract[name] = value
+                else:
+                    private_contract[name] = repr(value)
 
     result = {
         "controller_anchor": "0.2.90rc1",
@@ -75,6 +85,7 @@ def main():
             describe(name, getattr(Controller, name))
             for name in controller_names
         ],
+        "controller_private_contract": private_contract,
         "engine_constants": {
             key: repr(getattr(frozen_engine, key))
             for key in dir(frozen_engine)
