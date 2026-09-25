@@ -383,50 +383,130 @@ def run_control(control_id: str) -> dict:
 
     if control_id == "NEG_WRONG_NODE_CORRECT_ENDPOINTS":
         wrong_node = ("DEPENDENCY", "model", "not-the-required-node")
-        result["stages"]["draft"] = _capture(
+        result["stages"]["exact_map_draft"] = _capture(
             lambda: _draft(
                 fx,
-                accounting_id=accounting_id,
+                accounting_id=accounting_id + ":exact",
                 node=wrong_node,
                 evidence_ids=eids,
             )
         )
         result["masked_by_current_guard"] = True
+        holder = {}
+        expanded = _expanded_selected_map(fx, eids)
+        result["stages"]["expanded_map_draft_control"] = _capture(
+            lambda: holder.setdefault(
+                "draft",
+                _draft(
+                    fx,
+                    accounting_id=accounting_id,
+                    node=wrong_node,
+                    evidence_ids=eids,
+                    selected_support_map=expanded,
+                ),
+            )
+        )
+        if "draft" in holder:
+            att = _attestation(fx, holder["draft"])
+            result["stages"]["expanded_map_install_control"] = _capture(
+                lambda: _install(fx, holder["draft"], att)
+            )
+            result["stages"]["expanded_map_finalize_control"] = _capture(
+                lambda: _finalize(fx)
+            )
+            result["registry"] = _registry_state(accounting_id)
 
     elif control_id == "NEG_CORRECT_NODE_WRONG_ENDPOINT_SET":
         wrong_eids = [eids[0], fx["extra"]["evidence_id"]]
+        holder = {}
         result["stages"]["draft"] = _capture(
-            lambda: _draft(
-                fx,
-                accounting_id=accounting_id,
-                node=node,
-                evidence_ids=wrong_eids,
-                selected_support_map=_expanded_selected_map(fx, wrong_eids),
+            lambda: holder.setdefault(
+                "draft",
+                _draft(
+                    fx,
+                    accounting_id=accounting_id,
+                    node=node,
+                    evidence_ids=wrong_eids,
+                    selected_support_map=_expanded_selected_map(fx, wrong_eids),
+                ),
             )
         )
+        if "draft" in holder:
+            att = _attestation(fx, holder["draft"])
+            result["stages"]["install"] = _capture(
+                lambda: _install(fx, holder["draft"], att)
+            )
+            result["stages"]["finalize"] = _capture(lambda: _finalize(fx))
+            result["registry"] = _registry_state(accounting_id)
 
     elif control_id == "NEG_NONSEL_ENDPOINT_OUTSIDE_EVALUATED_SNAPSHOT":
         outside_eid = fx["extra"]["evidence_id"]
-        result["stages"]["draft"] = _capture(
+        wrong_eids = [eids[0], outside_eid]
+        result["stages"]["exact_map_draft"] = _capture(
             lambda: _draft(
                 fx,
-                accounting_id=accounting_id,
+                accounting_id=accounting_id + ":exact",
                 node=node,
-                evidence_ids=[eids[0], outside_eid],
+                evidence_ids=wrong_eids,
             )
         )
         result["masked_by_current_guard"] = True
+        holder = {}
+        result["stages"]["expanded_map_draft_control"] = _capture(
+            lambda: holder.setdefault(
+                "draft",
+                _draft(
+                    fx,
+                    accounting_id=accounting_id,
+                    node=node,
+                    evidence_ids=wrong_eids,
+                    selected_support_map=_expanded_selected_map(fx, wrong_eids),
+                ),
+            )
+        )
+        if "draft" in holder:
+            att = _attestation(fx, holder["draft"])
+            result["stages"]["expanded_map_install_control"] = _capture(
+                lambda: _install(fx, holder["draft"], att)
+            )
+            result["stages"]["expanded_map_finalize_control"] = _capture(
+                lambda: _finalize(fx)
+            )
+            result["registry"] = _registry_state(accounting_id)
 
     elif control_id == "NEG_NONSEL_ENDPOINT_WITHOUT_REQUIRED_OBLIGATION":
-        result["stages"]["draft"] = _capture(
+        wrong_node = ("DEPENDENCY", "runtime", "unrelated")
+        result["stages"]["exact_map_draft"] = _capture(
             lambda: _draft(
                 fx,
-                accounting_id=accounting_id,
-                node=("DEPENDENCY", "runtime", "unrelated"),
+                accounting_id=accounting_id + ":exact",
+                node=wrong_node,
                 evidence_ids=eids,
             )
         )
         result["masked_by_current_guard"] = True
+        holder = {}
+        result["stages"]["expanded_map_draft_control"] = _capture(
+            lambda: holder.setdefault(
+                "draft",
+                _draft(
+                    fx,
+                    accounting_id=accounting_id,
+                    node=wrong_node,
+                    evidence_ids=eids,
+                    selected_support_map=_expanded_selected_map(fx, eids),
+                ),
+            )
+        )
+        if "draft" in holder:
+            att = _attestation(fx, holder["draft"])
+            result["stages"]["expanded_map_install_control"] = _capture(
+                lambda: _install(fx, holder["draft"], att)
+            )
+            result["stages"]["expanded_map_finalize_control"] = _capture(
+                lambda: _finalize(fx)
+            )
+            result["registry"] = _registry_state(accounting_id)
 
     elif control_id == "NEG_WRONG_SELECTED_SUPPORT_MAP":
         expanded = _expanded_selected_map(fx, eids)
