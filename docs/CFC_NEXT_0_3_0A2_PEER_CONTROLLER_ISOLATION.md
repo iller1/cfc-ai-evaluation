@@ -45,7 +45,7 @@ state interference.
 
 ## Execution order controls
 
-For each representative relation and namespace mode, fresh subprocesses run:
+For each of the 14 blocker families and each namespace mode, fresh subprocesses run:
 
 1. A only;
 2. B only;
@@ -83,8 +83,7 @@ unchanged. Historical results are not rescored.
 ## Canonical identity axis
 
 The relation-ID diagnostic showed interference even when A and B used distinct
-relation identifiers. The next diagnostic therefore holds relation identifiers
-tenant-namespaced and varies the canonical identity target:
+relation identifiers. The full identity diagnostic holds relation identifiers tenant-namespaced and varies the canonical identity target across all 14 blocker families:
 
 - **SHARED_CANONICAL_IDENTITY** — A and B have different identity registry
   entry IDs but both refer to the same surface subject/entity/event/version;
@@ -97,3 +96,19 @@ identity or persists even for fully separate identities.
 
 This phase still installs no decision accounting authorization. It is a
 construction/evaluation isolation diagnostic, not an authorization-leak test.
+
+
+## Full-matrix promotion
+
+After the three-family diagnostic reproduced the same pattern in all tested
+families, both diagnostic axes were expanded to the complete 14-family blocker
+taxonomy.
+
+Each diagnostic now executes 14 x 2 x 4 = 112 fresh-process scenarios:
+
+- 14 blocker families;
+- 2 namespace/identity modes;
+- 4 build-order controls.
+
+Together the peer-context and peer-identity layers produce 224 fresh-process
+scenarios before any accounting authorization is installed.
