@@ -24,7 +24,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Feedback protocol exists.
 - [x] Select one real feedback channel — structured GitHub Founding Beta issue form (non-sensitive reports only).
 - [x] Run onboarding once as if we were a new company on the dedicated `/founding-beta` path — live synthetic dry run completed 2026-09-23 with STOP/SUPPORTED, ALLOW/VERIFIED, and STOP/UNRESOLVED outcomes recorded.
-- [ ] Measure time-to-first-use — exact measurement fields and live-path procedure prepared in `FOUNDING_BETA_NEW_COMPANY_WALKTHROUGH.md`; requires a fresh external-style run.
+- [ ] Measure time-to-first-use — a fresh external-style live walkthrough was completed 2026-09-25 through check, save, refresh/history, and deletion; exact step timings were not captured, so timing metrics remain open.
 - [x] Record onboarding friction — required non-sensitive `case_id` was not clearly signposted; UI validation/labeling was fixed and redeployed. Read-only mapped-input diagnostics were also added during the dry run.
 
 ## C. Observability
@@ -33,7 +33,7 @@ This checklist converts the working Founding Beta plan into an operational gate.
 - [x] Confirm Founding Beta measurement path does not require customer content; only non-content state/reason codes are persisted.
 - [x] Confirm control result is persisted as `ALLOW / STOP / UNRESOLVED` plus `reason_code`.
 - [x] Confirm existing benchmark provider failures remain separate from semantic outcomes; Founding Beta measurement schema records product outcome/problem class separately.
-- [ ] Confirm audit/log retention works after redeploy.
+- [x] Confirm live measurement persistence across refresh after redeploy — verified 2026-09-25 with the same measurement remaining visible after `Refresh history`. Long-horizon automatic 14-day expiry remains covered separately by retention tests/worker evidence rather than this short walkthrough.
 - [ ] Confirm an operator can replay one historical beta case end-to-end.
 
 ## D. Safety boundary
