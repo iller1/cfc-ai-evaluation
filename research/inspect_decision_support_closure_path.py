@@ -113,6 +113,15 @@ def main():
         "controller_evaluate_source": _source(Controller.evaluate, 360),
         "controller_evaluate_snapshot_source": _source(Controller.evaluate_snapshot, 220),
         "controller_decision_dependency_accounting_integration_source": _source(Controller._decision_dependency_accounting_integration_errors, 320),
+        "controller_accounting_methods": [
+            {
+                "name": name,
+                "signature": _signature(getattr(Controller, name)),
+                "source": _source(getattr(Controller, name), 320),
+            }
+            for name in dir(Controller)
+            if "accounting" in name.lower()
+        ],
         "non_mutation": (
             "Read-only runtime introspection only. No frozen controller state, "
             "source, registry, or policy is modified."
