@@ -57,6 +57,10 @@ def token(shared: bool, idx: int) -> str:
 
 
 def build_case(mask: dict[str, bool]) -> dict:
+    mask_bits = "".join("1" if mask[name] else "0" for name in FACTOR_NAMES)
+    scope_id = f"scope:factorial:{mask_bits}"
+    snapshot_id = f"snapshot:factorial:{mask_bits}"
+
     trust = HostTrustPolicy(
         tuple(
             HostTrustRegistration(kind, AUTHORITIES[kind], VERIFIERS[kind])
@@ -231,8 +235,8 @@ def build_case(mask: dict[str, bool]) -> dict:
 
     snapshot = c.draft_snapshot(
         records,
-        scope_id="scope:factorial",
-        snapshot_id="snapshot:factorial",
+        scope_id=scope_id,
+        snapshot_id=snapshot_id,
         snapshot_created_at=ASOF,
         snapshot_available_at=ASOF,
         valid_from=VALID_FROM,
@@ -267,7 +271,7 @@ def build_case(mask: dict[str, bool]) -> dict:
 
     return {
         "mask": mask,
-        "mask_bits": "".join("1" if mask[name] else "0" for name in FACTOR_NAMES),
+        "mask_bits": mask_bits,
         "shared_factor_count": sum(1 for v in mask.values() if v),
         "claim_state": claim.get("status"),
         "claim_reason": claim.get("reason"),
