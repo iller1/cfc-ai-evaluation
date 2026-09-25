@@ -319,7 +319,13 @@ def original_fixture_control() -> dict:
 
 def run_isolated(mask_bits: str) -> dict:
     cp = subprocess.run(
-        [sys.executable, str(Path(__file__).resolve()), "--single-mask", mask_bits],
+        [
+            sys.executable,
+            "-m",
+            "research.review_stale_dependency_factorial",
+            "--single-mask",
+            mask_bits,
+        ],
         capture_output=True,
         text=True,
         timeout=30,
