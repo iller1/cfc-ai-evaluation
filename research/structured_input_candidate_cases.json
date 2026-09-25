@@ -245,7 +245,7 @@
         "all_pairs_same_claim_state": true,
         "all_pairs_same_control_closure": true,
         "all_pairs_same_false_gates": true,
-        "result": "POLARITY_INVARIANT_RELATION_LEVEL_STALE_AUTHORIZATION_PERSISTENCE"
+        "result": "POLARITY_INSENSITIVE_RELATION_LEVEL_STALE_AUTHORIZATION_PERSISTENCE"
       }
     }
   ]
