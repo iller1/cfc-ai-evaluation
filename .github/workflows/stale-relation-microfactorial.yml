@@ -1,0 +1,27 @@
+name: Stale relation microfactorial
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  microfactorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run stale relation microfactorial
+        run: python -m research.review_stale_relation_microfactorial
+      - name: Upload microfactorial result
+        uses: actions/upload-artifact@v4
+        with:
+          name: stale-relation-microfactorial
+          path: stale_relation_microfactorial.json
