@@ -15,14 +15,19 @@ This experiment decomposes the other two families.
 
 ## Origin/lineage factorial
 
-Four binary factors:
+Initial design proposed four binary factors, but the frozen API exposed a structural dependency: the provenance lineage must run uniquely from `root_origin_id` to `origin_id`. Therefore lineage-chain endpoint identity is not an independent bit.
+
+The valid origin microfactorial uses three independent binary factors:
 
 1. root origin ID shared;
 2. origin ID shared;
-3. extractor ID shared;
-4. lineage chain shared.
+3. extractor ID shared.
 
-Total: **16 states**.
+The lineage path is derived from root origin -> origin in every state.
+
+Total: **8 admissible states**.
+
+This reduction is itself a combinatorial finding: a syntactically imaginable state dimension was not structurally independent.
 
 Source semantics, common-mode group and generic dependencies remain distinct.
 
@@ -50,7 +55,7 @@ Total: **12 states**.
 
 ## Equivalence controls
 
-The all-shared origin state must reproduce the prior grouped `0100` result.
+The all-shared three-factor origin state must reproduce the prior grouped `0100` result.
 
 The all-shared dependency state must reproduce the prior grouped `0001` result.
 
