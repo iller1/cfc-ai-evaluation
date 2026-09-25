@@ -10,6 +10,9 @@ from demonstrator import server as demo_server
 
 
 ROOT = Path(__file__).resolve().parents[1]
+FREEZE_MANIFEST = (
+    ROOT / "research" / "cfc_next_0_3_0a2_freeze_manifest.json"
+)
 
 FILES = {
     "candidate_source_sha256": (
@@ -74,16 +77,18 @@ def main():
         180,
     )
 
-    assert promotion["status"] == "PASS"
-    assert promotion["candidate_version"] == "0.3.0a2"
-    assert promotion["all_gates_pass"] is True
-    assert promotion["acceptance_summary"] == {
+    expected_acceptance = {
         "positive_count": 14,
         "positive_pass_count": 14,
         "negative_count": 12,
         "negative_fail_closed_count": 12,
         "unexpected_bound_negative_paths": [],
     }
+
+    assert promotion["status"] == "PASS"
+    assert promotion["candidate_version"] == "0.3.0a2"
+    assert promotion["all_gates_pass"] is True
+    assert promotion["acceptance_summary"] == expected_acceptance
     assert promotion["reproducible_full_acceptance"] is True
     assert promotion["concurrent_process_pass"] is True
     assert promotion["historical_rescore_performed"] is False
@@ -113,26 +118,49 @@ def main():
     }
     commitments["frozen_reference_wheel_sha256"] = wheel_sha
 
+    pinned = json.loads(FREEZE_MANIFEST.read_text(encoding="utf-8"))
+    assert pinned["schema_version"] == "1"
+    assert pinned["baseline"] == "CFC-next 0.3.0a2"
+    assert pinned["freeze_intent"] == "FROZEN_ON_MERGE"
+    assert pinned["candidate_merge_commit"] == (
+        "09d4d16f2159a7d600527fff8ab0e01e21aa2efb"
+    )
+    assert pinned["state_isolation_merge_commit"] == (
+        "77642de212a98ba5be2b9fda5111fcdc5d8fd516"
+    )
+    assert pinned["frozen_reference"] == "CFC Anchor 0.2.90rc1"
+    assert pinned["previous_candidate"] == "CFC-next 0.3.0a1"
+    assert pinned["commitments"] == commitments
+    assert pinned["acceptance"] == expected_acceptance
+    assert pinned["promotion_readiness_all_gates_pass"] is True
+    assert pinned["state_isolation"] == {
+        "relations_tested": 14,
+        "candidate_authorization_visible_to_frozen_relations": [],
+        "gate": "STATE_ISOLATION_GATE_PASS",
+    }
+    assert pinned["historical_rescore_performed"] is False
+    assert pinned["frozen_reference_modified"] is False
+
     result = {
         "test": "CFC_NEXT_0_3_0A2_FREEZE_REVIEW",
-        "candidate": "CFC-next 0.3.0a2",
-        "candidate_merge_commit": (
-            "09d4d16f2159a7d600527fff8ab0e01e21aa2efb"
-        ),
+        "baseline": "CFC-next 0.3.0a2",
+        "baseline_status": "PINNED_FREEZE_MANIFEST_VERIFIED",
+        "freeze_intent": "FROZEN_ON_MERGE",
+        "candidate_merge_commit": pinned["candidate_merge_commit"],
         "state_isolation_merge_commit": (
-            "77642de212a98ba5be2b9fda5111fcdc5d8fd516"
+            pinned["state_isolation_merge_commit"]
         ),
-        "frozen_reference": "CFC Anchor 0.2.90rc1",
-        "previous_candidate": "CFC-next 0.3.0a1",
+        "frozen_reference": pinned["frozen_reference"],
+        "previous_candidate": pinned["previous_candidate"],
         "commitments": commitments,
-        "acceptance": promotion["acceptance_summary"],
+        "freeze_manifest_verified": True,
+        "acceptance": expected_acceptance,
         "promotion_readiness_all_gates_pass": True,
         "state_isolation_relations_tested": 14,
         "state_isolation_visible_relations": [],
         "state_isolation_gate_pass": True,
         "historical_rescore_performed": False,
         "frozen_reference_modified": False,
-        "freeze_review_status": "READY_FOR_PINNED_FREEZE_MANIFEST",
         "status": "PASS",
     }
 
