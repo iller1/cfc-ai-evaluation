@@ -69,6 +69,7 @@
       open_issue_source_ids: records.filter(r => r.disposition === "OPEN_ISSUE").map(r => r.id),
       synthetic_reference_as_of_date: REFERENCE_AS_OF,
       source_dates_are_not_input_to_demonstrator: true,
+      analogous_settings: {required_independent_supports: required, provenance_shape: shape},
       synthetic_independence_authority: "NONE",
       full_case_authorization: false,
       boundary: "SOURCE_SCOPE_HUMAN_REVIEWED_ANALOGOUS_SYNTHETIC_CFC_ONLY"
