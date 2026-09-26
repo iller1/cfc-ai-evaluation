@@ -194,7 +194,28 @@ window.addEventListener("load", async function () {
   }
 
 
+  function renderRealCasePreflight(manifest) {
+    const target = document.getElementById("real-case-preflight-status");
+    const details = document.getElementById("real-case-preflight-details");
+    const assessor = window.ProBetaReviewBridge &&
+      window.ProBetaReviewBridge.assessRealCaseReadiness;
+    if (typeof assessor !== "function") {
+      target.textContent = "Rzeczywista kontrola: NIE WYKONANA — analiza gotowości niedostępna.";
+      details.textContent = "Nie ma wiarygodnego raportu gotowości. Nie wywołano rzeczywistego CFC.";
+      return;
+    }
+    const review = assessor(manifest);
+    target.textContent = review.status === "REAL_CASE_NOT_CHECKED"
+      ? "Rzeczywista kontrola dokumentów: NIE WYKONANA. Wynik demonstratora nie zatwierdza sprawy."
+      : "Brak potwierdzonej rzeczywistej kontroli.";
+    details.textContent = review.diagnostics
+      .map((entry, index) => (index + 1) + ". " + entry.explanation + " [" + entry.code + "]")
+      .join("\n");
+    details.style.whiteSpace = "pre-wrap";
+  }
+
   function renderScopeSummary(manifest) {
+    renderRealCasePreflight(manifest);
     const target = document.getElementById("scope-visible-status");
     if (!manifest || manifest.manifest_version !== "HUMAN_REVIEWED_SYNTHETIC_DEMO_V1") {
       target.textContent = "Brak przeglądu źródeł. Dotychczasowe uruchomienia CFC są wyłącznie demonstracją na danych syntetycznych.";

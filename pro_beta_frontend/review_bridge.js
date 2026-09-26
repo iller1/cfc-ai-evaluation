@@ -92,7 +92,81 @@
     };
     return {review_manifest: manifest, cfc_structured: cfcStructured};
   }
-  const api = Object.freeze({buildReview, REFERENCE_AS_OF});
+  /*
+   * Preflight for the REAL case. This deliberately never executes CFC or
+   * accepts user/model-supplied flags as an authority attestation. It enumerates
+   * missing integration obligations from a human-declared SYNTHETIC manifest.
+   */
+  function assessRealCaseReadiness(manifest) {
+    const diagnostics = [];
+    const add = (code, explanation) => diagnostics.push({code, explanation});
+    const invalid = !manifest ||
+      manifest.manifest_version !== "HUMAN_REVIEWED_SYNTHETIC_DEMO_V1" ||
+      !Array.isArray(manifest.source_records);
+    if (invalid) {
+      add("NO_VALID_SOURCE_REVIEW", "Brak kompletnego, zapisanego przeglądu źródeł dla wybranej rozmowy.");
+      return {
+        status: "REAL_CASE_NOT_CHECKED",
+        real_cfc_executed: false,
+        real_decision_authorized: false,
+        scope: {declared: [], demo_included: [], demo_excluded: [], open_issues: []},
+        diagnostics
+      };
+    }
+
+    const records = manifest.source_records;
+    const pick = disposition => records
+      .filter(r => r && r.disposition === disposition && typeof r.id === "string")
+      .map(r => r.id);
+    const included = pick("INCLUDE");
+    const excluded = pick("EXCLUDE");
+    const unresolved = pick("OPEN_ISSUE");
+    const all = records.filter(r => r && typeof r.id === "string").map(r => r.id);
+    add("USER_SOURCE_LIST_NOT_INDEPENDENTLY_VERIFIED",
+      "Kompletność listy źródeł jest deklaracją użytkownika. Brakuje niezależnego potwierdzenia zakresu pobrania.");
+    add("REAL_CLAIM_IDENTITY_SCOPE_NOT_BOUND",
+      "Etykieta twierdzenia nie jest związana ze zweryfikowanym podmiotem, partią, zdarzeniem ani rzeczywistym zakresem decyzji.");
+    add("SOURCE_AUTHORITY_AND_PROVENANCE_NOT_INSTALLED",
+      "Nie zainstalowano rzeczywistych poświadczeń źródeł, ich pochodzenia, zależności i ważności przez uprawnione organy.");
+    add("REAL_TEMPORAL_RELEVANCE_NOT_EVALUATED",
+      "Data demonstratora 2026-09-03 jest stała; rzeczywiste daty i relewantność dokumentów nie przeszły weryfikacji.");
+    const postReference = records.filter(r => r && typeof r.source_date === "string" &&
+      /^\d{4}-\d\d-\d\d$/.test(r.source_date) && r.source_date > REFERENCE_AS_OF)
+      .map(r => r.id);
+    if (postReference.length) {
+      add("SOURCES_AFTER_SYNTHETIC_REFERENCE",
+        "Dokumenty nowsze niż data referencyjna demonstratora: " + postReference.join(", ") + ".");
+    }
+    if (excluded.length) {
+      add("EXCLUDED_SOURCE_DECISIONS_NOT_AUTHORITY_REVIEWED",
+        "Wykluczenie źródeł jest opisem użytkownika, a nie weryfikacją ich nierelewantności: " + excluded.join(", ") + ".");
+    }
+    if (unresolved.length) {
+      add("OPEN_SOURCE_ISSUES_NOT_RESOLVED",
+        "Otwarte kwestie nie zostały rozstrzygnięte przez CFC: " + unresolved.join(", ") + ".");
+    }
+    if (all.length > 2) {
+      add("SYNTHETIC_TWO_SOURCE_COVERAGE_LIMIT",
+        "Demonstrator ma maksymalnie dwa rekordy. Pełna zadeklarowana lista obejmuje " + all.length + ".");
+    }
+    add("DURABLE_REVIEW_TO_RUN_BINDING_MISSING",
+      "Bieżąca odpowiedź może sprawdzić ID snapshotu, ale zapisany wynik kontrolera nie ma trwałego powiązania z tą wersją całego przeglądu.");
+    add("REAL_CFC_EVIDENCE_EXECUTION_NOT_CONNECTED",
+      "Aplikacja nie posiada jeszcze ścieżki rzeczywistej weryfikacji tych dokumentów przez CFC. ALLOW z demonstracji nie jest decyzją o dostawie.");
+    return {
+      status: "REAL_CASE_NOT_CHECKED",
+      real_cfc_executed: false,
+      real_decision_authorized: false,
+      scope: {
+        declared: all,
+        demo_included: included,
+        demo_excluded: excluded,
+        open_issues: unresolved
+      },
+      diagnostics
+    };
+  }
+  const api = Object.freeze({buildReview, assessRealCaseReadiness, REFERENCE_AS_OF});
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ProBetaReviewBridge = api;
 })(typeof window !== "undefined" ? window : globalThis);

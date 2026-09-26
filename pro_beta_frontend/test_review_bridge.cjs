@@ -1,7 +1,7 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const {buildReview, REFERENCE_AS_OF} = require("./review_bridge.js");
+const {buildReview, assessRealCaseReadiness, REFERENCE_AS_OF} = require("./review_bridge.js");
 
 const source = (id, disposition, reason = "", date = "") => ({
   id, disposition, reason, date, polarity: "POSITIVE", validity: "CURRENT"
@@ -109,4 +109,48 @@ test("invalid source entry, date and required support limit are rejected", () =>
   assert.throws(() => buildReview(input), /REVIEW_REQUIRED_SUPPORTS_INVALID/);
   input.required = 2; input.claimLabel = "";
   assert.throws(() => buildReview(input), /REVIEW_CLAIM_LABEL_REQUIRED/);
+});
+
+
+test("real NW-0926 case remains NOT CHECKED and names every omitted source and temporal mismatch", () => {
+  const manifest = buildReview(draft()).review_manifest;
+  const assessment = assessRealCaseReadiness(manifest);
+  assert.equal(assessment.status, "REAL_CASE_NOT_CHECKED");
+  assert.equal(assessment.real_cfc_executed, false);
+  assert.equal(assessment.real_decision_authorized, false);
+  assert.deepEqual(assessment.scope.declared, ["A", "B", "C", "D"]);
+  assert.deepEqual(assessment.scope.demo_included, ["A", "B"]);
+  assert.deepEqual(assessment.scope.demo_excluded, ["C"]);
+  assert.deepEqual(assessment.scope.open_issues, ["D"]);
+  const codes = assessment.diagnostics.map(d => d.code);
+  assert.ok(codes.includes("SOURCES_AFTER_SYNTHETIC_REFERENCE"));
+  assert.ok(codes.includes("OPEN_SOURCE_ISSUES_NOT_RESOLVED"));
+  assert.ok(codes.includes("SYNTHETIC_TWO_SOURCE_COVERAGE_LIMIT"));
+  assert.ok(codes.includes("REAL_CFC_EVIDENCE_EXECUTION_NOT_CONNECTED"));
+  assert.ok(assessment.diagnostics.some(d => d.code === "SOURCES_AFTER_SYNTHETIC_REFERENCE" && d.explanation.includes("A, B, D") && !d.explanation.includes("A, B, C, D")));
+});
+
+test("no review and manipulated flags never become real-case authorization", () => {
+  const empty = assessRealCaseReadiness(null);
+  assert.equal(empty.status, "REAL_CASE_NOT_CHECKED");
+  assert.equal(empty.real_cfc_executed, false);
+  assert.equal(empty.real_decision_authorized, false);
+  assert.equal(empty.diagnostics[0].code, "NO_VALID_SOURCE_REVIEW");
+  const manifest = buildReview(draft()).review_manifest;
+  manifest.full_case_authorization = true;
+  manifest.synthetic_independence_authority = "VERIFIED";
+  manifest.universe_declared_by_user_not_externally_verified = false;
+  const assessment = assessRealCaseReadiness(manifest);
+  assert.equal(assessment.status, "REAL_CASE_NOT_CHECKED");
+  assert.equal(assessment.real_decision_authorized, false);
+  assert.ok(assessment.diagnostics.some(d => d.code === "SOURCE_AUTHORITY_AND_PROVENANCE_NOT_INSTALLED"));
+});
+
+test("sources with a date before synthetic reference do not cure missing real authority", () => {
+  const rows = [source("A", "INCLUDE", "", "2026-08-01"), source("B", "INCLUDE", "", "2026-08-02"), {}, {}];
+  const manifest = buildReview(draft(rows)).review_manifest;
+  const assessment = assessRealCaseReadiness(manifest);
+  assert.equal(assessment.real_decision_authorized, false);
+  assert.ok(!assessment.diagnostics.some(d => d.code === "SOURCES_AFTER_SYNTHETIC_REFERENCE"));
+  assert.ok(assessment.diagnostics.some(d => d.code === "REAL_CFC_EVIDENCE_EXECUTION_NOT_CONNECTED"));
 });
