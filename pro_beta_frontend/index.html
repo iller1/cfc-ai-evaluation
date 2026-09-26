@@ -112,7 +112,8 @@
         <div class="row">
           <button id="export-report">Pobierz pełny raport techniczny (.md)</button>
         </div>
-        <div id="report-status" class="boundary">Raport obejmuje zapisany stan i surowy wynik kontrolera; nie jest automatyczną oceną tekstu rozmowy.</div>
+        <p id="report-status" role="status">Pobierany raport obejmuje zapisany stan i surowy wynik kontrolera, nie automatyczną ocenę rozmowy.</p>
+        <details><summary>Techniczne informacje o eksporcie</summary><div id="report-technical-meta" class="boundary">Brak pobranego raportu.</div></details>
       </section>
 
       <details id="provider-settings" class="panel">
@@ -156,7 +157,7 @@
         <div id="openai-status" class="boundary">OpenAI disconnected. Ordinary model replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</div>
         <hr>
         <h3>3-model comparison</h3>
-        <p class="meta">Sends the same prompt, same conversation history and same HAWM working state to Gemini, Claude and OpenAI. All three replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</p>
+        <p class="meta">Sends the same prompt, same conversation history and same HAWM working state to Gemini, Claude and OpenAI. If a text attachment is selected, its content is sent to all three providers. All replies remain MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2.</p>
         <div class="row">
           <select id="benchmark-case">
             <option value="">Custom prompt / no benchmark case</option>
