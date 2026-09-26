@@ -85,6 +85,34 @@ class ExtractorTests(unittest.TestCase):
         with self.assertRaisesRegex(DocumentError, "ZIP_STRUCTURE"):
             extract_raw_document("duplicate.docx", out.getvalue())
 
+    def test_text_pdf_extracts_real_page_text(self):
+        from pypdf import PdfWriter
+        from pypdf.generic import (
+            DecodedStreamObject, DictionaryObject, NameObject,
+        )
+        writer = PdfWriter()
+        page = writer.add_blank_page(width=300, height=300)
+        font = DictionaryObject({
+            NameObject("/Type"): NameObject("/Font"),
+            NameObject("/Subtype"): NameObject("/Type1"),
+            NameObject("/BaseFont"): NameObject("/Helvetica"),
+        })
+        page[NameObject("/Resources")] = DictionaryObject({
+            NameObject("/Font"): DictionaryObject({
+                NameObject("/F1"): writer._add_object(font)
+            })
+        })
+        stream = DecodedStreamObject()
+        stream.set_data(b"BT /F1 12 Tf 20 20 Td (NW-0926 PDF text) Tj ET")
+        page[NameObject("/Contents")] = writer._add_object(stream)
+        output = io.BytesIO()
+        writer.write(output)
+        result = extract_document_in_worker(upload("report.pdf", output.getvalue()))
+        self.assertEqual(result["kind"], "pdf")
+        self.assertEqual(result["page_count"], 1)
+        self.assertIn("NW-0926 PDF text", result["text"])
+        self.assertEqual(result["status"], "EXTRACTED_TEXT_UNVERIFIED")
+
     def test_image_only_pdf_has_no_made_up_text(self):
         from pypdf import PdfWriter
         out = io.BytesIO()
