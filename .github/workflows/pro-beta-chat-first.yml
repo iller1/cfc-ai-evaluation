@@ -1,0 +1,28 @@
+name: Pro Beta chat-first frontend
+
+on:
+  pull_request:
+    paths:
+      - "pro_beta_frontend/**"
+      - ".github/workflows/pro-beta-chat-first.yml"
+  push:
+    branches: [main]
+    paths:
+      - "pro_beta_frontend/**"
+      - ".github/workflows/pro-beta-chat-first.yml"
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check frontend JavaScript syntax
+        run: node --check pro_beta_frontend/app.js
+      - name: Run frontend contract tests
+        run: python -m unittest -v pro_beta_frontend.test_frontend

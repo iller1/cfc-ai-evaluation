@@ -177,6 +177,44 @@ class FrontendTests(unittest.TestCase):
         self.assertNotIn("/claude-chat", body)
         self.assertNotIn("/openai-chat", body)
 
+    def test_chat_first_order_and_collapsed_advanced_controls(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        order = [
+            'id="chat-panel"', 'id="messages"', 'id="message-input"',
+            'id="decision-panel"', 'id="hawm-summary-panel"',
+            'id="report-panel"', 'id="provider-settings"', 'id="advanced-tools"'
+        ]
+        positions = [body.index(token) for token in order]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn('<details id="provider-settings"', body)
+        self.assertIn('<details id="advanced-tools"', body)
+        self.assertIn('id="open-hawm-settings"', body)
+        self.assertIn("MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2", body)
+
+    def test_attachment_picker_is_limited_to_text_and_discloses_persistence(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="attachment-input"', body)
+        self.assertIn('accept=".txt,.md,text/plain,text/markdown"', body)
+        self.assertIn('id="attachment-preview"', body)
+        self.assertIn('id="remove-attachment"', body)
+        self.assertIn("64 KiB", body)
+        self.assertIn("PDF/DOCX", body)
+        self.assertNotIn('accept=".pdf', body)
+
+    def test_message_copy_and_text_attachment_are_not_cfc_authorizations(self):
+        status, js, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn('copy.textContent = "Kopiuj"', js)
+        self.assertIn('navigator.clipboard.writeText(String(row.content || ""))', js)
+        self.assertIn('function composedPrompt(raw)', js)
+        self.assertIn('new TextDecoder("utf-8", { fatal: true })', js)
+        self.assertIn('ATTACHMENT_MAX_BYTES = 64 * 1024', js)
+        self.assertEqual(js.count('const content = composedPrompt(input.value);'), 5)
+        self.assertIn('function renderHAWMSummary(snapshot)', js)
+        self.assertIn("MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2", js)
+
     def test_decision_first_ui_preserves_technical_and_export_paths(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
@@ -185,7 +223,7 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('id="hawm-cfc-technical"', body)
         self.assertIn('id="run-hawm-cfc"', body)
         self.assertIn('id="export-report"', body)
-        self.assertIn("Tekst rozmowy", body)
+        self.assertIn("nie tekst rozmowy", body)
 
     def test_decision_summary_is_derived_from_actual_cfc_presentation(self):
         status, body, _ = self.get("/app.js")
@@ -462,7 +500,7 @@ class FrontendTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn('id="report-panel"', body)
         self.assertIn('id="export-report"', body)
-        self.assertIn("Audit report export", body)
+        self.assertIn("Raport audytowy", body)
 
     def test_app_js_contains_audit_report_export_route(self):
         with patch.dict(
