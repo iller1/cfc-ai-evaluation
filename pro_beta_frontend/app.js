@@ -1235,10 +1235,11 @@ window.addEventListener("load", async function () {
           for (const [name, field] of Object.entries(hawmFields())) state[name] = field.value.trim();
           state.review_manifest = prepared.review_manifest;
           state.cfc_structured = prepared.cfc_structured;
-          await api("/api/conversations/" + conversationId + "/hawm", {
+          const savedReviewSnapshot = await api("/api/conversations/" + conversationId + "/hawm", {
             method: "POST",
             body: JSON.stringify({state, last_verified_state: "USER_WORKING_STATE"})
           });
+          if (!savedReviewSnapshot.snapshot_id) throw new Error("REVIEW_SNAPSHOT_ID_REQUIRED");
           if (conversationSelect.value !== conversationId) throw new Error("CONVERSATION_CHANGED_DURING_REVIEW");
           // The old CFC run cannot be presented as bound to the newly saved HAWM state.
           renderCFC(null);
@@ -1249,6 +1250,9 @@ window.addEventListener("load", async function () {
             {method: "POST", body: "{}"}
           );
           if (conversationSelect.value !== conversationId) throw new Error("CONVERSATION_CHANGED_DURING_REVIEW");
+          if (run.hawm_snapshot_id !== savedReviewSnapshot.snapshot_id) {
+            throw new Error("REVIEW_SNAPSHOT_MISMATCH_NO_RESULT_DISPLAY");
+          }
           renderCFC(run, "hawm-cfc-result", "Human-reviewed scope → analogous SYNTHETIC DemoSubject");
           const finishedMessage =
             "Uruchomiono wyłącznie demonstrację CFC (" + (run.presentation?.decision || "UNKNOWN") +
@@ -1257,7 +1261,7 @@ window.addEventListener("load", async function () {
           await loadHAWM();
           if (conversationSelect.value === conversationId) result.textContent = finishedMessage;
         } catch (error) {
-          result.textContent = "Nie uruchomiono pełnej kontroli sprawy: " + error.message +
+          result.textContent = "Nie można przypisać wyniku do tego przeglądu: " + error.message +
             ". Sprawdź źródła, ich statusy, powody wyłączenia i zgody.";
         } finally {
           button.disabled = false;
