@@ -127,7 +127,7 @@ test("real NW-0926 case remains NOT CHECKED and names every omitted source and t
   assert.ok(codes.includes("OPEN_SOURCE_ISSUES_NOT_RESOLVED"));
   assert.ok(codes.includes("SYNTHETIC_TWO_SOURCE_COVERAGE_LIMIT"));
   assert.ok(codes.includes("REAL_CFC_EVIDENCE_EXECUTION_NOT_CONNECTED"));
-  assert.ok(assessment.diagnostics.some(d => d.explanation.includes("A, B, C, D")));
+  assert.ok(assessment.diagnostics.some(d => d.code === "SOURCES_AFTER_SYNTHETIC_REFERENCE" && d.explanation.includes("A, B, D") && !d.explanation.includes("A, B, C, D")));
 });
 
 test("no review and manipulated flags never become real-case authorization", () => {
