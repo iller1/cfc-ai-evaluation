@@ -1,0 +1,45 @@
+name: Pro Beta server-reviewed scope
+
+on:
+  pull_request:
+    paths:
+      - "pro_beta/reviewed_scope.py"
+      - "pro_beta/api.py"
+      - "pro_beta/http_server.py"
+      - "pro_beta/test_reviewed_scope.py"
+      - "pro_beta/test_http_server.py"
+      - "pro_beta_frontend/**"
+      - ".github/workflows/pro-beta-server-reviewed-scope.yml"
+  push:
+    branches: [main]
+    paths:
+      - "pro_beta/reviewed_scope.py"
+      - "pro_beta/api.py"
+      - "pro_beta/http_server.py"
+      - "pro_beta/test_reviewed_scope.py"
+      - "pro_beta/test_http_server.py"
+      - "pro_beta_frontend/**"
+      - ".github/workflows/pro-beta-server-reviewed-scope.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  reviewed-scope:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: JavaScript syntax
+        run: |
+          node --check pro_beta_frontend/app.js
+          node --check pro_beta_frontend/review_bridge.js
+      - name: Browser review and preflight contracts
+        run: node --test pro_beta_frontend/test_review_bridge.cjs
+      - name: Authenticated server mapping and frontend contracts
+        run: python -m unittest -v pro_beta.test_reviewed_scope pro_beta.test_http_server pro_beta_frontend.test_frontend
