@@ -292,6 +292,18 @@ class ProBetaAPI:
             raise APIError(403, str(exc)) from exc
         return [asdict(m) for m in messages]
 
+    def extract_document_preview(
+        self, credential: str, conversation_id: str, payload: dict[str, Any]
+    ) -> dict:
+        """Authenticate/authorize the conversation before decoding or parsing bytes."""
+        self.get_conversation(credential, conversation_id)
+        from pro_beta.document_extract import DocumentError, extract_document_in_worker
+
+        try:
+            return extract_document_in_worker(payload)
+        except DocumentError as exc:
+            raise APIError(422, str(exc)) from exc
+
     def persist_user_message(
         self,
         credential: str,
