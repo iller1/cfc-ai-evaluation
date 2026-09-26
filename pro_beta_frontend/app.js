@@ -163,8 +163,46 @@ window.addEventListener("load", async function () {
       "Loaded HAWM snapshot · " + snapshot.last_verified_state;
   }
 
+  function renderDecisionSummary(run) {
+    const panel = document.getElementById("decision-panel");
+    const heading = document.getElementById("decision-heading");
+    const message = document.getElementById("decision-message");
+    const next = document.getElementById("decision-next");
+    panel.dataset.decision = "NONE";
+    if (!run || !run.presentation) {
+      heading.textContent = "Wynik kontroli";
+      message.textContent = "Brak wyniku CFC dla wybranej rozmowy.";
+      next.textContent = "Następny krok: wprowadź dane strukturalne w HAWM i uruchom kontrolę.";
+      return;
+    }
+    const p = run.presentation;
+    const decision = p.decision || "UNKNOWN";
+    panel.dataset.decision = decision;
+    if (decision === "ALLOW") {
+      heading.textContent = "Kontrola pozwala na zamknięcie";
+      message.textContent = "W zadanym zakresie kontroler zwrócił ALLOW. Stan twierdzenia: " + (p.claim_state || "NONE") + ".";
+      next.textContent = "Sprawdź zakres kontroli przed podjęciem działania.";
+    } else if (decision === "STOP") {
+      heading.textContent = "Decyzja wstrzymana";
+      message.textContent = "CFC nie autoryzował zamknięcia. Stan twierdzenia: " + (p.claim_state || "NONE") + ".";
+      const gates = Array.isArray(p.false_gates) ? p.false_gates : [];
+      next.textContent = gates.includes("source_independence_semantics_valid") ?
+        "Następny krok: sprawdź niezależność źródeł i pozostałe niespełnione warunki w szczegółach technicznych." :
+        "Następny krok: sprawdź niespełnione warunki w szczegółach technicznych i uzupełnij dane.";
+    } else {
+      heading.textContent = "Wynik kontroli: " + decision;
+      message.textContent = "Stan twierdzenia: " + (p.claim_state || "NONE") + ".";
+      next.textContent = "Sprawdź pełny wynik kontrolera przed dalszym działaniem.";
+    }
+    document.getElementById("decision-boundary").textContent =
+      run.case_id === "HAWM_STRUCTURED_CUSTOM" ?
+      "Kontrola dotyczy tylko jawnych pól strukturalnych HAWM. Tekst rozmowy i pola opisowe nie były weryfikowane przez CFC." :
+      "To wynik przygotowanego scenariusza syntetycznego, a nie kontrola tekstu rozmowy.";
+  }
+
   function renderCFC(run, targetId = "cfc-result", label = "Prepared synthetic fixture") {
     const target = document.getElementById(targetId);
+    renderDecisionSummary(run);
     if (!run) {
       target.textContent = "No CFC run saved for this conversation yet.";
       return;
@@ -914,6 +952,7 @@ window.addEventListener("load", async function () {
           });
 
           result.textContent = "Running structured HAWM through frozen CFC…";
+          document.getElementById("decision-heading").textContent = "Kontrola w toku…";
           const run = await api(
             "/api/conversations/" + conversationId + "/cfc-from-hawm",
             { method: "POST", body: "{}" }
