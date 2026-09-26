@@ -22,6 +22,15 @@
     #messages { margin-top:10px; display:grid; gap:8px; }
     .message { padding:10px; border-radius:8px; background:#0f172a; white-space:pre-wrap; }
     .meta { font-size:12px; color:#94a3b8; }
+    .decision-card { border:2px solid #64748b; background:#172033; }
+    .decision-card[data-decision="STOP"] { border-color:#eab308; }
+    .decision-card[data-decision="ALLOW"] { border-color:#22c55e; }
+    .decision-card h2 { margin:0 0 6px; font-size:25px; }
+    .decision-card p { margin:7px 0; }
+    details summary { cursor:pointer; font-weight:600; padding:7px 0; }
+    details .boundary { white-space:pre-wrap; overflow-wrap:anywhere; }
+    .primary-action { background:#1d4ed8; border-color:#60a5fa; }
+    .plain-note { font-size:13px; color:#cbd5e1; }
   </style>
 </head>
 <body>
@@ -47,6 +56,21 @@
       <div class="row">
         <select id="conversation-select"></select>
       </div>
+      <section id="decision-panel" class="panel decision-card" data-decision="NONE" aria-live="polite">
+        <h2 id="decision-heading">Wynik kontroli</h2>
+        <p id="decision-message">Wybierz rozmowę i uruchom kontrolę CFC. Odpowiedzi modeli AI nie są wynikiem CFC.</p>
+        <p id="decision-next" class="plain-note">Następny krok: wprowadź jawne dane strukturalne w sekcji HAWM.</p>
+        <p id="decision-boundary" class="meta">CFC sprawdza wyłącznie jawnie ustrukturyzowane dane, nie tekst rozmowy ani załączniki.</p>
+      </section>
+      <section id="report-panel" class="panel">
+        <h2>Raport audytowy</h2>
+        <p class="meta">Exports the latest persisted HAWM snapshot and latest CFC run without reinterpreting free text or changing CFC output.</p>
+        <div class="row">
+          <button id="export-report">Pobierz pełny raport techniczny (.md)</button>
+        </div>
+        <div id="report-status" class="boundary">Raport obejmuje zapisany stan i surowy wynik kontrolera; nie jest automatyczną oceną tekstu rozmowy.</div>
+      </section>
+
       <section id="gemini-panel" class="panel">
         <h2>Gemini BYOK chat</h2>
         <p class="meta">Your Gemini API key is kept only in this browser tab session storage and sent with each model request. It is not stored in Pro Beta records.</p>
@@ -251,20 +275,11 @@
           </label>
         </div>
         <div class="row">
-          <button id="save-hawm">Save HAWM snapshot</button>
-          <button id="run-hawm-cfc">Check structured HAWM with CFC</button>
+          <button id="save-hawm">Zapisz stan bez kontroli</button>
+          <button id="run-hawm-cfc" class="primary-action">Zapisz i sprawdź (CFC)</button>
         </div>
         <p id="hawm-status"></p>
-        <div id="hawm-cfc-result" class="boundary">No structured HAWM CFC run yet.</div>
-      </section>
-
-      <section id="report-panel" class="panel">
-        <h2>Audit report export</h2>
-        <p class="meta">Exports the latest persisted HAWM snapshot and latest CFC run without reinterpreting free text or changing CFC output.</p>
-        <div class="row">
-          <button id="export-report">Export audit report (.md)</button>
-        </div>
-        <div id="report-status" class="boundary">No report exported yet.</div>
+        <details id="hawm-cfc-technical"><summary>Szczegóły techniczne kontroli</summary><div id="hawm-cfc-result" class="boundary">No structured HAWM CFC run yet.</div></details>
       </section>
 
       <section id="cfc-panel" class="panel">
