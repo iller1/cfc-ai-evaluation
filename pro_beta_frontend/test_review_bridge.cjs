@@ -103,6 +103,8 @@ test("model text cannot be passed as authority or source state", () => {
 test("invalid source entry, date and required support limit are rejected", () => {
   const input = draft(); input.records[0].date = "not-a-date";
   assert.throws(() => buildReview(input), /REVIEW_SOURCE_DATE_INVALID/);
+  input.records[0].date = "2026-02-31";
+  assert.throws(() => buildReview(input), /REVIEW_SOURCE_DATE_INVALID/);
   input.records[0].date = ""; input.required = "3";
   assert.throws(() => buildReview(input), /REVIEW_REQUIRED_SUPPORTS_INVALID/);
   input.required = 2; input.claimLabel = "";
