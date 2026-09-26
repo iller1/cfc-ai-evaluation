@@ -431,6 +431,23 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "reviewed-demo-scope":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            try:
+                content_length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                content_length = 0
+            if not 0 < content_length <= 24 * 1024:
+                self._json(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, {"error": "REVIEW_REQUEST_SIZE_LIMIT"})
+                return
+            payload = self._payload()
+            self._api_call(
+                lambda api: api.save_reviewed_demo_scope(credential, parts[2], payload)
+            )
+            return
+
         if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "cfc-from-hawm":
             if not credential:
                 self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
