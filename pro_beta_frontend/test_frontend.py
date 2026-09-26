@@ -223,7 +223,7 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('id="hawm-cfc-technical"', body)
         self.assertIn('id="run-hawm-cfc"', body)
         self.assertIn('id="export-report"', body)
-        self.assertIn("Tekst rozmowy", body)
+        self.assertIn("nie tekst rozmowy", body)
 
     def test_decision_summary_is_derived_from_actual_cfc_presentation(self):
         status, body, _ = self.get("/app.js")
