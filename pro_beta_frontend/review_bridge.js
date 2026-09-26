@@ -34,7 +34,13 @@
       const key = id.toLowerCase();
       if (ids.has(key)) fail("REVIEW_DUPLICATE_SOURCE_ID");
       ids.add(key);
-      if (date && !/^\d{4}-\d\d-\d\d$/.test(date)) fail("REVIEW_SOURCE_DATE_INVALID");
+      if (date) {
+        if (!/^\d{4}-\d\d-\d\d$/.test(date)) fail("REVIEW_SOURCE_DATE_INVALID");
+        const parsed = new Date(date + "T00:00:00Z");
+        if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) {
+          fail("REVIEW_SOURCE_DATE_INVALID");
+        }
+      }
       if (disposition !== "INCLUDE" && !reason) fail("REVIEW_EXCLUSION_REASON_REQUIRED");
       const polarity = clean(entry.polarity, 16);
       const validity = clean(entry.validity, 16);
