@@ -254,6 +254,8 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("ProBetaReviewBridge.buildReview(collectReviewForm())", js)
         self.assertIn("state.review_manifest = prepared.review_manifest", js)
         self.assertIn("state.cfc_structured = prepared.cfc_structured", js)
+        self.assertIn("run.hawm_snapshot_id !== savedReviewSnapshot.snapshot_id", js)
+        self.assertIn("REVIEW_SNAPSHOT_MISMATCH_NO_RESULT_DISPLAY", js)
         self.assertIn('last_verified_state: "USER_WORKING_STATE"', js)
         self.assertIn('renderCFC(null);', js)
         self.assertIn("Syntetyczny DemoSubject", js)
