@@ -355,6 +355,8 @@ window.addEventListener("load", async function () {
       el.appendChild(actions);
       messages.appendChild(el);
     }
+    if (!rows.length) messages.textContent = "Brak wiadomości. Napisz pierwsze pytanie.";
+    messages.scrollTop = messages.scrollHeight;
   }
 
   async function loadBenchmarkHistory() {
@@ -644,10 +646,13 @@ window.addEventListener("load", async function () {
   }
 
   async function loadConversations() {
+    clearAttachment();
     const workspaceId = workspaceSelect.value;
     if (!workspaceId) {
       conversationSelect.innerHTML = "";
-      messages.innerHTML = "";
+      messages.textContent = "Utwórz przestrzeń roboczą, aby rozpocząć rozmowę.";
+      clearHAWM();
+      renderCFC(null);
       return;
     }
     const rows = await api("/api/workspaces/" + workspaceId + "/conversations");
@@ -1110,7 +1115,8 @@ window.addEventListener("load", async function () {
           const doc = payload.document || {};
           const run = doc.cfc_run || {};
           const presentation = run.presentation || {};
-          reportStatus.textContent = [
+          reportStatus.textContent = "Raport techniczny pobrany. Wynik CFC: " + (presentation.decision || "BRAK") + ".";
+          document.getElementById("report-technical-meta").textContent = [
             "Audit report generated",
             "Report ID: " + (record.report_id || ""),
             "Status: " + (record.status || ""),
