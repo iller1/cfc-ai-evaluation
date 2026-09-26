@@ -65,6 +65,14 @@ class HTTPServerTests(unittest.TestCase):
         self.assertEqual(status, 401)
         self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
 
+    def test_reviewed_demo_scope_requires_bearer(self):
+        status, payload = self.request(
+            "/api/conversations/conv_private/reviewed-demo-scope",
+            method="POST",
+        )
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
+
     def test_onboard_requires_bearer(self):
         status, payload = self.request("/api/onboard", method="POST")
         self.assertEqual(status, 401)
