@@ -29,6 +29,9 @@
     .composer textarea { box-sizing:border-box; display:block; width:100%; resize:vertical; margin-top:8px; }
     .file-picker { display:inline-block; cursor:pointer; padding:8px 12px; border:1px solid #64748b; border-radius:8px; }
     .file-picker:hover { background:#334155; }
+    #attachment-review[hidden] { display:none; }
+    #attachment-review { width:100%; }
+    .attachment-excerpt { white-space:pre-wrap; overflow-wrap:anywhere; overflow:auto; max-height:240px; padding:10px; background:#0f172a; border-radius:8px; }
     #remove-attachment[hidden] { display:none; }
     details.panel > summary { font-size:17px; }
     .message .meta { margin-top:7px; }
@@ -78,13 +81,14 @@
           <label for="message-input">Twoja wiadomość</label>
           <textarea id="message-input" rows="3" placeholder="Napisz wiadomość lub opisz dokument..."></textarea>
           <div class="row" style="align-items:center">
-            <label class="file-picker" for="attachment-input">📎 Dodaj plik TXT / MD</label>
-            <input id="attachment-input" type="file" accept=".txt,.md,text/plain,text/markdown" hidden>
+            <label class="file-picker" for="attachment-input">📎 Dodaj dokument</label>
+            <input id="attachment-input" type="file" accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
             <span id="attachment-preview" class="plain-note" role="status">Brak załącznika.</span>
             <button id="remove-attachment" type="button" hidden>Usuń załącznik</button>
+            <details id="attachment-review" hidden><summary>Sprawdź odczytany tekst dokumentu</summary><pre id="attachment-text-preview" class="attachment-excerpt"></pre><label><input id="attachment-confirm" type="checkbox"> Potwierdzam, że chcę wysłać ten odczytany tekst do wybranego AI. Nie oznacza to weryfikacji przez CFC.</label></details>
             <button id="open-provider-settings" type="button">Ustaw klucz AI</button>
           </div>
-          <p class="meta">TXT/MD: maks. 64 KiB, jeden plik. Po wysłaniu tekst pliku trafia do wybranego dostawcy AI i zapisuje się w wiadomości. Nie jest automatycznie weryfikowany przez CFC. PDF/DOCX wymagają osobnej integracji i nie są jeszcze obsługiwane.</p>
+          <p class="meta">TXT/MD: do 64 KiB; PDF/DOCX: do 2 MiB, max 10 stron PDF. Po wybraniu PDF/DOCX serwer jednorazowo wyodrębnia tekst i zwraca go do podglądu; surowe bajty dokumentu nie są zapisywane w Pro Beta. Dopiero po Twoim zatwierdzeniu i wysłaniu odczytany tekst jest przekazywany wybranemu AI oraz zapisywany jako treść wiadomości. Nie stanowi to weryfikacji CFC. Skany bez warstwy tekstowej nie mają OCR.</p>
           <div class="row">
             <button id="send-gemini" class="primary-action" type="button">Wyślij do Gemini</button>
             <button id="send-claude" type="button">Wyślij do Claude</button>
