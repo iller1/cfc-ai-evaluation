@@ -323,6 +323,66 @@ class ProBetaAPI:
             raise APIError(403, str(exc)) from exc
         return asdict(message)
 
+    def save_reviewed_demo_scope(
+        self,
+        credential: str,
+        conversation_id: str,
+        payload: dict[str, Any],
+    ) -> dict:
+        """Store a server-validated USER declaration, never verified source evidence."""
+        auth = self._auth(credential)
+        try:
+            self.service.get_conversation(auth, conversation_id)
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        if not isinstance(payload, dict) or set(payload) != {"review", "working_state"}:
+            raise APIError(422, "REVIEW_REQUEST_SCHEMA_INVALID")
+        from pro_beta.reviewed_scope import (
+            ReviewValidationError,
+            validate_reviewed_demo_scope,
+        )
+
+        review = payload["review"]
+        message = None
+        if isinstance(review, dict):
+            source_message_id = review.get("sourceMessageId")
+            if isinstance(source_message_id, str) and source_message_id.strip():
+                try:
+                    messages = self.service.list_messages(auth, conversation_id)
+                except NotFoundError as exc:
+                    raise APIError(404, str(exc)) from exc
+                except OwnershipError as exc:
+                    raise APIError(403, str(exc)) from exc
+                message = next(
+                    (item for item in messages if item.message_id == source_message_id.strip()),
+                    None,
+                )
+        try:
+            prepared = validate_reviewed_demo_scope(
+                review, payload["working_state"], context_message=message
+            )
+        except ReviewValidationError as exc:
+            raise APIError(422, str(exc)) from exc
+        try:
+            snapshot = self.service.save_hawm_snapshot(
+                auth, conversation_id, prepared["state"], "USER_WORKING_STATE"
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+        return {
+            "snapshot_id": snapshot.snapshot_id,
+            "last_verified_state": snapshot.last_verified_state,
+            "review_manifest": prepared["state"]["review_manifest"],
+            "cfc_structured": prepared["state"]["cfc_structured"],
+            "status": prepared["status"],
+            "real_case_status": prepared["real_case_status"],
+            "boundary": "SCHEMA_VALIDATION_ONLY_NO_REAL_CFC_EXECUTION",
+        }
+
     def save_hawm_snapshot(
         self,
         credential: str,
