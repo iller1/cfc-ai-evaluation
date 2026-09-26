@@ -304,6 +304,25 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "extract-document":
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            # Reject oversized JSON/base64 uploads before the generic body reader.
+            from pro_beta.document_extract import MAX_DOCUMENT_BYTES
+            try:
+                content_length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                content_length = 0
+            if content_length <= 0 or content_length > (MAX_DOCUMENT_BYTES * 4 // 3) + 4096:
+                self._json(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, {"error": "DOCUMENT_REQUEST_SIZE_LIMIT"})
+                return
+            payload = self._payload()
+            self._api_call(
+                lambda api: api.extract_document_preview(credential, parts[2], payload)
+            )
+            return
+
         if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "messages":
             if not credential:
                 self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
