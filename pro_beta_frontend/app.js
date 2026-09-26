@@ -243,6 +243,9 @@ window.addEventListener("load", async function () {
     }
     renderScopeSummary(manifest);
     document.getElementById("review-claim").value = manifest.claim_label_for_human_reference_only || "";
+    const settings = manifest.analogous_settings || {};
+    document.getElementById("review-required").value = String(settings.required_independent_supports || 2);
+    document.getElementById("review-relation").value = settings.provenance_shape || "UNRESOLVED";
     const records = Array.isArray(manifest.source_records) ? manifest.source_records : [];
     for (let n = 1; n <= 4; n++) {
       const row = records[n - 1] || {};
@@ -384,6 +387,7 @@ window.addEventListener("load", async function () {
     const conversationId = conversationSelect.value;
     if (!conversationId) return;
     const snapshot = await api("/api/conversations/" + conversationId + "/hawm");
+    if (conversationSelect.value !== conversationId) return;
     if (!snapshot) {
       document.getElementById("hawm-status").textContent =
         "No HAWM snapshot saved yet.";
@@ -466,6 +470,7 @@ window.addEventListener("load", async function () {
       return;
     }
     const run = await api("/api/conversations/" + conversationId + "/cfc");
+    if (conversationSelect.value !== conversationId) return;
     if (run && run.case_id === "HAWM_STRUCTURED_CUSTOM") {
       renderCFC(
         run,
@@ -486,6 +491,7 @@ window.addEventListener("load", async function () {
     const conversationId = conversationSelect.value;
     if (!conversationId) { messages.textContent = "Wybierz rozmowę lub utwórz nową."; return; }
     const rows = await api("/api/conversations/" + conversationId + "/messages");
+    if (conversationSelect.value !== conversationId) return;
     currentMessageRows = rows;
     for (const row of rows) {
       const el = document.createElement("div");
@@ -1228,20 +1234,23 @@ window.addEventListener("load", async function () {
             method: "POST",
             body: JSON.stringify({state, last_verified_state: "USER_WORKING_STATE"})
           });
+          if (conversationSelect.value !== conversationId) throw new Error("CONVERSATION_CHANGED_DURING_REVIEW");
           // The old CFC run cannot be presented as bound to the newly saved HAWM state.
           renderCFC(null);
+          document.getElementById("hawm-cfc-result").textContent = "Nowy snapshot zapisany; nowa demonstracja CFC jeszcze nie ukończona.";
           renderScopeSummary(prepared.review_manifest);
           const run = await api(
             "/api/conversations/" + conversationId + "/cfc-from-hawm",
             {method: "POST", body: "{}"}
           );
+          if (conversationSelect.value !== conversationId) throw new Error("CONVERSATION_CHANGED_DURING_REVIEW");
           renderCFC(run, "hawm-cfc-result", "Human-reviewed scope → analogous SYNTHETIC DemoSubject");
-          result.textContent =
+          const finishedMessage =
             "Uruchomiono wyłącznie demonstrację CFC (" + (run.presentation?.decision || "UNKNOWN") +
             "). Snapshot: " + (run.hawm_snapshot_id || "UNKNOWN") +
             ". Żaden wynik nie zatwierdza rzeczywistej sprawy. Źródła poza analogią pozostają poza kontrolą.";
           await loadHAWM();
-          document.getElementById("review-status").textContent = result.textContent;
+          if (conversationSelect.value === conversationId) result.textContent = finishedMessage;
         } catch (error) {
           result.textContent = "Nie uruchomiono pełnej kontroli sprawy: " + error.message +
             ". Sprawdź źródła, ich statusy, powody wyłączenia i zgody.";
