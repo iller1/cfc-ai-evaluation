@@ -177,6 +177,24 @@ class FrontendTests(unittest.TestCase):
         self.assertNotIn("/claude-chat", body)
         self.assertNotIn("/openai-chat", body)
 
+    def test_decision_first_ui_preserves_technical_and_export_paths(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertLess(body.index('id="decision-panel"'), body.index('id="gemini-panel"'))
+        self.assertLess(body.index('id="report-panel"'), body.index('id="gemini-panel"'))
+        self.assertIn('id="hawm-cfc-technical"', body)
+        self.assertIn('id="run-hawm-cfc"', body)
+        self.assertIn('id="export-report"', body)
+        self.assertIn("Tekst rozmowy", body)
+
+    def test_decision_summary_is_derived_from_actual_cfc_presentation(self):
+        status, body, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("function renderDecisionSummary(run)", body)
+        self.assertIn("const decision = p.decision", body)
+        self.assertIn("renderDecisionSummary(run);", body)
+        self.assertIn("source_independence_semantics_valid", body)
+
     def test_hawm_ui_is_present(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
