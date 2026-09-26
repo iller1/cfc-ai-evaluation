@@ -1,0 +1,37 @@
+name: CFC-next 0.3.0a2 peer-controller isolation
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  peer-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run peer relation/context diagnostic
+        run: |
+          python -m research.review_cfc_next_0_3_0a2_peer_controller_isolation
+      - name: Run peer canonical-identity diagnostic
+        run: |
+          python -m research.review_cfc_next_0_3_0a2_peer_identity_isolation
+      - name: Verify peer isolation adjudication
+        run: |
+          python -m research.verify_cfc_next_0_3_0a2_peer_isolation_adjudication
+      - name: Upload peer isolation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfc-next-0.3.0a2-peer-controller-isolation
+          path: |
+            cfc_next_0_3_0a2_peer_controller_isolation.json
+            cfc_next_0_3_0a2_peer_identity_isolation.json
+            cfc_next_0_3_0a2_peer_isolation_adjudication.json
