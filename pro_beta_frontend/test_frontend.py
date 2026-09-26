@@ -236,6 +236,23 @@ class FrontendTests(unittest.TestCase):
             self.assertIn(f'id="review-source-id-{n}"', body)
             self.assertIn(f'id="review-source-status-{n}"', body)
 
+    def test_real_case_preflight_is_separate_from_synthetic_decision(self):
+        status, html, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="real-case-preflight-status"', html)
+        self.assertIn('id="real-case-preflight-details"', html)
+        self.assertIn("Rzeczywista kontrola dokumentów: NIE WYKONANA", html)
+        status, bridge, _ = self.get("/review_bridge.js")
+        self.assertEqual(status, 200)
+        self.assertIn("function assessRealCaseReadiness(manifest)", bridge)
+        self.assertIn('real_cfc_executed: false', bridge)
+        self.assertIn('real_decision_authorized: false', bridge)
+        self.assertIn('REAL_CFC_EVIDENCE_EXECUTION_NOT_CONNECTED', bridge)
+        status, js, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("function renderRealCasePreflight(manifest)", js)
+        self.assertIn("renderRealCasePreflight(manifest);", js)
+
     def test_review_bridge_is_served_as_real_js_and_loaded_before_app(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
