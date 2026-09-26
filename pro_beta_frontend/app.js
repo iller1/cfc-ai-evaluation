@@ -270,6 +270,11 @@ window.addEventListener("load", async function () {
       pre.hidden = false;
     } else {
       selectedReviewMessage = null;
+      document.getElementById("review-model-label").textContent =
+        "Brak dostępnego powiązanego komunikatu AI w bieżącej rozmowie; zakres pozostaje deklaracją użytkownika.";
+      const pre = document.getElementById("review-model-context");
+      pre.textContent = "";
+      pre.hidden = true;
     }
     document.getElementById("review-status").textContent =
       "Wczytano ostatni zapisany przegląd. Aby ponownie uruchomić DEMO, przejrzyj dane i potwierdź dwa pola zgody.";
