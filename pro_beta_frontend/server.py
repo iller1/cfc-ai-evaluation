@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parent
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP_JS = (ROOT / "app.js").read_text(encoding="utf-8")
+REVIEW_BRIDGE_JS = (ROOT / "review_bridge.js").read_text(encoding="utf-8")
 FOUNDING_BETA = (ROOT / "founding_beta.html").read_text(encoding="utf-8")
 FOUNDING_BETA_JS = (ROOT / "founding_beta.js").read_text(encoding="utf-8")
 
@@ -56,6 +57,14 @@ class FrontendHandler(BaseHTTPRequestHandler):
                 html.escape(publishable_key, quote=True),
             ).encode("utf-8")
             self._send(HTTPStatus.OK, body, "text/html; charset=utf-8")
+            return
+
+        if path == "/review_bridge.js":
+            self._send(
+                HTTPStatus.OK,
+                REVIEW_BRIDGE_JS.encode("utf-8"),
+                "application/javascript; charset=utf-8",
+            )
             return
 
         if path == "/app.js":

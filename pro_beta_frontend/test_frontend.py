@@ -220,6 +220,48 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('function renderHAWMSummary(snapshot)', js)
         self.assertIn("MODEL_REPLY_UNCHECKED / CFC NOT_CONNECTED_C2", js)
 
+    def test_review_bridge_visible_after_chat_and_before_synthetic_decision(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertLess(body.index('id="chat-panel"'), body.index('id="review-bridge-panel"'))
+        self.assertLess(body.index('id="review-bridge-panel"'), body.index('id="decision-panel"'))
+        self.assertIn('id="scope-visible-status"', body)
+        self.assertIn('id="run-reviewed-demo"', body)
+        self.assertIn('id="review-universe-confirm"', body)
+        self.assertIn('id="review-synthetic-confirm"', body)
+        self.assertIn('id="review-more-sources"', body)
+        self.assertIn("syntetycznego DemoSubject", body)
+        self.assertIn("2026-09-03", body)
+        for n in range(1, 5):
+            self.assertIn(f'id="review-source-id-{n}"', body)
+            self.assertIn(f'id="review-source-status-{n}"', body)
+
+    def test_review_bridge_is_served_as_real_js_and_loaded_before_app(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertLess(body.index('src="/review_bridge.js"'), body.index('src="/app.js"'))
+        status, script, headers = self.get("/review_bridge.js")
+        self.assertEqual(status, 200)
+        self.assertIn("application/javascript", headers["Content-Type"])
+        self.assertIn("function buildReview(raw)", script)
+        self.assertIn("full_case_authorization: false", script)
+        self.assertIn('independence_authority: "NONE"', script)
+
+    def test_review_bridge_uses_explicit_human_scope_and_never_automatically_verifies_model(self):
+        status, js, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("Użyj jako kontekst przeglądu", js)
+        self.assertIn("ProBetaReviewBridge.buildReview(collectReviewForm())", js)
+        self.assertIn("state.review_manifest = prepared.review_manifest", js)
+        self.assertIn("state.cfc_structured = prepared.cfc_structured", js)
+        self.assertIn("run.hawm_snapshot_id !== savedReviewSnapshot.snapshot_id", js)
+        self.assertIn("REVIEW_SNAPSHOT_MISMATCH_NO_RESULT_DISPLAY", js)
+        self.assertIn('last_verified_state: "USER_WORKING_STATE"', js)
+        self.assertIn('renderCFC(null);', js)
+        self.assertIn("Syntetyczny DemoSubject", js)
+        self.assertIn("nie autoryzuje całej sprawy", js)
+        self.assertIn("function renderScopeSummary(manifest)", js)
+
     def test_decision_first_ui_preserves_technical_and_export_paths(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
@@ -228,7 +270,7 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('id="hawm-cfc-technical"', body)
         self.assertIn('id="run-hawm-cfc"', body)
         self.assertIn('id="export-report"', body)
-        self.assertIn("nie tekst rozmowy", body)
+        self.assertIn("nie autentyczność tekstu rozmowy", body)
 
     def test_decision_summary_is_derived_from_actual_cfc_presentation(self):
         status, body, _ = self.get("/app.js")

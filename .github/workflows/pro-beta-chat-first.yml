@@ -23,6 +23,10 @@ jobs:
         with:
           node-version: "22"
       - name: Check frontend JavaScript syntax
-        run: node --check pro_beta_frontend/app.js
+        run: |
+          node --check pro_beta_frontend/review_bridge.js
+          node --check pro_beta_frontend/app.js
+      - name: Test fail-closed human-reviewed scope mapping
+        run: node --test pro_beta_frontend/test_review_bridge.cjs
       - name: Run frontend contract tests
         run: python -m unittest -v pro_beta_frontend.test_frontend

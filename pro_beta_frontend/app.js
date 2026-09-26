@@ -8,6 +8,8 @@ window.addEventListener("load", async function () {
   const conversationSelect = document.getElementById("conversation-select");
   const status = document.getElementById("workspace-status");
   const messages = document.getElementById("messages");
+  let selectedReviewMessage = null;
+  let currentMessageRows = [];
   const attachmentInput = document.getElementById("attachment-input");
   const attachmentPreview = document.getElementById("attachment-preview");
   const attachmentRemove = document.getElementById("remove-attachment");
@@ -191,6 +193,116 @@ window.addEventListener("load", async function () {
     }
   }
 
+
+  function renderScopeSummary(manifest) {
+    const target = document.getElementById("scope-visible-status");
+    if (!manifest || manifest.manifest_version !== "HUMAN_REVIEWED_SYNTHETIC_DEMO_V1") {
+      target.textContent = "Brak przeglądu źródeł. Dotychczasowe uruchomienia CFC są wyłącznie demonstracją na danych syntetycznych.";
+      return;
+    }
+    const included = Array.isArray(manifest.mapped_source_ids) ? manifest.mapped_source_ids : [];
+    const excluded = Array.isArray(manifest.excluded_source_ids) ? manifest.excluded_source_ids : [];
+    const open = Array.isArray(manifest.open_issue_source_ids) ? manifest.open_issue_source_ids : [];
+    target.textContent = [
+      "Zapisana deklaracja użytkownika: " + (manifest.source_records || []).length + " źródeł.",
+      "Analogia syntetyczna obejmuje wyłącznie: " + included.join(", ") + ".",
+      excluded.length ? "Poza analogią: " + excluded.join(", ") + "." : "",
+      open.length ? "Nierozstrzygnięte kwestie POZA wynikiem CFC: " + open.join(", ") + "." : "",
+      "Referencyjna data demonstratora: 2026-09-03. Daty prawdziwych dokumentów NIE zostały sprawdzone.",
+      "Brak trwałego powiązania wcześniejszego wyniku CFC z konkretnym snapshotem w aktualnym schemacie. Żaden wynik nie autoryzuje całej sprawy."
+    ].filter(Boolean).join("\n");
+  }
+
+  function resetReviewDraft() {
+    selectedReviewMessage = null;
+    document.getElementById("review-model-label").textContent = "Nie wybrano odpowiedzi AI. Możesz także wypełnić formularz ręcznie.";
+    const context = document.getElementById("review-model-context");
+    context.textContent = "";
+    context.hidden = true;
+    document.getElementById("review-claim").value = "";
+    for (let n = 1; n <= 4; n++) {
+      for (const field of ["id", "date", "status", "reason"]) {
+        document.getElementById("review-source-" + field + "-" + n).value = "";
+      }
+      document.getElementById("review-source-polarity-" + n).value = "POSITIVE";
+      document.getElementById("review-source-validity-" + n).value = "CURRENT";
+    }
+    document.getElementById("review-required").value = "2";
+    document.getElementById("review-relation").value = "UNRESOLVED";
+    document.getElementById("review-more-sources").checked = false;
+    document.getElementById("review-universe-confirm").checked = false;
+    document.getElementById("review-synthetic-confirm").checked = false;
+    document.getElementById("review-status").textContent = "Brak zatwierdzonego mapowania.";
+    renderScopeSummary(null);
+  }
+
+  function applyReviewManifest(manifest) {
+    if (!manifest || manifest.manifest_version !== "HUMAN_REVIEWED_SYNTHETIC_DEMO_V1") {
+      renderScopeSummary(null);
+      return;
+    }
+    renderScopeSummary(manifest);
+    document.getElementById("review-claim").value = manifest.claim_label_for_human_reference_only || "";
+    const settings = manifest.analogous_settings || {};
+    document.getElementById("review-required").value = String(settings.required_independent_supports || 2);
+    document.getElementById("review-relation").value = settings.provenance_shape || "UNRESOLVED";
+    const records = Array.isArray(manifest.source_records) ? manifest.source_records : [];
+    for (let n = 1; n <= 4; n++) {
+      const row = records[n - 1] || {};
+      document.getElementById("review-source-id-" + n).value = row.id || "";
+      document.getElementById("review-source-date-" + n).value = row.source_date || "";
+      document.getElementById("review-source-status-" + n).value = row.disposition || "";
+      document.getElementById("review-source-reason-" + n).value = row.reason || "";
+      document.getElementById("review-source-polarity-" + n).value = row.demo_polarity || "POSITIVE";
+      document.getElementById("review-source-validity-" + n).value = row.demo_validity || "CURRENT";
+    }
+    // Do not silently reuse old consent for a new run.
+    document.getElementById("review-universe-confirm").checked = false;
+    document.getElementById("review-synthetic-confirm").checked = false;
+    const contextId = manifest.model_reply_context_message_id || "";
+    const related = currentMessageRows.find(m => m.message_id === contextId && m.provider);
+    if (related) {
+      selectedReviewMessage = {id: related.message_id, provider: related.provider};
+      document.getElementById("review-model-label").textContent =
+        "Zapisany kontekst: " + related.provider + " · " + related.message_id;
+      const pre = document.getElementById("review-model-context");
+      pre.textContent = String(related.content || "").slice(0, 4000);
+      pre.hidden = false;
+    } else {
+      selectedReviewMessage = null;
+      document.getElementById("review-model-label").textContent =
+        "Brak dostępnego powiązanego komunikatu AI w bieżącej rozmowie; zakres pozostaje deklaracją użytkownika.";
+      const pre = document.getElementById("review-model-context");
+      pre.textContent = "";
+      pre.hidden = true;
+    }
+    document.getElementById("review-status").textContent =
+      "Wczytano ostatni zapisany przegląd. Aby ponownie uruchomić DEMO, przejrzyj dane i potwierdź dwa pola zgody.";
+  }
+
+  function collectReviewForm() {
+    return {
+      claimLabel: document.getElementById("review-claim").value,
+      sourceMessageId: selectedReviewMessage ? selectedReviewMessage.id : "",
+      required: document.getElementById("review-required").value,
+      relation: document.getElementById("review-relation").value,
+      moreSources: document.getElementById("review-more-sources").checked,
+      universeConfirmed: document.getElementById("review-universe-confirm").checked,
+      syntheticConfirmed: document.getElementById("review-synthetic-confirm").checked,
+      records: Array.from({length: 4}, (_, index) => {
+        const n = index + 1;
+        return {
+          id: document.getElementById("review-source-id-" + n).value,
+          date: document.getElementById("review-source-date-" + n).value,
+          disposition: document.getElementById("review-source-status-" + n).value,
+          reason: document.getElementById("review-source-reason-" + n).value,
+          polarity: document.getElementById("review-source-polarity-" + n).value,
+          validity: document.getElementById("review-source-validity-" + n).value
+        };
+      })
+    };
+  }
+
   function hawmFields() {
     return {
       goal: document.getElementById("hawm-goal"),
@@ -259,6 +371,9 @@ window.addEventListener("load", async function () {
     if (state.goal) lines.push("Cel: " + state.goal);
     if (state.task) lines.push("Zadanie: " + state.task);
     if (state.unresolved) lines.push("Otwarte kwestie: " + state.unresolved);
+    if (state.review_manifest && state.review_manifest.manifest_version === "HUMAN_REVIEWED_SYNTHETIC_DEMO_V1") {
+      lines.push("Przegląd źródeł: " + (state.review_manifest.source_records || []).length + " zadeklarowanych; tylko analogia syntetyczna.");
+    }
     lines.push("Stan roboczy użytkownika. Nie stanowi weryfikacji treści.");
     target.textContent = lines.join("\n");
   }
@@ -277,6 +392,7 @@ window.addEventListener("load", async function () {
     const conversationId = conversationSelect.value;
     if (!conversationId) return;
     const snapshot = await api("/api/conversations/" + conversationId + "/hawm");
+    if (conversationSelect.value !== conversationId) return;
     if (!snapshot) {
       document.getElementById("hawm-status").textContent =
         "No HAWM snapshot saved yet.";
@@ -288,6 +404,7 @@ window.addEventListener("load", async function () {
       field.value = state[name] || "";
     }
     applyStructuredCFCState(state.cfc_structured);
+    applyReviewManifest(state.review_manifest);
     renderHAWMSummary(snapshot);
     document.getElementById("hawm-status").textContent =
       "Loaded HAWM snapshot · " + snapshot.last_verified_state;
@@ -300,21 +417,21 @@ window.addEventListener("load", async function () {
     const next = document.getElementById("decision-next");
     panel.dataset.decision = "NONE";
     if (!run || !run.presentation) {
-      heading.textContent = "Wynik kontroli";
+      heading.textContent = "Wynik demonstratora CFC";
       message.textContent = "Brak wyniku CFC dla wybranej rozmowy.";
-      next.textContent = "Następny krok: wprowadź dane strukturalne w HAWM i uruchom kontrolę.";
+      next.textContent = "Następny krok: przygotuj ręcznie zakres analogii i uruchom demonstrator albo użyj ustawień technicznych.";
       return;
     }
     const p = run.presentation;
     const decision = p.decision || "UNKNOWN";
     panel.dataset.decision = decision;
     if (decision === "ALLOW") {
-      heading.textContent = "Kontrola pozwala na zamknięcie";
-      message.textContent = "W zadanym zakresie kontroler zwrócił ALLOW. Stan twierdzenia: " + (p.claim_state || "NONE") + ".";
-      next.textContent = "Sprawdź zakres kontroli przed podjęciem działania.";
+      heading.textContent = "DEMO CFC: ALLOW (tylko przypadek syntetyczny)";
+      message.textContent = "Kontroler zwrócił ALLOW dla syntetycznego DemoSubject. Stan syntetycznego twierdzenia: " + (p.claim_state || "NONE") + ". To NIE jest zatwierdzenie rzeczywistych dokumentów.";
+      next.textContent = "Nie podejmuj rzeczywistej decyzji na podstawie demonstracyjnego ALLOW. Potrzebna osobna weryfikacja źródeł i kompletnego zakresu.";
     } else if (decision === "STOP") {
-      heading.textContent = "Decyzja wstrzymana";
-      message.textContent = "CFC nie autoryzował zamknięcia. Stan twierdzenia: " + (p.claim_state || "NONE") + ".";
+      heading.textContent = "DEMO CFC: STOP (przypadek syntetyczny)";
+      message.textContent = "CFC nie domknął demonstracyjnego przypadku. Stan syntetycznego twierdzenia: " + (p.claim_state || "NONE") + ".";
       const gates = Array.isArray(p.false_gates) ? p.false_gates : [];
       next.textContent = gates.includes("source_independence_semantics_valid") ?
         "Następny krok: sprawdź niezależność źródeł i pozostałe niespełnione warunki w szczegółach technicznych." :
@@ -326,8 +443,8 @@ window.addEventListener("load", async function () {
     }
     document.getElementById("decision-boundary").textContent =
       run.case_id === "HAWM_STRUCTURED_CUSTOM" ?
-      "Kontrola dotyczy tylko jawnych pól strukturalnych HAWM. Tekst rozmowy i pola opisowe nie były weryfikowane przez CFC." :
-      "To wynik przygotowanego scenariusza syntetycznego, a nie kontrola tekstu rozmowy.";
+      "Syntetyczny DemoSubject i syntetyczne poświadczenia. Tylko jawne pola HAWM są mapowane na demonstrator; nie tekst rozmowy, prawdziwe daty ani dokumenty." :
+      "Przygotowany scenariusz syntetyczny; nie jest to audyt rzeczywistych dokumentów ani tekstu rozmowy.";
   }
 
   function renderCFC(run, targetId = "cfc-result", label = "Prepared synthetic fixture") {
@@ -358,6 +475,7 @@ window.addEventListener("load", async function () {
       return;
     }
     const run = await api("/api/conversations/" + conversationId + "/cfc");
+    if (conversationSelect.value !== conversationId) return;
     if (run && run.case_id === "HAWM_STRUCTURED_CUSTOM") {
       renderCFC(
         run,
@@ -378,6 +496,8 @@ window.addEventListener("load", async function () {
     const conversationId = conversationSelect.value;
     if (!conversationId) { messages.textContent = "Wybierz rozmowę lub utwórz nową."; return; }
     const rows = await api("/api/conversations/" + conversationId + "/messages");
+    if (conversationSelect.value !== conversationId) return;
+    currentMessageRows = rows;
     for (const row of rows) {
       const el = document.createElement("div");
       el.className = "message " + (row.role === "user" ? "user" : "assistant");
@@ -406,6 +526,24 @@ window.addEventListener("load", async function () {
         }
       });
       actions.appendChild(copy);
+      if (row.provider) {
+        const choose = document.createElement("button");
+        choose.type = "button";
+        choose.textContent = "Użyj jako kontekst przeglądu";
+        choose.className = "copy-message";
+        choose.addEventListener("click", () => {
+          selectedReviewMessage = {id: row.message_id, provider: row.provider};
+          document.getElementById("review-model-label").textContent =
+            "Kontekst analizy AI: " + row.provider + " · " + row.message_id +
+            " · MODEL_REPLY_UNCHECKED (mapowanie ręczne)";
+          const pre = document.getElementById("review-model-context");
+          pre.textContent = String(row.content || "").slice(0, 4000);
+          pre.hidden = false;
+          document.getElementById("review-bridge-panel").open = true;
+          document.getElementById("review-bridge-panel").scrollIntoView({behavior: "smooth", block: "start"});
+        });
+        actions.appendChild(choose);
+      }
       el.appendChild(content);
       el.appendChild(meta);
       el.appendChild(actions);
@@ -703,6 +841,8 @@ window.addEventListener("load", async function () {
 
   async function loadConversations() {
     clearAttachment();
+    currentMessageRows = [];
+    resetReviewDraft();
     const workspaceId = workspaceSelect.value;
     if (!workspaceId) {
       conversationSelect.innerHTML = "";
@@ -899,6 +1039,8 @@ window.addEventListener("load", async function () {
       });
       conversationSelect.addEventListener("change", async () => {
         clearAttachment();
+        currentMessageRows = [];
+        resetReviewDraft();
         await loadMessages();
         await loadHAWM();
         await loadCFC();
@@ -1071,6 +1213,60 @@ window.addEventListener("load", async function () {
       });
 
       updateOpenAIStatus();
+
+
+      document.getElementById("open-review").addEventListener("click", () => {
+        const panel = document.getElementById("review-bridge-panel");
+        panel.open = true;
+        panel.scrollIntoView({behavior: "smooth", block: "start"});
+      });
+      document.getElementById("run-reviewed-demo").addEventListener("click", async () => {
+        const result = document.getElementById("review-status");
+        const button = document.getElementById("run-reviewed-demo");
+        if (button.disabled) return;
+        try {
+          const conversationId = conversationSelect.value;
+          if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+          if (!window.ProBetaReviewBridge) throw new Error("REVIEW_BRIDGE_NOT_AVAILABLE");
+          const prepared = window.ProBetaReviewBridge.buildReview(collectReviewForm());
+          button.disabled = true;
+          result.textContent = "Zapisuję zadeklarowany zakres i uruchamiam analogiczny przypadek syntetyczny…";
+          const state = {};
+          for (const [name, field] of Object.entries(hawmFields())) state[name] = field.value.trim();
+          state.review_manifest = prepared.review_manifest;
+          state.cfc_structured = prepared.cfc_structured;
+          const savedReviewSnapshot = await api("/api/conversations/" + conversationId + "/hawm", {
+            method: "POST",
+            body: JSON.stringify({state, last_verified_state: "USER_WORKING_STATE"})
+          });
+          if (!savedReviewSnapshot.snapshot_id) throw new Error("REVIEW_SNAPSHOT_ID_REQUIRED");
+          if (conversationSelect.value !== conversationId) throw new Error("CONVERSATION_CHANGED_DURING_REVIEW");
+          // The old CFC run cannot be presented as bound to the newly saved HAWM state.
+          renderCFC(null);
+          document.getElementById("hawm-cfc-result").textContent = "Nowy snapshot zapisany; nowa demonstracja CFC jeszcze nie ukończona.";
+          renderScopeSummary(prepared.review_manifest);
+          const run = await api(
+            "/api/conversations/" + conversationId + "/cfc-from-hawm",
+            {method: "POST", body: "{}"}
+          );
+          if (conversationSelect.value !== conversationId) throw new Error("CONVERSATION_CHANGED_DURING_REVIEW");
+          if (run.hawm_snapshot_id !== savedReviewSnapshot.snapshot_id) {
+            throw new Error("REVIEW_SNAPSHOT_MISMATCH_NO_RESULT_DISPLAY");
+          }
+          renderCFC(run, "hawm-cfc-result", "Human-reviewed scope → analogous SYNTHETIC DemoSubject");
+          const finishedMessage =
+            "Uruchomiono wyłącznie demonstrację CFC (" + (run.presentation?.decision || "UNKNOWN") +
+            "). Snapshot: " + (run.hawm_snapshot_id || "UNKNOWN") +
+            ". Żaden wynik nie zatwierdza rzeczywistej sprawy. Źródła poza analogią pozostają poza kontrolą.";
+          await loadHAWM();
+          if (conversationSelect.value === conversationId) result.textContent = finishedMessage;
+        } catch (error) {
+          result.textContent = "Nie można przypisać wyniku do tego przeglądu: " + error.message +
+            ". Sprawdź źródła, ich statusy, powody wyłączenia i zgody.";
+        } finally {
+          button.disabled = false;
+        }
+      });
 
       document.getElementById("save-hawm").addEventListener("click", async () => {
         const hawmStatus = document.getElementById("hawm-status");

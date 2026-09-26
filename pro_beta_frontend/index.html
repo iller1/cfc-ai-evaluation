@@ -35,6 +35,12 @@
     #remove-attachment[hidden] { display:none; }
     details.panel > summary { font-size:17px; }
     .message .meta { margin-top:7px; }
+    .review-record { border:1px solid #475569; border-radius:9px; padding:9px; margin:12px 0; }
+    .review-record label { display:grid; gap:4px; font-size:13px; }
+    .review-record input { max-width:100%; box-sizing:border-box; }
+    #review-bridge-panel input[type="checkbox"] { flex:0 0 auto; }
+    #review-bridge-panel label.row { align-items:center; }
+    #review-bridge-panel summary { font-size:17px; }
     #hawm-summary { white-space:pre-wrap; }
     @media(max-width:600px) { main { padding:12px; width:95vw; box-sizing:border-box; } .message { max-width:96%; } }
     .meta { font-size:12px; color:#94a3b8; }
@@ -98,11 +104,115 @@
         </div>
         <p id="workspace-status" role="status"></p>
       </section>
+      <details id="review-bridge-panel" class="panel">
+        <summary>Przygotuj zakres demonstracji CFC z rozmowy (ręczna ocena źródeł)</summary>
+        <p class="plain-note">To nie jest automatyczne sprawdzanie odpowiedzi AI. Wybierz jej wiadomość jako kontekst, następnie samodzielnie wypisz znane źródła i zdecyduj, które DWA lub jedno wchodzą do demonstracyjnej analogii.</p>
+        <p class="boundary">WAŻNE: aktualny adapter CFC działa dla syntetycznego DemoSubject, z demonstracyjnymi poświadczeniami i datą odniesienia 2026-09-03. Nie używa rzeczywistych dat ani treści dokumentów. Wynik ALLOW nie stanowi zgody na rzeczywistą decyzję i nie jest audytem partii NW-0926.</p>
+        <p id="review-model-label" class="plain-note">Nie wybrano odpowiedzi AI. Możesz także wypełnić formularz ręcznie.</p>
+        <pre id="review-model-context" class="attachment-excerpt" hidden></pre>
+        <label>Rozpatrywane twierdzenie (etykieta dla człowieka, nie wejście do CFC):
+          <input id="review-claim" maxlength="160" style="width:min(100%,580px)" placeholder="np. Czy dostawa może zostać zatwierdzona?">
+        </label>
+        <fieldset class="review-record">
+          <legend>Źródło 1</legend>
+          <div class="row">
+            <label>Oznaczenie <input id="review-source-id-1" maxlength="64" placeholder="np. dokument A"></label>
+            <label>Data źródła (informacyjnie) <input id="review-source-date-1" type="date"></label>
+            <label>Rola <select id="review-source-status-1">
+              <option value="">— brak / wybierz —</option>
+              <option value="INCLUDE">Do analogii CFC (maks. 2)</option>
+              <option value="EXCLUDE">Poza zakresem analogii</option>
+              <option value="OPEN_ISSUE">Otwarta kwestia / sprzeczność</option>
+            </select></label>
+          </div>
+          <div class="row">
+            <label>Polaryzacja w DEMO <select id="review-source-polarity-1"><option value="POSITIVE">POSITIVE</option><option value="NEGATIVE">NEGATIVE</option></select></label>
+            <label>Ważność w DEMO <select id="review-source-validity-1"><option value="CURRENT">CURRENT</option><option value="STALE">STALE</option></select></label>
+            <label>Powód wyłączenia / uwaga <input id="review-source-reason-1" maxlength="400" placeholder="Dlaczego źródło nie wchodzi do analogii?"></label>
+          </div>
+        </fieldset>
+        <fieldset class="review-record">
+          <legend>Źródło 2</legend>
+          <div class="row">
+            <label>Oznaczenie <input id="review-source-id-2" maxlength="64" placeholder="np. dokument B"></label>
+            <label>Data źródła (informacyjnie) <input id="review-source-date-2" type="date"></label>
+            <label>Rola <select id="review-source-status-2">
+              <option value="">— brak / wybierz —</option>
+              <option value="INCLUDE">Do analogii CFC (maks. 2)</option>
+              <option value="EXCLUDE">Poza zakresem analogii</option>
+              <option value="OPEN_ISSUE">Otwarta kwestia / sprzeczność</option>
+            </select></label>
+          </div>
+          <div class="row">
+            <label>Polaryzacja w DEMO <select id="review-source-polarity-2"><option value="POSITIVE">POSITIVE</option><option value="NEGATIVE">NEGATIVE</option></select></label>
+            <label>Ważność w DEMO <select id="review-source-validity-2"><option value="CURRENT">CURRENT</option><option value="STALE">STALE</option></select></label>
+            <label>Powód wyłączenia / uwaga <input id="review-source-reason-2" maxlength="400" placeholder="Dlaczego źródło nie wchodzi do analogii?"></label>
+          </div>
+        </fieldset>
+        <fieldset class="review-record">
+          <legend>Źródło 3</legend>
+          <div class="row">
+            <label>Oznaczenie <input id="review-source-id-3" maxlength="64" placeholder="np. dokument C"></label>
+            <label>Data źródła (informacyjnie) <input id="review-source-date-3" type="date"></label>
+            <label>Rola <select id="review-source-status-3">
+              <option value="">— brak / wybierz —</option>
+              <option value="INCLUDE">Do analogii CFC (maks. 2)</option>
+              <option value="EXCLUDE">Poza zakresem analogii</option>
+              <option value="OPEN_ISSUE">Otwarta kwestia / sprzeczność</option>
+            </select></label>
+          </div>
+          <div class="row">
+            <label>Polaryzacja w DEMO <select id="review-source-polarity-3"><option value="POSITIVE">POSITIVE</option><option value="NEGATIVE">NEGATIVE</option></select></label>
+            <label>Ważność w DEMO <select id="review-source-validity-3"><option value="CURRENT">CURRENT</option><option value="STALE">STALE</option></select></label>
+            <label>Powód wyłączenia / uwaga <input id="review-source-reason-3" maxlength="400" placeholder="Dlaczego źródło nie wchodzi do analogii?"></label>
+          </div>
+        </fieldset>
+        <fieldset class="review-record">
+          <legend>Źródło 4</legend>
+          <div class="row">
+            <label>Oznaczenie <input id="review-source-id-4" maxlength="64" placeholder="np. dokument D"></label>
+            <label>Data źródła (informacyjnie) <input id="review-source-date-4" type="date"></label>
+            <label>Rola <select id="review-source-status-4">
+              <option value="">— brak / wybierz —</option>
+              <option value="INCLUDE">Do analogii CFC (maks. 2)</option>
+              <option value="EXCLUDE">Poza zakresem analogii</option>
+              <option value="OPEN_ISSUE">Otwarta kwestia / sprzeczność</option>
+            </select></label>
+          </div>
+          <div class="row">
+            <label>Polaryzacja w DEMO <select id="review-source-polarity-4"><option value="POSITIVE">POSITIVE</option><option value="NEGATIVE">NEGATIVE</option></select></label>
+            <label>Ważność w DEMO <select id="review-source-validity-4"><option value="CURRENT">CURRENT</option><option value="STALE">STALE</option></select></label>
+            <label>Powód wyłączenia / uwaga <input id="review-source-reason-4" maxlength="400" placeholder="Dlaczego źródło nie wchodzi do analogii?"></label>
+          </div>
+        </fieldset>
+        <div class="row">
+          <label>Wymagane niezależne potwierdzenia w analogii
+            <select id="review-required"><option value="1">1</option><option value="2" selected>2</option></select>
+          </label>
+          <label>Relacja dwóch wybranych źródeł
+            <select id="review-relation">
+              <option value="UNRESOLVED">Nieustalona (blokuje demonstrację)</option>
+              <option value="SHARED_LINEAGE">Wspólne pochodzenie</option>
+              <option value="DISTINCT">Odrębne pochodzenie (NIE dowodzi niezależności)</option>
+            </select>
+          </label>
+        </div>
+        <p class="meta">Brak opcji certyfikacji niezależności: ta ścieżka zawsze przekazuje independence_authority=NONE. Ustalanie rzeczywistej niezależności źródeł wymaga osobnego procesu dowodowego.</p>
+        <label class="row"><input id="review-more-sources" type="checkbox"> Znam więcej niż cztery źródła — wówczas tego demonstratora NIE można uruchomić jako reprezentacji mojej listy.</label>
+        <label class="row"><input id="review-universe-confirm" type="checkbox"> Wypisałem wszystkie znane mi źródła w tej sprawie (moja deklaracja, nie zewnętrzna weryfikacja kompletności).</label>
+        <label class="row"><input id="review-synthetic-confirm" type="checkbox"> Rozumiem, że uruchamiam tylko analogiczny przypadek syntetyczny, a nie kontrolę autentyczności, dat ani pełnej sprawy.</label>
+        <div class="row">
+          <button id="run-reviewed-demo" class="primary-action" type="button">Zapisz zakres i uruchom DEMO CFC</button>
+        </div>
+        <p id="review-status" role="status" aria-live="polite">Brak zatwierdzonego mapowania.</p>
+      </details>
       <section id="decision-panel" class="panel decision-card" data-decision="NONE" aria-live="polite">
-        <h2 id="decision-heading">Wynik kontroli</h2>
+        <h2 id="decision-heading">Wynik demonstratora CFC</h2>
         <p id="decision-message">Wybierz rozmowę i uruchom kontrolę CFC. Odpowiedzi modeli AI nie są wynikiem CFC.</p>
-        <p id="decision-next" class="plain-note">Następny krok: wprowadź jawne dane strukturalne w sekcji HAWM.</p>
-        <p id="decision-boundary" class="meta">CFC sprawdza wyłącznie jawnie ustrukturyzowane dane, nie tekst rozmowy ani załączniki.</p>
+        <p id="decision-next" class="plain-note">Następny krok: przygotuj jawne mapowanie albo uruchom demonstrację w ustawieniach.</p>
+        <p id="scope-visible-status" class="plain-note">Brak zadeklarowanego zakresu. Żaden wynik demonstratora nie zatwierdza rzeczywistej dostawy.</p>
+        <button id="open-review" type="button">Przygotuj mapowanie źródeł</button>
+        <p id="decision-boundary" class="meta">Demo sprawdza syntetyczne wejście, nie autentyczność tekstu rozmowy, dokumentów ani uprawnienie do rzeczywistej decyzji.</p>
       </section>
       <section id="hawm-summary-panel" class="panel">
         <h2>Aktualny stan HAWM</h2>
@@ -357,6 +467,7 @@
     src="https://alert-bear-8010.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js"
     type="text/javascript"
   ></script>
+  <script src="/review_bridge.js" defer></script>
   <script src="/app.js" defer></script>
 </body>
 </html>
