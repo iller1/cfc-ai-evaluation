@@ -1249,23 +1249,37 @@ window.addEventListener("load", async function () {
           const conversationId = conversationSelect.value;
           if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
           if (!window.ProBetaReviewBridge) throw new Error("REVIEW_BRIDGE_NOT_AVAILABLE");
-          const prepared = window.ProBetaReviewBridge.buildReview(collectReviewForm());
+          const review = collectReviewForm();
+          // Client-side validation is only early feedback; server derives canonical fields.
+          window.ProBetaReviewBridge.buildReview(review);
           button.disabled = true;
-          result.textContent = "Zapisuję zadeklarowany zakres i uruchamiam analogiczny przypadek syntetyczny…";
-          const state = {};
-          for (const [name, field] of Object.entries(hawmFields())) state[name] = field.value.trim();
-          state.review_manifest = prepared.review_manifest;
-          state.cfc_structured = prepared.cfc_structured;
-          const savedReviewSnapshot = await api("/api/conversations/" + conversationId + "/hawm", {
-            method: "POST",
-            body: JSON.stringify({state, last_verified_state: "USER_WORKING_STATE"})
-          });
-          if (!savedReviewSnapshot.snapshot_id) throw new Error("REVIEW_SNAPSHOT_ID_REQUIRED");
+          result.textContent = "Serwer sprawdza zakres źródeł i zapisuje deklarację użytkownika…";
+          const workingState = {};
+          for (const [name, field] of Object.entries(hawmFields())) {
+            workingState[name] = field.value.trim();
+          }
+          const savedReviewSnapshot = await api(
+            "/api/conversations/" + conversationId + "/reviewed-demo-scope",
+            {
+              method: "POST",
+              body: JSON.stringify({review, working_state: workingState})
+            }
+          );
+          if (!savedReviewSnapshot.snapshot_id ||
+              savedReviewSnapshot.status !== "USER_DECLARATION_SCHEMA_VALIDATED_NOT_SOURCE_VERIFIED" ||
+              savedReviewSnapshot.real_case_status !== "REAL_CASE_NOT_CHECKED" ||
+              !savedReviewSnapshot.review_manifest ||
+              savedReviewSnapshot.review_manifest.full_case_authorization !== false ||
+              savedReviewSnapshot.review_manifest.server_validation !==
+                "SCHEMA_ONLY_USER_DECLARATION_NOT_EVIDENCE_VERIFICATION" ||
+              savedReviewSnapshot.cfc_structured?.independence_authority !== "NONE") {
+            throw new Error("REVIEW_SERVER_BOUNDARY_NOT_CONFIRMED");
+          }
           if (conversationSelect.value !== conversationId) throw new Error("CONVERSATION_CHANGED_DURING_REVIEW");
           // The old CFC run cannot be presented as bound to the newly saved HAWM state.
           renderCFC(null);
-          document.getElementById("hawm-cfc-result").textContent = "Nowy snapshot zapisany; nowa demonstracja CFC jeszcze nie ukończona.";
-          renderScopeSummary(prepared.review_manifest);
+          document.getElementById("hawm-cfc-result").textContent = "Serwer zapisał zadeklarowany zakres; demonstracja CFC jeszcze nie ukończona.";
+          renderScopeSummary(savedReviewSnapshot.review_manifest);
           const run = await api(
             "/api/conversations/" + conversationId + "/cfc-from-hawm",
             {method: "POST", body: "{}"}
