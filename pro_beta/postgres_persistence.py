@@ -435,7 +435,8 @@ class PostgresPersistence:
             """
             select run_id, conversation_id, case_id, controller_anchor,
                    controller_result, presentation,
-                   replay_matches_reference, created_at::text
+                   replay_matches_reference, created_at::text,
+                   hawm_snapshot_id
             from cfc_runs
             where conversation_id = %s
             order by created_at, run_id
@@ -452,19 +453,30 @@ class PostgresPersistence:
                 presentation=r[5],
                 replay_matches_reference=r[6],
                 created_at=r[7],
+                hawm_snapshot_id=r[8],
             )
             for r in rows
         ]
 
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun:
         self._assert_conversation_owned(user_id, run.conversation_id)
+        if run.hawm_snapshot_id is not None:
+            row = self._one(
+                "select conversation_id from hawm_snapshots where snapshot_id = %s",
+                (run.hawm_snapshot_id,),
+            )
+            if row is None:
+                raise NotFoundError("HAWM_SNAPSHOT_NOT_FOUND")
+            if row[0] != run.conversation_id:
+                raise OwnershipError("HAWM_SNAPSHOT_CONVERSATION_MISMATCH")
+        # Composite FK additionally protects against concurrent cross-scope writes.
         self._execute(
             """
             insert into cfc_runs
                 (run_id, conversation_id, case_id, controller_anchor,
                  controller_result, presentation, replay_matches_reference,
-                 created_at)
-            values (%s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s)
+                 created_at, hawm_snapshot_id)
+            values (%s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s)
             """,
             (
                 run.run_id,
@@ -475,6 +487,7 @@ class PostgresPersistence:
                 json.dumps(run.presentation, ensure_ascii=False),
                 run.replay_matches_reference,
                 run.created_at,
+                run.hawm_snapshot_id,
             ),
         )
         return run
