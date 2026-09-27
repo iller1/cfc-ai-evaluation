@@ -47,6 +47,7 @@ jobs:
           pro_beta.test_contracts
           pro_beta.test_api
           pro_beta.test_db_bootstrap
+          pro_beta.test_binding_schema_migration
           pro_beta.test_auth_boundary
           pro_beta.test_persistence
           pro_beta.test_postgres_persistence
