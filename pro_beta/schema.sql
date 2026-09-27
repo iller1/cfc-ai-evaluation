@@ -58,6 +58,29 @@ create table if not exists cfc_runs (
   created_at timestamptz not null default now()
 );
 
+-- Historical runs remain NULL/unbound. Never backfill by matching timestamps.
+alter table cfc_runs add column if not exists hawm_snapshot_id text;
+
+-- Composite key prevents a run in conversation X from referencing a snapshot
+-- in conversation Y, including direct database writes (PostgreSQL >= 15).
+create unique index if not exists uq_hawm_snapshot_conversation
+  on hawm_snapshots(snapshot_id, conversation_id);
+
+do $binding$
+begin
+  if not exists (
+    select 1 from pg_catalog.pg_constraint
+    where conname = 'fk_cfc_run_owned_hawm_snapshot'
+      and conrelid = 'cfc_runs'::regclass
+  ) then
+    alter table cfc_runs add constraint fk_cfc_run_owned_hawm_snapshot
+      foreign key (hawm_snapshot_id, conversation_id)
+      references hawm_snapshots(snapshot_id, conversation_id)
+      on delete set null (hawm_snapshot_id);
+  end if;
+end
+$binding$;
+
 create table if not exists audit_reports (
   report_id text primary key,
   conversation_id text not null references conversations(conversation_id) on delete cascade,
