@@ -273,6 +273,111 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
         self.assertEqual(presentation["decision"], "STOP")
         self.assertNotEqual(raw, presentation)
 
+    def test_postgres_run_has_durable_owned_snapshot_reference(self):
+        from pro_beta.persistence import NotFoundError
+        snap_a = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "actual run input"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        snap_b = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_b.conversation_id,
+            state={"goal": "other owner"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, snap_a)
+        self.store.add_hawm_snapshot(self.user_b.user_id, snap_b)
+        run = CFCRun(
+            run_id=new_id("cfc"),
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="HAWM_STRUCTURED_CUSTOM",
+            controller_anchor="0.2.90rc1",
+            controller_result={"control_closure": False},
+            presentation={"decision": "STOP"},
+            hawm_snapshot_id=snap_a.snapshot_id,
+        )
+        self.store.add_cfc_run(self.user_a.user_id, run)
+        rows = self.store.list_cfc_runs(
+            self.user_a.user_id, self.conversation_a.conversation_id
+        )
+        self.assertEqual(rows[-1].hawm_snapshot_id, snap_a.snapshot_id)
+        with self.connection.cursor() as cur:
+            cur.execute(
+                "select hawm_snapshot_id from cfc_runs where run_id = %s",
+                (run.run_id,),
+            )
+            self.assertEqual(cur.fetchone()[0], snap_a.snapshot_id)
+        with self.assertRaises(OwnershipError):
+            self.store.add_cfc_run(
+                self.user_a.user_id,
+                CFCRun(
+                    run_id=new_id("cfc"),
+                    conversation_id=self.conversation_a.conversation_id,
+                    case_id="HAWM_STRUCTURED_CUSTOM",
+                    controller_anchor="0.2.90rc1",
+                    controller_result={}, presentation={},
+                    hawm_snapshot_id=snap_b.snapshot_id,
+                ),
+            )
+        with self.assertRaises(NotFoundError):
+            self.store.add_cfc_run(
+                self.user_a.user_id,
+                CFCRun(
+                    run_id=new_id("cfc"),
+                    conversation_id=self.conversation_a.conversation_id,
+                    case_id="HAWM_STRUCTURED_CUSTOM",
+                    controller_anchor="0.2.90rc1",
+                    controller_result={}, presentation={},
+                    hawm_snapshot_id="hawm_does_not_exist",
+                ),
+            )
+
+        # Test the DATABASE boundary even if an adapter bypasses its check.
+        from psycopg.errors import ForeignKeyViolation
+        with self.assertRaises(ForeignKeyViolation):
+            with self.connection.cursor() as cur:
+                cur.execute(
+                    """
+                    insert into cfc_runs (
+                        run_id, conversation_id, case_id, controller_anchor,
+                        controller_result, presentation, hawm_snapshot_id
+                    ) values (%s,%s,%s,%s,'{}'::jsonb,'{}'::jsonb,%s)
+                    """,
+                    (
+                        new_id("cfc"), self.conversation_a.conversation_id,
+                        "HAWM_STRUCTURED_CUSTOM", "0.2.90rc1",
+                        snap_b.snapshot_id,
+                    ),
+                )
+        self.connection.rollback()
+        # Failed cross-conversation insert must not erase the valid committed run.
+        self.assertEqual(
+            self.store.list_cfc_runs(
+                self.user_a.user_id, self.conversation_a.conversation_id
+            )[0].hawm_snapshot_id,
+            snap_a.snapshot_id,
+        )
+
+    def test_postgres_nullable_legacy_runs_survive_repeat_schema_bootstrap(self):
+        from pro_beta.db_bootstrap import ensure_schema
+        legacy = CFCRun(
+            run_id=new_id("cfc"),
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="HAWM_STRUCTURED_CUSTOM",
+            controller_anchor="0.2.90rc1",
+            controller_result={"control_closure": False},
+            presentation={"decision": "STOP"},
+        )
+        self.store.add_cfc_run(self.user_a.user_id, legacy)
+        ensure_schema(os.environ["PRO_BETA_TEST_DATABASE_URL"])
+        self.assertIsNone(
+            self.store.list_cfc_runs(
+                self.user_a.user_id, self.conversation_a.conversation_id
+            )[0].hawm_snapshot_id
+        )
+
     def test_postgres_lists_cfc_runs_in_order(self):
         first = CFCRun(
             run_id="cfc_1",
