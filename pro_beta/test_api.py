@@ -833,7 +833,7 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertEqual(record["status"], "GENERATED_JSON_MARKDOWN")
         self.assertIsNone(record["artifact_path"])
         self.assertEqual(
-            document["report_version"], "HAWM_CFC_AUDIT_REPORT_V1"
+            document["report_version"], "HAWM_CFC_AUDIT_REPORT_V2"
         )
         self.assertEqual(
             document["boundaries"]["ordinary_model_reply"],
@@ -858,6 +858,142 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertIn("Raw frozen-controller result", markdown)
         self.assertIn("MODEL_REPLY_UNCHECKED", markdown)
         self.assertIn("does not turn free-text HAWM content", markdown)
+
+    def test_audit_export_uses_persisted_hawm_input_not_newer_working_state(self):
+        ws = self.api.create_workspace("token-a", {"name": "Binding"})
+        conversation_id = self.api.create_conversation(
+            "token-a", ws["workspace_id"], {"title": "Binding test"}
+        )["conversation_id"]
+        structure = {
+            "conclusion": "POSITIVE",
+            "required_independent_supports": 2,
+            "provenance_shape": "SHARED_LINEAGE",
+            "independence_authority": "NONE",
+            "scope": "EXPECTED",
+            "evidence": [
+                {"polarity": "POSITIVE", "validity": "CURRENT"},
+                {"polarity": "POSITIVE", "validity": "CURRENT"},
+            ],
+        }
+        first = self.api.save_hawm_snapshot(
+            "token-a", conversation_id,
+            {"state": {"goal": "input-one", "cfc_structured": structure},
+             "last_verified_state": "USER_WORKING_STATE"},
+        )
+        run = self.api.run_structured_hawm_cfc("token-a", conversation_id)
+        self.assertEqual(run["hawm_snapshot_id"], first["snapshot_id"])
+        self.assertEqual(
+            self.api.latest_cfc_run("token-a", conversation_id)["hawm_snapshot_id"],
+            first["snapshot_id"],
+        )
+        newer = self.api.save_hawm_snapshot(
+            "token-a", conversation_id,
+            {"state": {"goal": "different-unchecked-working-state"},
+             "last_verified_state": "USER_WORKING_STATE"},
+        )
+        export = self.api.create_audit_report("token-a", conversation_id)
+        doc = export["document"]
+        self.assertEqual(doc["report_version"], "HAWM_CFC_AUDIT_REPORT_V2")
+        self.assertEqual(doc["binding"]["status"], "BOUND_TO_PERSISTED_SNAPSHOT")
+        self.assertFalse(doc["binding"]["latest_snapshot_is_run_input"])
+        self.assertEqual(doc["hawm_snapshot"]["snapshot_id"], first["snapshot_id"])
+        self.assertEqual(doc["hawm_snapshot"]["state"]["goal"], "input-one")
+        self.assertEqual(doc["latest_hawm_snapshot"]["snapshot_id"], newer["snapshot_id"])
+        self.assertEqual(doc["cfc_run"]["hawm_snapshot_id"], first["snapshot_id"])
+        self.assertEqual(doc["cfc_run"]["presentation"]["decision"], "STOP")
+        self.assertIn("Persisted execution snapshot ID: " + first["snapshot_id"], export["markdown"])
+        self.assertIn("Latest HAWM snapshot ID (separate state): " + newer["snapshot_id"], export["markdown"])
+
+    def test_snapshot_change_during_execution_cannot_rebind_result(self):
+        from pro_beta.cfc_execution import run_structured_hawm_state as real_execute
+        ws = self.api.create_workspace("token-a", {"name": "Race"})
+        conversation_id = self.api.create_conversation(
+            "token-a", ws["workspace_id"], {"title": "Concurrent edit"}
+        )["conversation_id"]
+        first = self.api.save_hawm_snapshot(
+            "token-a", conversation_id,
+            {
+                "state": {
+                    "goal": "first snapshot",
+                    "cfc_structured": {
+                        "conclusion": "POSITIVE",
+                        "required_independent_supports": 2,
+                        "provenance_shape": "SHARED_LINEAGE",
+                        "independence_authority": "NONE",
+                        "scope": "EXPECTED",
+                        "evidence": [
+                            {"polarity": "POSITIVE", "validity": "CURRENT"},
+                            {"polarity": "POSITIVE", "validity": "CURRENT"},
+                        ],
+                    },
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        inserted = []
+
+        def concurrent_edit(state):
+            newer = self.api.save_hawm_snapshot(
+                "token-a", conversation_id,
+                {"state": {"goal": "second snapshot; not the run input"},
+                 "last_verified_state": "USER_WORKING_STATE"},
+            )
+            inserted.append(newer["snapshot_id"])
+            return real_execute(state)
+
+        with patch(
+            "pro_beta.cfc_execution.run_structured_hawm_state",
+            side_effect=concurrent_edit,
+        ):
+            run = self.api.run_structured_hawm_cfc("token-a", conversation_id)
+        self.assertEqual(len(inserted), 1)
+        self.assertEqual(run["hawm_snapshot_id"], first["snapshot_id"])
+        self.assertNotEqual(run["hawm_snapshot_id"], inserted[0])
+        doc = self.api.create_audit_report("token-a", conversation_id)["document"]
+        self.assertEqual(doc["hawm_snapshot"]["snapshot_id"], first["snapshot_id"])
+        self.assertEqual(doc["latest_hawm_snapshot"]["snapshot_id"], inserted[0])
+        self.assertFalse(doc["binding"]["latest_snapshot_is_run_input"])
+
+    def test_legacy_hawm_run_never_falsely_pairs_with_latest_snapshot(self):
+        ws = self.api.create_workspace("token-a", {"name": "Legacy"})
+        conversation_id = self.api.create_conversation(
+            "token-a", ws["workspace_id"], {"title": "Legacy unbound"}
+        )["conversation_id"]
+        latest = self.api.save_hawm_snapshot(
+            "token-a", conversation_id,
+            {"state": {"goal": "current"}, "last_verified_state": "USER_WORKING_STATE"},
+        )
+        auth = self.api._auth("token-a")
+        self.api.service.save_cfc_run(
+            auth, conversation_id, case_id="HAWM_STRUCTURED_CUSTOM",
+            controller_anchor="0.2.90rc1",
+            controller_result={"control_closure": False},
+            presentation={"decision": "STOP"},
+        )
+        export = self.api.create_audit_report("token-a", conversation_id)
+        doc = export["document"]
+        self.assertEqual(doc["binding"]["status"], "UNBOUND_LEGACY_RUN")
+        self.assertIsNone(doc["binding"]["persisted_hawm_snapshot_id"])
+        self.assertIsNone(doc["hawm_snapshot"])
+        self.assertEqual(doc["latest_hawm_snapshot"]["snapshot_id"], latest["snapshot_id"])
+        self.assertIn("No persisted HAWM input binding", export["markdown"])
+
+    def test_prepared_run_is_not_paired_with_unrelated_hawm(self):
+        ws = self.api.create_workspace("token-a", {"name": "Prepared"})
+        conversation_id = self.api.create_conversation(
+            "token-a", ws["workspace_id"], {"title": "Prepared unbound"}
+        )["conversation_id"]
+        self.api.save_hawm_snapshot(
+            "token-a", conversation_id,
+            {"state": {"goal": "unrelated"}, "last_verified_state": "USER_WORKING_STATE"},
+        )
+        self.api.run_prepared_cfc_case(
+            "token-a", conversation_id, {"case_id": "CASE_01_UNRESOLVED_POSITIVE"}
+        )
+        doc = self.api.create_audit_report("token-a", conversation_id)["document"]
+        self.assertEqual(doc["binding"]["status"], "UNBOUND_PREPARED_RUN")
+        self.assertIsNone(doc["hawm_snapshot"])
+        self.assertIsNotNone(doc["latest_hawm_snapshot"])
 
     def test_audit_report_requires_hawm_or_cfc(self):
         workspace = self.api.create_workspace(

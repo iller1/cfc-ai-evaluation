@@ -6,16 +6,31 @@ from typing import Any
 from pro_beta.contracts import CFCRun, Conversation, HAWMSnapshot
 
 
-REPORT_VERSION = "HAWM_CFC_AUDIT_REPORT_V1"
+REPORT_VERSION = "HAWM_CFC_AUDIT_REPORT_V2"
 
 
 def build_audit_document(
     *,
     conversation: Conversation,
     hawm_snapshot: HAWMSnapshot | None,
+    latest_hawm_snapshot: HAWMSnapshot | None,
     cfc_run: CFCRun | None,
 ) -> dict[str, Any]:
-    """Build an auditable export without reinterpreting HAWM or CFC output."""
+    """Export persisted immutable linkage; never infer a missing legacy link."""
+    linked_id = cfc_run.hawm_snapshot_id if cfc_run else None
+    if linked_id and (
+        hawm_snapshot is None
+        or hawm_snapshot.snapshot_id != linked_id
+        or hawm_snapshot.conversation_id != cfc_run.conversation_id
+    ):
+        raise ValueError("REPORT_RUN_SNAPSHOT_BINDING_MISMATCH")
+    if not linked_id and hawm_snapshot is not None:
+        raise ValueError("REPORT_UNBOUND_RUN_HAS_IMPLIED_SNAPSHOT")
+    status = (
+        "BOUND_TO_PERSISTED_SNAPSHOT" if linked_id else
+        "UNBOUND_LEGACY_RUN" if cfc_run and cfc_run.case_id == "HAWM_STRUCTURED_CUSTOM" else
+        "UNBOUND_PREPARED_RUN" if cfc_run else "NO_CFC_RUN"
+    )
     return {
         "report_version": REPORT_VERSION,
         "conversation": asdict(conversation),
@@ -30,6 +45,19 @@ def build_audit_document(
             ),
         },
         "hawm_snapshot": asdict(hawm_snapshot) if hawm_snapshot else None,
+        "latest_hawm_snapshot": asdict(latest_hawm_snapshot) if latest_hawm_snapshot else None,
+        "binding": {
+            "status": status,
+            "cfc_run_id": cfc_run.run_id if cfc_run else None,
+            "persisted_hawm_snapshot_id": linked_id,
+            "latest_hawm_snapshot_id": (
+                latest_hawm_snapshot.snapshot_id if latest_hawm_snapshot else None
+            ),
+            "latest_snapshot_is_run_input": (
+                latest_hawm_snapshot.snapshot_id == linked_id
+                if latest_hawm_snapshot is not None and linked_id else None
+            ),
+        },
         "cfc_run": asdict(cfc_run) if cfc_run else None,
     }
 
@@ -37,6 +65,8 @@ def build_audit_document(
 def render_markdown(document: dict[str, Any]) -> str:
     conversation = document["conversation"]
     hawm = document.get("hawm_snapshot")
+    latest = document.get("latest_hawm_snapshot")
+    binding = document["binding"]
     cfc = document.get("cfc_run")
     boundaries = document["boundaries"]
 
@@ -54,12 +84,22 @@ def render_markdown(document: dict[str, Any]) -> str:
         f"- HAWM state: {boundaries['hawm']}",
         f"- CFC bridge: {boundaries['cfc_bridge']}",
         "",
-        "## Latest HAWM snapshot",
+        "## Persisted HAWM / CFC linkage",
+        "",
+        f"Link status: {binding['status']}",
+        f"CFC run ID: {binding['cfc_run_id'] or 'NONE'}",
+        f"Persisted execution snapshot ID: {binding['persisted_hawm_snapshot_id'] or 'NONE'}",
+        f"Latest HAWM snapshot ID (separate state): {binding['latest_hawm_snapshot_id'] or 'NONE'}",
+        f"Latest snapshot is the run input: {binding['latest_snapshot_is_run_input']}",
+        "",
+        "A legacy/unbound run is NOT paired with the latest snapshot by assumption.",
+        "",
+        "## HAWM snapshot actually used for this CFC run",
         "",
     ]
 
     if hawm is None:
-        lines.append("No HAWM snapshot saved.")
+        lines.append("No persisted HAWM input binding for this CFC run.")
     else:
         lines.extend(
             [
@@ -72,7 +112,21 @@ def render_markdown(document: dict[str, Any]) -> str:
                 "~~~",
             ]
         )
-
+    lines.extend(["", "## Latest HAWM working state (not automatically linked)", ""])
+    if latest is None:
+        lines.append("No HAWM snapshot saved.")
+    else:
+        lines.extend(
+            [
+                f"Latest snapshot ID: {latest['snapshot_id']}",
+                f"Latest created: {latest['created_at']}",
+                f"Latest state label: {latest['last_verified_state']}",
+                "",
+                "~~~json",
+                _json_pretty(latest["state"]),
+                "~~~",
+            ]
+        )
     lines.extend(["", "## Latest CFC run", ""])
     if cfc is None:
         lines.append("No CFC run saved.")

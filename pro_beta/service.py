@@ -292,6 +292,18 @@ class ProBetaService:
         )
         return snapshots[-1] if snapshots else None
 
+    def get_hawm_snapshot(
+        self, auth: AuthContext, conversation_id: str, snapshot_id: str
+    ) -> HAWMSnapshot:
+        """Resolve by owned conversation, not by a user-provided unscoped ID."""
+        for snapshot in self.persistence.list_hawm_snapshots(
+            auth.user_id, conversation_id
+        ):
+            if snapshot.snapshot_id == snapshot_id:
+                return snapshot
+        from pro_beta.persistence import NotFoundError
+        raise NotFoundError("HAWM_SNAPSHOT_NOT_FOUND")
+
     def save_cfc_run(
         self,
         auth: AuthContext,
@@ -302,6 +314,7 @@ class ProBetaService:
         controller_result: dict,
         presentation: dict,
         replay_matches_reference: bool | None = None,
+        hawm_snapshot_id: str | None = None,
     ) -> CFCRun:
         run = CFCRun(
             run_id=new_id("cfc"),
@@ -311,6 +324,7 @@ class ProBetaService:
             controller_result=controller_result,
             presentation=presentation,
             replay_matches_reference=replay_matches_reference,
+            hawm_snapshot_id=hawm_snapshot_id,
         )
         return self.persistence.add_cfc_run(auth.user_id, run)
 
