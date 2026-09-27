@@ -181,6 +181,12 @@ class InMemoryPersistence:
 
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun:
         self._owned_conversation(user_id, run.conversation_id)
+        if run.hawm_snapshot_id is not None:
+            snapshot = self.hawm_snapshots.get(run.hawm_snapshot_id)
+            if snapshot is None:
+                raise NotFoundError("HAWM_SNAPSHOT_NOT_FOUND")
+            if snapshot.conversation_id != run.conversation_id:
+                raise OwnershipError("HAWM_SNAPSHOT_CONVERSATION_MISMATCH")
         if run.run_id in self.cfc_runs:
             raise ValueError("CFC_RUN_ALREADY_EXISTS")
         self.cfc_runs[run.run_id] = run
