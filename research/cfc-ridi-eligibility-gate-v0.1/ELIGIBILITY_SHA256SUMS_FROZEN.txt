@@ -1,0 +1,4 @@
+b766a0452af82343fe7ee33dbe8dfb7ccb0a1d557f6d0ccaf14676eefb827e8a  collaboration/cfc-ridi/substantive-v0.1/ELIGIBILITY_CRITERIA_DRAFT.md
+12992e3c8591d41dc2dc38de0ebe46e8c491d3a39e242d6021286e1815b5fd29  collaboration/cfc-ridi/substantive-v0.1/candidate_registry_TEMPLATE.tsv
+128a74efb1921e6c57a6cc02145b6e8facf1ff40c9dde36fd62b950cdc7d4f26  collaboration/cfc-ridi/substantive-v0.1/eligible_pool_TEMPLATE.tsv
+96ca16e12e3f2fecb5a06998eb28476e250b2a0965f2b26713da298391958904  collaboration/cfc-ridi/substantive-v0.1/tools/eligibility_check.py
