@@ -120,6 +120,68 @@ def require_positive_control(
         "claim_states": out.get("claim_states"),
     }
 
+
+def run_control_mutation_probe(test_id: str) -> dict[str, Any]:
+    probe = HERE / "probe_f3.py"
+
+    def one(mode: str) -> dict[str, Any]:
+        proc = subprocess.run(
+            [sys.executable, str(probe), test_id, mode],
+            cwd=str(REPO_ROOT),
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if not proc.stdout.strip():
+            raise RuntimeError(
+                f"{test_id}/{mode}: probe emitted no JSON; "
+                f"returncode={proc.returncode}; stderr={proc.stderr!r}"
+            )
+        try:
+            return json.loads(proc.stdout)
+        except Exception as exc:
+            raise RuntimeError(
+                f"{test_id}/{mode}: invalid probe JSON: {proc.stdout!r}; "
+                f"stderr={proc.stderr!r}"
+            ) from exc
+
+    control = one("control")
+    mutation = one("mutation")
+
+    if control.get("execution") != "RESULT":
+        return result_fail({
+            "finding": "reference control was not executable",
+            "control": control,
+            "mutation": mutation,
+        })
+
+    if mutation.get("execution") == "EXPLICIT_REJECTION":
+        return result_pass({
+            "attribution": "EXPLICIT_REJECTION",
+            "control": control,
+            "mutation": mutation,
+        })
+
+    if mutation.get("execution") != "RESULT":
+        return result_fail({
+            "finding": "mutation probe produced unknown state",
+            "control": control,
+            "mutation": mutation,
+        })
+
+    if mutation.get("summary") == control.get("summary"):
+        return result_fail({
+            "finding": "mutation was silently ignored; diagnostic result identical to control",
+            "control": control,
+            "mutation": mutation,
+        })
+
+    return result_pass({
+        "attribution": "MUTATION_CHANGED_DIAGNOSTIC_STATE",
+        "control": control,
+        "mutation": mutation,
+    })
+
 def t01() -> dict[str, Any]:
     observed = {}
     for name, spec in EXPECTED_F2.items():
@@ -209,117 +271,13 @@ def t04() -> dict[str, Any]:
 
 
 def t05() -> dict[str, Any]:
-    arm_a = make_neutral_arm(
-        case_id="F3-T05-A",
-        arm="A",
-        passage_namespace="t05-shared",
-    )
-    arm_b = make_neutral_arm(
-        case_id="F3-T05-B",
-        arm="B",
-        passage_namespace="t05-shared",
-    )
-
-    control_state = build_resolved_state(
-        arm_b,
-        tag="t05-control",
-        required_independent_supports=1,
-        install_independence=True,
-    )
-    control = require_positive_control("F3-T05", arm_b, control_state)
-
-    foreign = build_resolved_state(
-        arm_b,
-        tag="t05-mutation",
-        required_independent_supports=1,
-        install_independence=True,
-    )
-    ok, detail = nonclosure_or_rejection(lambda: execute(arm_a, foreign))
-    if ok:
-        return result_pass({"positive_control": control, "mutation": detail})
-    return result_fail({
-        "finding": "foreign resolved-state package was accepted for a different case/arm",
-        "positive_control": control,
-        "mutation": detail,
-    })
-
+    return run_control_mutation_probe("F3-T05")
 def t06() -> dict[str, Any]:
-    payload = make_neutral_arm(case_id="F3-T06")
-
-    control_state = build_resolved_state(
-        payload,
-        tag="t06-control",
-        required_independent_supports=1,
-        install_independence=True,
-    )
-    control = require_positive_control("F3-T06", payload, control_state)
-
-    mutated = build_resolved_state(
-        payload,
-        tag="t06-mutation",
-        required_independent_supports=1,
-        install_independence=True,
-    )
-    mutated["claim_identity_map"] = {"c1": "id:foreign-subject:v9"}
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
-    return (
-        result_pass({"positive_control": control, "mutation": detail})
-        if ok
-        else result_fail({"positive_control": control, "mutation": detail})
-    )
-
+    return run_control_mutation_probe("F3-T06")
 def t07() -> dict[str, Any]:
-    payload = make_neutral_arm(case_id="F3-T07")
-
-    control_state = build_resolved_state(
-        payload,
-        tag="t07-control",
-        required_independent_supports=1,
-        install_independence=True,
-        controller_scope=None,
-        snapshot_scope="scope:f3:narrow",
-    )
-    control = require_positive_control("F3-T07", payload, control_state)
-
-    mutated = build_resolved_state(
-        payload,
-        tag="t07-mutation",
-        required_independent_supports=1,
-        install_independence=True,
-        controller_scope="scope:f3:requested-broad",
-        snapshot_scope="scope:f3:narrow",
-    )
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
-    return (
-        result_pass({"positive_control": control, "mutation": detail})
-        if ok
-        else result_fail({"positive_control": control, "mutation": detail})
-    )
-
+    return run_control_mutation_probe("F3-T07")
 def t08() -> dict[str, Any]:
-    payload = make_neutral_arm(case_id="F3-T08")
-
-    control_state = build_resolved_state(
-        payload,
-        tag="t08-control",
-        required_independent_supports=1,
-        install_independence=True,
-    )
-    control = require_positive_control("F3-T08", payload, control_state)
-
-    mutated = build_resolved_state(
-        payload,
-        tag="t08-mutation",
-        required_independent_supports=1,
-        install_independence=True,
-    )
-    mutated["decision_as_of"] = "2027-01-15"
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
-    return (
-        result_pass({"positive_control": control, "mutation": detail})
-        if ok
-        else result_fail({"positive_control": control, "mutation": detail})
-    )
+    return run_control_mutation_probe("F3-T08")
 def t09() -> dict[str, Any]:
     payload = make_neutral_arm(case_id="F3-T09")
     resolved = build_resolved_state(payload, tag="t09")
@@ -335,85 +293,11 @@ def t09() -> dict[str, Any]:
 
 
 def t10() -> dict[str, Any]:
-    payload = make_neutral_arm(case_id="F3-T10")
-
-    control_state = build_resolved_state(
-        payload,
-        tag="t10-control",
-        shared_lineage=False,
-        required_independent_supports=2,
-        install_independence=True,
-    )
-    control = require_positive_control("F3-T10", payload, control_state)
-
-    mutated = build_resolved_state(
-        payload,
-        tag="t10-mutation",
-        shared_lineage=True,
-        required_independent_supports=2,
-        install_independence=False,
-    )
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
-    return (
-        result_pass({"positive_control": control, "mutation": detail})
-        if ok
-        else result_fail({"positive_control": control, "mutation": detail})
-    )
-
+    return run_control_mutation_probe("F3-T10")
 def t11() -> dict[str, Any]:
-    payload = make_neutral_arm(case_id="F3-T11")
-
-    control_state = build_resolved_state(
-        payload,
-        tag="t11-control",
-        shared_lineage=False,
-        required_independent_supports=2,
-        install_independence=True,
-    )
-    control = require_positive_control("F3-T11", payload, control_state)
-
-    mutated = build_resolved_state(
-        payload,
-        tag="t11-mutation",
-        shared_lineage=False,
-        required_independent_supports=2,
-        install_independence=True,
-    )
-    mutated["requirements"] = {"c1": {"required_independent_supports": 3}}
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
-    return (
-        result_pass({"positive_control": control, "mutation": detail})
-        if ok
-        else result_fail({"positive_control": control, "mutation": detail})
-    )
-
+    return run_control_mutation_probe("F3-T11")
 def t12() -> dict[str, Any]:
-    payload = make_neutral_arm(case_id="F3-T12")
-
-    control_state = build_resolved_state(
-        payload,
-        tag="t12-control",
-        required_independent_supports=1,
-        install_independence=True,
-    )
-    control = require_positive_control("F3-T12", payload, control_state)
-
-    mutated = build_resolved_state(
-        payload,
-        tag="t12-mutation",
-        required_independent_supports=1,
-        install_independence=True,
-    )
-    for row in mutated["host_trust_registrations"]:
-        if row["authority_class"] == "IDENTITY":
-            row["authority_id"] = "F3_WRONG_IDENTITY_AUTHORITY"
-            break
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
-    return (
-        result_pass({"positive_control": control, "mutation": detail})
-        if ok
-        else result_fail({"positive_control": control, "mutation": detail})
-    )
+    return run_control_mutation_probe("F3-T12")
 def t13() -> dict[str, Any]:
     payload = make_neutral_arm(case_id="F3-T13")
     base = build_resolved_state(payload, tag="t13")
