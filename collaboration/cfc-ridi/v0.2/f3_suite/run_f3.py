@@ -426,55 +426,83 @@ TESTS: list[tuple[str, str, Callable[[], dict[str, Any]]]] = [
 ]
 
 
-def run_all() -> dict[str, Any]:
-    results = []
-    for test_id, title, fn in TESTS:
-        try:
-            outcome = fn()
-        except Exception as exc:
-            outcome = result_fail({
+def _single_test(test_id: str) -> dict[str, Any]:
+    matches = [(tid, title, fn) for tid, title, fn in TESTS if tid == test_id]
+    if len(matches) != 1:
+        return {
+            "test_id": test_id,
+            "title": "UNKNOWN",
+            "status": "HARNESS_ERROR",
+            "detail": {"error": "unknown test id"},
+        }
+    tid, title, fn = matches[0]
+    try:
+        outcome = fn()
+        return {"test_id": tid, "title": title, **outcome}
+    except Exception as exc:
+        return {
+            "test_id": tid,
+            "title": title,
+            "status": "HARNESS_ERROR",
+            "detail": {
                 "suite_exception": f"{type(exc).__name__}: {exc}",
                 "traceback": traceback.format_exc(),
-            })
-        results.append({"test_id": test_id, "title": title, **outcome})
+            },
+        }
+
+
+def run_all() -> dict[str, Any]:
+    import subprocess
+
+    results = []
+    for test_id, title, _fn in TESTS:
+        proc = subprocess.run(
+            [sys.executable, str(Path(__file__).resolve()), "--single", test_id],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        try:
+            outcome = json.loads(proc.stdout)
+        except Exception:
+            outcome = {
+                "test_id": test_id,
+                "title": title,
+                "status": "HARNESS_ERROR",
+                "detail": {
+                    "child_returncode": proc.returncode,
+                    "stdout": proc.stdout,
+                    "stderr": proc.stderr,
+                    "error": "child output was not valid JSON",
+                },
+            }
+
+        results.append(outcome)
         print(f"{test_id}: {outcome['status']}")
-        if outcome["status"] == "FAIL":
+        if outcome["status"] != "PASS":
             print(json.dumps(outcome["detail"], indent=2, sort_keys=True, default=str))
 
     passed = sum(x["status"] == "PASS" for x in results)
-    failed = len(results) - passed
-    overall = PASS_STATUS if failed == 0 else FAIL_STATUS
+    failed = sum(x["status"] == "FAIL" for x in results)
+    harness_errors = sum(x["status"] == "HARNESS_ERROR" for x in results)
+
+    if harness_errors:
+        overall = "F3_SUITE_INVALID_HARNESS_ERROR"
+    else:
+        overall = PASS_STATUS if failed == 0 else FAIL_STATUS
+
     return {
         "suite": "CFC-RIDI-v0.2-F3-R1",
         "criteria_sha256": CRITERIA_SHA256,
         "f2_adapter_commit": F2_COMMIT,
         "f2_adapter_sha256": EXPECTED_F2["adapter.py"]["sha256"],
+        "process_isolation": "ONE_FRESH_PYTHON_PROCESS_PER_T01_T15",
         "tests_total": len(results),
         "tests_passed": passed,
         "tests_failed": failed,
+        "harness_errors": harness_errors,
         "overall_status": overall,
         "results": results,
     }
 
-
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument(
-        "--output",
-        type=Path,
-        default=HERE / "F3_RESULTS.json",
-    )
-    args = ap.parse_args()
-    report = run_all()
-    args.output.write_text(
-        json.dumps(report, indent=2, sort_keys=True, default=str) + "\n",
-        encoding="utf-8",
-    )
-    print("OVERALL:", report["overall_status"])
-    print("RESULT_FILE:", args.output)
-    # Preserve a failing exit code while still writing the complete report.
-    raise SystemExit(0 if report["tests_failed"] == 0 else 1)
-
-
-if __name__ == "__main__":
-    main()
