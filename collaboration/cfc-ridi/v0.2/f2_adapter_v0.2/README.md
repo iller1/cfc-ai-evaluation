@@ -79,7 +79,9 @@ The v0.2 representation suite retains all v0.1 tests and adds:
 2. altered root `case_id` is rejected;
 3. foreign `case_id + arm` binding with otherwise compatible passage bindings is rejected.
 
-The candidate must be tested against the exact frozen Anchor wheel before publication.
+CFC independently reran the exact v0.2 representation suite on the published source bytes and obtained `PASS 10/10`.
+
+The public-interface probe is included as a separate artifact for RIDI's independent rerun against the exact frozen Anchor wheel. CFC did not rerun that probe locally because the current local runtime did not contain the frozen wheel. The public-interface import/method surface and wheel-verification code are unchanged from the bilaterally accepted v0.1 candidate.
 
 These are F2 representation tests only. They are not the F3 rerun.
 
