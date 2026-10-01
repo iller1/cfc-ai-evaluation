@@ -288,8 +288,9 @@ def build_resolved_state(
     trust = _trust_policy(rows)
     c = Controller(scope=controller_scope, trust_policy=trust)
 
+    identity_id = f"id:demo-subject:{tag}:v1"
     identity_draft = {
-        "registry_entry_id": "id:demo-subject:v1",
+        "registry_entry_id": identity_id,
         "surface_subject": "DemoSubject",
         "domain_id": "GENERAL_ENTITY",
         "entity_id": "entity:demo-subject",
@@ -399,12 +400,12 @@ def build_resolved_state(
             "dependencies": dependencies,
         }
         evidence_draft = {
-            "evidence_id": f"E{idx}",
+            "evidence_id": f"{tag}:E{idx}",
             "subject": "DemoSubject",
             "predicate": "state",
             "value": "safe",
             "source": f"display:{token}",
-            "identity_registry_entry_id": "id:demo-subject:v1",
+            "identity_registry_entry_id": identity_id,
             "authority_id": "GENERAL_RECORD_V5",
             "authority_record_entity_id": "entity:demo-subject",
             "authority_record_event_id": "event:current",
@@ -545,7 +546,7 @@ def build_resolved_state(
             "independence_id": f"ssi:f3:{tag}",
             "claim_id": "c1",
             "retrieval_scope_id": snapshot_scope,
-            "evidence_ids": [f"E{i}" for i in range(1, 11)],
+            "evidence_ids": [f"{tag}:E{i}" for i in range(1, 11)],
             "reason": "F3 fixture-only explicit independence certificate.",
             "as_of_date": ASOF,
         }
@@ -580,7 +581,7 @@ def build_resolved_state(
     return {
         "decision_as_of": ASOF,
         "controller_scope": controller_scope,
-        "claim_identity_map": {"c1": "id:demo-subject:v1"},
+        "claim_identity_map": {"c1": identity_id},
         "requirements": {
             "c1": {
                 "required_independent_supports": required_independent_supports
