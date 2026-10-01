@@ -1,0 +1,188 @@
+{
+  "artifact": "CFC-RIDI-v0.2-F4-AUTHORITY-UNIVERSE-CANDIDATE-R1",
+  "status": "CFC_CANDIDATE_PENDING_RIDI_VERIFICATION",
+  "authority": "SIGNED_F0_FEASIBILITY_WORKPLAN",
+  "cutoff": {
+    "timestamp_utc": "2026-10-01T20:31:34Z",
+    "basis": "RIDI bilateral F3 closure commit creation time",
+    "basis_commit": "e796224f7574df88a1a403834e6a369343f35698",
+    "rule": "Only authority records demonstrably pre-existing at or before this cutoff are eligible for F4 membership. No post-cutoff authority creation, relabeling, solicitation, semantic expansion, or applicability expansion is permitted."
+  },
+  "frozen_inputs": {
+    "f1_interface_sha256": "b23719df7efd75dc4d53b33808377e1002a044a88acc5354defd06dc59829184",
+    "neutral_schema_sha256": "d609a6d6af94d1108048360a349edb612b65b95336d5f90e6874c4da022b60a0",
+    "f2_adapter_version": "CFC-RIDI-F2-ADAPTER-v0.2",
+    "f2_adapter_commit": "930d7b0119159eaedbaf947691d9510b4c61d81c",
+    "f2_adapter_sha256": "15b7d01787237b2e5f0d1ca106c4e84aaf1976a2512179c79c458fe3d80e634b",
+    "f3_criteria_sha256": "f9640dbaec55a2b381a159825fe27a9e87502b75b20bbfbcf4382ca44cd887a2",
+    "f3_bilateral_closure_commit": "e796224f7574df88a1a403834e6a369343f35698"
+  },
+  "membership_rule": {
+    "required_conditions": [
+      "record existed at or before cutoff",
+      "record has an immutable identity or exact byte/hash identity sufficient for audit",
+      "record explicitly belongs to an F1/F2-recognized authority boundary",
+      "record applicability can be evaluated for exact subject/evidence/snapshot/support-set without inference from neutral metadata",
+      "record scope and time applicability are explicit where required",
+      "record verifier/trust-root identity is separately identifiable under the agreed inspection boundary",
+      "record is substantive and nonfixture",
+      "record is not created, relabeled, solicited, inferred, or semantically expanded to rescue feasibility"
+    ],
+    "automatic_exclusions": [
+      "DeveloperFixtureSession or self-test authority",
+      "SYNTHETIC_CUSTOM_FIXTURE verifier output",
+      "LOCAL_* fixture authority names",
+      "built-in research identities used only as fixtures",
+      "source content or passage text by itself",
+      "docid, hash, source registration, retrieval grade, rank, benchmark label, model output, correctness, endpoint equality/difference",
+      "example attestation code without a real external attestation and verifier",
+      "post-cutoff authority material"
+    ]
+  },
+  "required_authority_classes": [
+    {
+      "boundary": "IDENTITY",
+      "adapter_requirement": "identity_state_and_authority",
+      "required": true,
+      "qualifying_records_found": 0,
+      "candidate_status": "NOT_SUPPLIED"
+    },
+    {
+      "boundary": "FAILURE_DOMAIN_TOPOLOGY",
+      "adapter_requirement": "failure_domain_topology_state_and_authority",
+      "required": true,
+      "qualifying_records_found": 0,
+      "candidate_status": "NOT_SUPPLIED"
+    },
+    {
+      "boundary": "SOURCE_SEMANTICS",
+      "adapter_requirement": "per_passage_source_semantics_state_and_authority",
+      "required": true,
+      "multiplicity": "PER_PASSAGE",
+      "qualifying_records_found": 0,
+      "candidate_status": "NOT_SUPPLIED"
+    },
+    {
+      "boundary": "PROVENANCE",
+      "adapter_requirement": "per_passage_provenance_state_and_authority",
+      "required": true,
+      "multiplicity": "PER_PASSAGE",
+      "qualifying_records_found": 0,
+      "candidate_status": "NOT_SUPPLIED"
+    },
+    {
+      "boundary": "EVIDENCE_AUTHORITY",
+      "adapter_requirement": "per_passage_evidence_authority",
+      "required": true,
+      "multiplicity": "PER_PASSAGE",
+      "qualifying_records_found": 0,
+      "candidate_status": "NOT_SUPPLIED"
+    },
+    {
+      "boundary": "EPISTEMIC_ROLE",
+      "adapter_requirement": "per_passage_epistemic_role_state_and_authority",
+      "required": true,
+      "multiplicity": "PER_PASSAGE",
+      "qualifying_records_found": 0,
+      "candidate_status": "NOT_SUPPLIED"
+    },
+    {
+      "boundary": "RETRIEVAL",
+      "adapter_requirement": "retrieval_snapshot_state_and_authority",
+      "required": true,
+      "qualifying_records_found": 0,
+      "candidate_status": "NOT_SUPPLIED"
+    },
+    {
+      "boundary": "SUPPORT_SET_INDEPENDENCE",
+      "adapter_requirement": "support_set_independence_state_and_authority_if_required",
+      "required": "CONDITIONAL_ON_FROZEN_SUPPORT_REQUIREMENT",
+      "qualifying_records_found": 0,
+      "candidate_status": "NOT_SUPPLIED"
+    },
+    {
+      "boundary": "HOST_TRUST",
+      "adapter_requirement": "host_trust_registrations_and_verifiers",
+      "required": true,
+      "record_type": "TRUST_INFRASTRUCTURE_NOT_SUBSTANTIVE_CASE_AUTHORITY",
+      "qualifying_records_found": 0,
+      "candidate_status": "NOT_SUPPLIED_FOR_SUBSTANTIVE_F5"
+    }
+  ],
+  "substantive_authority_members": [],
+  "non_authority_control_state": [
+    "neutral_arm_binding",
+    "decision_as_of",
+    "decision_scope",
+    "claim_id",
+    "claim_identity_binding",
+    "required_independent_supports"
+  ],
+  "inspected_evidence": [
+    {
+      "artifact": "SOURCE_PROVENANCE.md",
+      "bytes": 2354,
+      "sha256": "c5c49b7c93c32bcfee23d20f6cb7456d9f6d14b9ab8d2846b6a320f91f4ac0ff",
+      "classification": "SOURCE_AND_REGISTRY_PROVENANCE_NOT_AUTHORITY_RECORD",
+      "relevant_facts": [
+        "declares a1_preexisting_authority_available=TRUE",
+        "explicitly states this does not assert every CFC authority field is VERIFIED",
+        "records no original authoritative independent-support-count rule"
+      ]
+    },
+    {
+      "artifact": "CFC_RIDI_RAG-nq-test1035_PRIVATE_PREEXECUTION_ASSESSMENT_20260929.md",
+      "bytes": 5307,
+      "sha256": "9ccab3bedc11119d876eb396c42939224eb88401cd3dadc07146695eae3dc5d7",
+      "classification": "PREEXECUTION_INSPECTION_EVIDENCE_NOT_AUTHORITY_RECORD",
+      "relevant_facts": [
+        "recovered source supplies passage content and identity",
+        "no external semantic_support_record located",
+        "no validity_record located",
+        "no independence_record located",
+        "no provenance_record located",
+        "no dependency_record located",
+        "source identity/content do not establish semantic polarity, scope, freshness, lineage independence, or authority to close"
+      ]
+    },
+    {
+      "artifact": "contexts_800.jsonl",
+      "bytes": 25266491,
+      "sha256": "1485c0ad114673d297c580080d11086d3ace8827f9b586b15ad3928c7d0b21a1",
+      "classification": "SOURCE_CONTENT_EXCLUDED_FROM_AUTHORITY_UNIVERSE"
+    },
+    {
+      "artifact": "registered_generations_primary_800.jsonl",
+      "bytes": 564276,
+      "sha256": "e7d1c8c06eece5482f632d628f933741ebbfc379ae01a99a293abdd9debf929c",
+      "classification": "RECORDED_ENDPOINT_SOURCE_EXCLUDED_FROM_AUTHORITY_UNIVERSE"
+    },
+    {
+      "artifact": "protocol/PREREGISTRATION_NATURE_RAG.md",
+      "bytes": 17508,
+      "sha256": "0f7babda273f68e2095343f2fb33f2dca3c8720f95ed87ca3a0f47d1b337b063",
+      "classification": "PROTOCOL_SOURCE_NOT_CASE_AUTHORITY_RECORD"
+    },
+    {
+      "artifact": "F3 fixture verifiers and synthetic attestations",
+      "classification": "TEST_FIXTURE_EXCLUDED_FROM_AUTHORITY_UNIVERSE"
+    },
+    {
+      "artifact": "CFC Anchor DeveloperFixtureSession / LOCAL_* authorities",
+      "classification": "LOCAL_TEST_FIXTURE_EXCLUDED_FROM_AUTHORITY_UNIVERSE"
+    }
+  ],
+  "inspection_boundary": {
+    "public_cfc_repo": "inspected through current F3/F4 transition",
+    "cfc_project_and_library_materials": "searched for authority/attestation/trust-root records available to CFC under current project access",
+    "content_disclosure_rule": "No private substantive authority content is required to be disclosed beyond exact identity/hash/provenance metadata if such records are nominated.",
+    "negative_claim_scope": "No qualifying substantive authority record was located in the inspected material. This does not assert nonexistence outside the inspected material."
+  },
+  "candidate_conclusion": {
+    "f4_membership_count": 0,
+    "complete_authority_case_available": "NOT_DEMONSTRATED",
+    "missing_authority_state": "REPRESENTABLE_BY_F2_V0_2",
+    "formal_no_go": "NOT_YET_RECORDED_PENDING_RIDI_VERIFICATION_OF_THIS_EXACT_F4_CANDIDATE",
+    "next_if_ridi_accepts_zero_member_universe": "Evaluate F4/F5_NO_GO_REAL_AUTHORITY_UNAVAILABLE before any F5 substantive execution; do not synthesize authority."
+  }
+}
