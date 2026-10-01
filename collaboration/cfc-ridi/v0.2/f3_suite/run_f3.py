@@ -24,29 +24,29 @@ from fixtures import (
 
 EXPECTED_F2 = {
     "adapter.py": {
-        "path": REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter/adapter.py",
-        "bytes": 28972,
-        "sha256": "4b975fda6242c9a7e33d0d692705ef6fe82683dbf2bddefc0345c2e5504b480a",
+        "path": REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter_v0.2/adapter.py",
+        "bytes": 30630,
+        "sha256": "15b7d01787237b2e5f0d1ca106c4e84aaf1976a2512179c79c458fe3d80e634b",
     },
     "test_adapter.py": {
-        "path": REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter/test_adapter.py",
-        "bytes": 6586,
-        "sha256": "4f70526185dbb69e4073c0baf89a6f924e8e1e220ba0317c339708bf5b152f34",
+        "path": REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter_v0.2/test_adapter.py",
+        "bytes": 8853,
+        "sha256": "3798cfb0b9c79311cb74b4bd5be71c2805ff225d316a57f2fb55c2d8462fd732",
     },
     "README.md": {
-        "path": REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter/README.md",
-        "bytes": 3479,
-        "sha256": "3bf666564b2c1a7f85526a3e223e7385e30a61c73e8d5f67ca0b17d954d7638a",
+        "path": REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter_v0.2/README.md",
+        "bytes": 3891,
+        "sha256": "0c441a05b75c62b827c69c0d40a83d7ede02b66d40b757156e3ddcec4d070ba7",
     },
     "ADAPTER_MANIFEST.json": {
-        "path": REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter/ADAPTER_MANIFEST.json",
-        "bytes": 1348,
-        "sha256": "32b8c36ebb434fa620cdae970ed12bbb389a1ae62d20be6005e78b7c0db89591",
+        "path": REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter_v0.2/ADAPTER_MANIFEST.json",
+        "bytes": 2125,
+        "sha256": "6e56866ac5d6ee7eddc82a06d8c172cb886d38d98f2e7fa1fa76d3afa03aa264",
     },
 }
 
 CRITERIA_SHA256 = "f9640dbaec55a2b381a159825fe27a9e87502b75b20bbfbcf4382ca44cd887a2"
-F2_COMMIT = "4167783eb48e1a1677107cb1359ad9b2f890017f"
+F2_COMMIT = "930d7b0119159eaedbaf947691d9510b4c61d81c"
 PASS_STATUS = "F3_REPRESENTATION_ONLY_ADVERSARIAL_SUITE_PASS"
 FAIL_STATUS = "F3_NO_GO_REPRESENTATION_INVALID"
 
@@ -382,6 +382,7 @@ def t14() -> dict[str, Any]:
             )
         passage_rows[0], passage_rows[1] = passage_rows[1], passage_rows[0]
         minimal_resolved = {
+            "neutral_arm_binding": adapter.neutral_arm_binding(prepared),
             "decision_as_of": "2026-09-03",
             "controller_scope": None,
             "claim_identity_map": {"c1": "id:fixture"},
