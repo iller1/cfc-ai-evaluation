@@ -506,3 +506,35 @@ def run_all() -> dict[str, Any]:
         "results": results,
     }
 
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "--output",
+        type=Path,
+        default=HERE / "F3_RESULTS.json",
+    )
+    ap.add_argument("--single", choices=[x[0] for x in TESTS])
+    args = ap.parse_args()
+
+    if args.single:
+        outcome = _single_test(args.single)
+        print(json.dumps(outcome, sort_keys=True, default=str))
+        raise SystemExit(0)
+
+    report = run_all()
+    args.output.write_text(
+        json.dumps(report, indent=2, sort_keys=True, default=str) + "\n",
+        encoding="utf-8",
+    )
+    print("OVERALL:", report["overall_status"])
+    print("RESULT_FILE:", args.output)
+
+    if report["harness_errors"]:
+        raise SystemExit(2)
+    raise SystemExit(0 if report["tests_failed"] == 0 else 1)
+
+
+if __name__ == "__main__":
+    main()
