@@ -30,7 +30,7 @@ from cfc_anchor import (
 )
 
 HERE = Path(__file__).resolve().parent
-REPO_ROOT = HERE.parents[4]
+REPO_ROOT = HERE.parents[3]
 ADAPTER_PATH = REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter/adapter.py"
 WHEEL_PATH = REPO_ROOT / "demonstrator/cfc_anchor-0.2.90rc1-py3-none-any.whl"
 
