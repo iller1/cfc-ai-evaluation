@@ -1,0 +1,74 @@
+name: CFC-RIDI F3 adversarial suite R1
+
+on:
+  push:
+    branches:
+      - review/cfc-ridi-v0.2-f3-suite-r1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  f3:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify frozen F2 base artifacts before install
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum collaboration/cfc-ridi/v0.2/f2_adapter/adapter.py
+          sha256sum collaboration/cfc-ridi/v0.2/f2_adapter/test_adapter.py
+          sha256sum collaboration/cfc-ridi/v0.2/f2_adapter/README.md
+          sha256sum collaboration/cfc-ridi/v0.2/f2_adapter/ADAPTER_MANIFEST.json
+          sha256sum demonstrator/cfc_anchor-0.2.90rc1-py3-none-any.whl
+
+      - name: Install exact frozen Anchor wheel
+        run: python -m pip install --no-deps demonstrator/cfc_anchor-0.2.90rc1-py3-none-any.whl
+
+      - name: Run F3 suite and retain complete result
+        id: run_f3
+        shell: bash
+        run: |
+          set +e
+          python collaboration/cfc-ridi/v0.2/f3_suite/run_f3.py             --output collaboration/cfc-ridi/v0.2/f3_suite/F3_RESULTS.json             > collaboration/cfc-ridi/v0.2/f3_suite/F3_RUN.log 2>&1
+          code=$?
+          cat collaboration/cfc-ridi/v0.2/f3_suite/F3_RUN.log
+          cat collaboration/cfc-ridi/v0.2/f3_suite/F3_RESULTS.json
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Hash F3 artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum collaboration/cfc-ridi/v0.2/f3_suite/fixtures.py
+          sha256sum collaboration/cfc-ridi/v0.2/f3_suite/run_f3.py
+          sha256sum collaboration/cfc-ridi/v0.2/f3_suite/F3_RESULTS.json
+          sha256sum collaboration/cfc-ridi/v0.2/f3_suite/F3_RUN.log
+
+      - name: Upload complete F3 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfc-ridi-f3-r1-results
+          path: |
+            collaboration/cfc-ridi/v0.2/f3_suite/F3_RESULTS.json
+            collaboration/cfc-ridi/v0.2/f3_suite/F3_RUN.log
+          if-no-files-found: error
+
+      - name: Preserve suite verdict as workflow status
+        shell: bash
+        run: |
+          code="${{ steps.run_f3.outputs.exit_code }}"
+          if [ "$code" != "0" ]; then
+            echo "F3 suite reported failure/no-go. Preserving non-zero workflow status."
+            exit "$code"
+          fi
