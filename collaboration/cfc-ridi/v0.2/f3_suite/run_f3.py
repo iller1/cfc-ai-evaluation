@@ -5,6 +5,7 @@ import ast
 import copy
 import hashlib
 import json
+import subprocess
 import sys
 import traceback
 from pathlib import Path
@@ -451,16 +452,34 @@ def _single_test(test_id: str) -> dict[str, Any]:
         }
 
 
-def run_all() -> dict[str, Any]:
-    import subprocess
+def run_one(test_id: str) -> dict[str, Any]:
+    for tid, title, fn in TESTS:
+        if tid != test_id:
+            continue
+        try:
+            outcome = fn()
+        except Exception as exc:
+            outcome = result_fail({
+                "suite_exception": f"{type(exc).__name__}: {exc}",
+                "traceback": traceback.format_exc(),
+            })
+        return {"test_id": tid, "title": title, **outcome}
+    raise ValueError(f"unknown test id: {test_id}")
 
+
+def run_all() -> dict[str, Any]:
     results = []
     for test_id, title, _fn in TESTS:
         proc = subprocess.run(
-            [sys.executable, str(Path(__file__).resolve()), "--single", test_id],
+            [
+                sys.executable,
+                str(Path(__file__).resolve()),
+                "--single",
+                test_id,
+            ],
+            cwd=str(REPO_ROOT),
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             check=False,
         )
         try:
@@ -469,59 +488,50 @@ def run_all() -> dict[str, Any]:
             outcome = {
                 "test_id": test_id,
                 "title": title,
-                "status": "HARNESS_ERROR",
+                "status": "FAIL",
                 "detail": {
-                    "child_returncode": proc.returncode,
+                    "harness_parse_error": True,
+                    "returncode": proc.returncode,
                     "stdout": proc.stdout,
                     "stderr": proc.stderr,
-                    "error": "child output was not valid JSON",
                 },
             }
-
         results.append(outcome)
         print(f"{test_id}: {outcome['status']}")
-        if outcome["status"] != "PASS":
+        if outcome["status"] == "FAIL":
             print(json.dumps(outcome["detail"], indent=2, sort_keys=True, default=str))
 
     passed = sum(x["status"] == "PASS" for x in results)
-    failed = sum(x["status"] == "FAIL" for x in results)
-    harness_errors = sum(x["status"] == "HARNESS_ERROR" for x in results)
-
-    if harness_errors:
-        overall = "F3_SUITE_INVALID_HARNESS_ERROR"
-    else:
-        overall = PASS_STATUS if failed == 0 else FAIL_STATUS
-
+    failed = len(results) - passed
+    overall = PASS_STATUS if failed == 0 else FAIL_STATUS
     return {
         "suite": "CFC-RIDI-v0.2-F3-R1",
         "criteria_sha256": CRITERIA_SHA256,
         "f2_adapter_commit": F2_COMMIT,
         "f2_adapter_sha256": EXPECTED_F2["adapter.py"]["sha256"],
-        "process_isolation": "ONE_FRESH_PYTHON_PROCESS_PER_T01_T15",
+        "execution_isolation": "FRESH_PROCESS_PER_TEST",
         "tests_total": len(results),
         "tests_passed": passed,
         "tests_failed": failed,
-        "harness_errors": harness_errors,
         "overall_status": overall,
         "results": results,
     }
 
 
-
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--single", choices=[x[0] for x in TESTS])
     ap.add_argument(
         "--output",
         type=Path,
         default=HERE / "F3_RESULTS.json",
     )
-    ap.add_argument("--single", choices=[x[0] for x in TESTS])
     args = ap.parse_args()
 
     if args.single:
-        outcome = _single_test(args.single)
-        print(json.dumps(outcome, sort_keys=True, default=str))
-        raise SystemExit(0)
+        one = run_one(args.single)
+        print(json.dumps(one, sort_keys=True, default=str))
+        raise SystemExit(0 if one["status"] == "PASS" else 1)
 
     report = run_all()
     args.output.write_text(
@@ -530,9 +540,6 @@ def main() -> None:
     )
     print("OVERALL:", report["overall_status"])
     print("RESULT_FILE:", args.output)
-
-    if report["harness_errors"]:
-        raise SystemExit(2)
     raise SystemExit(0 if report["tests_failed"] == 0 else 1)
 
 
