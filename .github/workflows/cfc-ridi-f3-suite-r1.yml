@@ -1,0 +1,67 @@
+name: CFC-RIDI F3 Suite R1
+
+on:
+  push:
+    branches:
+      - review/cfc-ridi-v0.2-f3-suite-r1
+    paths:
+      - "collaboration/cfc-ridi/v0.2/f3_suite/**"
+      - ".github/workflows/cfc-ridi-f3-suite-r1.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  f3:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact branch commit
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify frozen F2 artifact identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(wc -c < collaboration/cfc-ridi/v0.2/f2_adapter/adapter.py)" -eq 28972
+          echo "4b975fda6242c9a7e33d0d692705ef6fe82683dbf2bddefc0345c2e5504b480a  collaboration/cfc-ridi/v0.2/f2_adapter/adapter.py" | sha256sum -c -
+          test "$(wc -c < collaboration/cfc-ridi/v0.2/f2_adapter/test_adapter.py)" -eq 6586
+          echo "4f70526185dbb69e4073c0baf89a6f924e8e1e220ba0317c339708bf5b152f34  collaboration/cfc-ridi/v0.2/f2_adapter/test_adapter.py" | sha256sum -c -
+          test "$(wc -c < collaboration/cfc-ridi/v0.2/f2_adapter/README.md)" -eq 3479
+          echo "3bf666564b2c1a7f85526a3e223e7385e30a61c73e8d5f67ca0b17d954d7638a  collaboration/cfc-ridi/v0.2/f2_adapter/README.md" | sha256sum -c -
+          test "$(wc -c < collaboration/cfc-ridi/v0.2/f2_adapter/ADAPTER_MANIFEST.json)" -eq 1348
+          echo "32b8c36ebb434fa620cdae970ed12bbb389a1ae62d20be6005e78b7c0db89591  collaboration/cfc-ridi/v0.2/f2_adapter/ADAPTER_MANIFEST.json" | sha256sum -c -
+          echo "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303  demonstrator/cfc_anchor-0.2.90rc1-py3-none-any.whl" | sha256sum -c -
+
+      - name: Install exact frozen Anchor wheel
+        run: python -m pip install --no-deps demonstrator/cfc_anchor-0.2.90rc1-py3-none-any.whl
+
+      - name: Reproduce F2 representation baseline
+        run: python collaboration/cfc-ridi/v0.2/f2_adapter/test_adapter.py
+
+      - name: Run F3 T01-T15
+        id: f3
+        continue-on-error: true
+        run: |
+          python collaboration/cfc-ridi/v0.2/f3_suite/run_f3.py             --output collaboration/cfc-ridi/v0.2/f3_suite/F3_RESULTS.json
+
+      - name: Show complete F3 result
+        if: always()
+        run: cat collaboration/cfc-ridi/v0.2/f3_suite/F3_RESULTS.json
+
+      - name: Upload F3 result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfc-ridi-f3-r1-result
+          path: collaboration/cfc-ridi/v0.2/f3_suite/F3_RESULTS.json
+          if-no-files-found: error
+
+      - name: Preserve suite outcome
+        if: steps.f3.outcome == 'failure'
+        run: exit 1
