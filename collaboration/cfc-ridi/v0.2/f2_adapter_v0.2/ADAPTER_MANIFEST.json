@@ -1,0 +1,46 @@
+{
+  "artifact": "CFC-RIDI-F2-ADAPTER-v0.2",
+  "status": "CFC_SIDE_REPAIR_CANDIDATE_PENDING_RIDI_REVIEW",
+  "repair_target": "F3-T05",
+  "prior_failed_candidate_commit": "4167783eb48e1a1677107cb1359ad9b2f890017f",
+  "controller_baseline": "CFC Anchor 0.2.90rc1",
+  "anchor_wheel_sha256": "b3b1f11e060289afa4e7da61072f2c31be7f0da1786be90682ec307d4e1f5303",
+  "f1_interface_sha256": "b23719df7efd75dc4d53b33808377e1002a044a88acc5354defd06dc59829184",
+  "neutral_schema_sha256": "d609a6d6af94d1108048360a349edb612b65b95336d5f90e6874c4da022b60a0",
+  "f3_criteria_sha256": "f9640dbaec55a2b381a159825fe27a9e87502b75b20bbfbcf4382ca44cd887a2",
+  "components": {
+    "adapter.py": {
+      "bytes": 30630,
+      "sha256": "15b7d01787237b2e5f0d1ca106c4e84aaf1976a2512179c79c458fe3d80e634b",
+      "git_blob": "373598e8774622cc91d43b811eb636a231bd906c"
+    },
+    "test_adapter.py": {
+      "bytes": 8853,
+      "sha256": "3798cfb0b9c79311cb74b4bd5be71c2805ff225d316a57f2fb55c2d8462fd732",
+      "git_blob": "81d948ef8cc19ad471eeb05121fa64f7a885e6aa"
+    },
+    "README.md": {
+      "bytes": 3891,
+      "sha256": "0c441a05b75c62b827c69c0d40a83d7ede02b66d40b757156e3ddcec4d070ba7",
+      "git_blob": "55df7702ed90f6134762136171e5557cdde692a2"
+    },
+    "probe_public_api.py": {
+      "bytes": 730,
+      "sha256": "cf330aabe63cb5b1722bdbffc0ec92980e4d312cbcdf771c69c7fff6b4a2622a",
+      "git_blob": "4125a52565edc69a026ddd646cdd32880e68a137"
+    }
+  },
+  "cfc_representation_tests": "PASS 10/10",
+  "cfc_public_interface_probe": "NOT_RERUN_LOCALLY_LOCAL_RUNTIME_LACKS_FROZEN_WHEEL",
+  "public_interface_code_path_changed_from_v0_1": false,
+  "repair_summary": [
+    "Adds deterministic neutral_arm_binding at resolved-state package root.",
+    "Binding covers case_id, arm, dataset, task, draw, neutral schema identity and source/endpoint/conclusion/passage hashes.",
+    "Exact binding mismatch raises BindingError before Controller construction.",
+    "No Anchor change.",
+    "No F1 public-interface expansion.",
+    "No neutral-schema change.",
+    "No F3 criteria change.",
+    "No authority creation or semantic inference."
+  ]
+}
