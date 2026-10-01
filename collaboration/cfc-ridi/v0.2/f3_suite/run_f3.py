@@ -307,38 +307,92 @@ def t13() -> dict[str, Any]:
 
 def t14() -> dict[str, Any]:
     variants = [
-        make_neutral_arm(case_id="F3-T14-NQ-A", arm="A", dataset="nq", task="qa", passage_namespace="t14a"),
-        make_neutral_arm(case_id="F3-T14-FEVER-B", arm="B", dataset="fever", task="verdict", passage_namespace="t14b"),
+        make_neutral_arm(
+            case_id="F3-T14-NQ-A",
+            arm="A",
+            dataset="nq",
+            task="qa",
+            passage_namespace="t14a",
+        ),
+        make_neutral_arm(
+            case_id="F3-T14-FEVER-B",
+            arm="B",
+            dataset="fever",
+            task="verdict",
+            passage_namespace="t14b",
+        ),
     ]
     observations = []
     for payload in variants:
         # Mutation class 1: withheld-state injection.
         p = copy.deepcopy(payload)
         p["gold"] = "forbidden"
-        reject_extra, extra_detail = explicit_rejection(lambda p=p: adapter.validate_neutral_arm(p))
-
-        # Mutation class 2: passage-state rebinding.
-        resolved = build_resolved_state(payload, tag=payload["case_id"].lower())
-        resolved["passages"][0], resolved["passages"][1] = resolved["passages"][1], resolved["passages"][0]
-        reject_rebind, rebind_detail = explicit_rejection(
-            lambda payload=payload, resolved=resolved: adapter._validate_resolved_state(
-                adapter.prepare_neutral_arm(payload), resolved
-            )
+        reject_extra, extra_detail = explicit_rejection(
+            lambda p=p: adapter.validate_neutral_arm(p)
         )
-        observations.append({
-            "case_id": payload["case_id"],
-            "arm": payload["arm"],
-            "dataset": payload["dataset"],
-            "task": payload["task"],
-            "withheld_injection_rejected": reject_extra,
-            "withheld_detail": extra_detail,
-            "rebinding_rejected": reject_rebind,
-            "rebinding_detail": rebind_detail,
-        })
-    if not all(x["withheld_injection_rejected"] and x["rebinding_rejected"] for x in observations):
+
+        # Mutation class 2: passage-state rebinding. Use a minimal resolved-state
+        # validation object so case-agnostic checking does not depend on global
+        # fixture registries inside the frozen controller.
+        prepared = adapter.prepare_neutral_arm(payload)
+        passage_rows = []
+        for ordinal, docid, text_sha in prepared.passage_bindings:
+            passage_rows.append(
+                {
+                    "neutral_binding": {
+                        "ordinal": ordinal,
+                        "docid": docid,
+                        "text_sha256": text_sha,
+                    },
+                    "source_semantics": {},
+                    "evidence_draft_kwargs": {},
+                    "provenance": {},
+                    "evidence_authority": {},
+                    "epistemic_role": {},
+                }
+            )
+        passage_rows[0], passage_rows[1] = passage_rows[1], passage_rows[0]
+        minimal_resolved = {
+            "decision_as_of": "2026-09-03",
+            "controller_scope": None,
+            "claim_identity_map": {"c1": "id:fixture"},
+            "requirements": {"c1": {"required_independent_supports": 1}},
+            "host_trust_registrations": [
+                {
+                    "authority_class": "FIXTURE",
+                    "authority_id": "FIXTURE",
+                    "verifier": object(),
+                }
+            ],
+            "identity": {},
+            "failure_domain_topology": {},
+            "passages": passage_rows,
+            "snapshot": {},
+        }
+        reject_rebind, rebind_detail = explicit_rejection(
+            lambda prepared=prepared, resolved=minimal_resolved:
+                adapter._validate_resolved_state(prepared, resolved)
+        )
+
+        observations.append(
+            {
+                "case_id": payload["case_id"],
+                "arm": payload["arm"],
+                "dataset": payload["dataset"],
+                "task": payload["task"],
+                "withheld_injection_rejected": reject_extra,
+                "withheld_detail": extra_detail,
+                "rebinding_rejected": reject_rebind,
+                "rebinding_detail": rebind_detail,
+            }
+        )
+
+    if not all(
+        x["withheld_injection_rejected"] and x["rebinding_rejected"]
+        for x in observations
+    ):
         return result_fail(observations)
     return result_pass(observations)
-
 
 def t15() -> dict[str, Any]:
     source = ADAPTER_PATH.read_text(encoding="utf-8")
