@@ -379,7 +379,7 @@ def t11() -> dict[str, Any]:
         required_independent_supports=2,
         install_independence=True,
     )
-    mutated["requirements"] = {"c1": {"required_independent_supports": 11}}
+    mutated["requirements"] = {"c1": {"required_independent_supports": 3}}
     ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
     return (
         result_pass({"positive_control": control, "mutation": detail})
