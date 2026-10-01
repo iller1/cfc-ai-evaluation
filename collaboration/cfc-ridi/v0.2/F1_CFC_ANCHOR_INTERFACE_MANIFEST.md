@@ -70,9 +70,20 @@ The proposed adapter may use only the following Controller methods where require
 - `install_verified_snapshot(...)`
 - `draft_support_set_independence(...)`
 - `install_verified_support_set_independence(...)`
+- `identity_commitment(...)`
+- `failure_domain_topology_commitment(...)`
+- `source_semantics_commitment(...)`
+- `provenance_commitment(...)`
+- `evidence_authority_commitment(...)`
+- `snapshot_commitment(...)`
+- `support_set_independence_commitment(...)`
 - `evaluate_snapshot(...)`
 
 No method outside this list is authorized for the F2 adapter unless the F1 interface contract is explicitly amended and bilaterally re-accepted.
+
+### Commitment-helper completeness amendment
+
+The listed public commitment helpers are included because the frozen public Demonstrator lifecycle uses them to bind public draft objects to the corresponding attestation commitments before verified installation. Their inclusion does not broaden the package boundary beyond the frozen public API and does not authorize any private/internal access.
 
 ## 4. Adapter boundary
 
