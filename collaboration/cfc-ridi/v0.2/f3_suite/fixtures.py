@@ -282,7 +282,10 @@ def build_resolved_state(
     install_independence: bool = False,
     controller_scope: str | None = None,
     snapshot_scope: str = "scope:f3:expected",
+    claim_relevant_count: int = 10,
 ) -> dict[str, Any]:
+    if not 1 <= claim_relevant_count <= 10:
+        raise ValueError("claim_relevant_count must be 1..10")
     adapter.validate_neutral_arm(payload)
     rows = _trust_rows()
     trust = _trust_policy(rows)
@@ -399,11 +402,12 @@ def build_resolved_state(
             ],
             "dependencies": dependencies,
         }
+        claim_relevant = idx <= claim_relevant_count
         evidence_draft = {
             "evidence_id": f"{tag}:E{idx}",
             "subject": "DemoSubject",
-            "predicate": "state",
-            "value": "safe",
+            "predicate": "state" if claim_relevant else f"context_{idx}",
+            "value": "safe" if claim_relevant else f"auxiliary_{idx}",
             "source": f"display:{token}",
             "identity_registry_entry_id": identity_id,
             "authority_id": "GENERAL_RECORD_V5",
@@ -546,7 +550,9 @@ def build_resolved_state(
             "independence_id": f"ssi:f3:{tag}",
             "claim_id": "c1",
             "retrieval_scope_id": snapshot_scope,
-            "evidence_ids": [f"{tag}:E{i}" for i in range(1, 11)],
+            "evidence_ids": [
+                f"{tag}:E{i}" for i in range(1, claim_relevant_count + 1)
+            ],
             "reason": "F3 fixture-only explicit independence certificate.",
             "as_of_date": ASOF,
         }
@@ -556,7 +562,7 @@ def build_resolved_state(
             f"att:f3:{tag}:ssi",
             AUTHORITIES["SUPPORT_SET_INDEPENDENCE"],
             c.support_set_independence_commitment(
-                ssi, [*evidence_objects]
+                ssi, [*evidence_objects[:claim_relevant_count]]
             ),
             ASOF,
             VALID_FROM,
@@ -567,7 +573,7 @@ def build_resolved_state(
         )
         c.install_verified_support_set_independence(
             ssi,
-            evidence_objects,
+            evidence_objects[:claim_relevant_count],
             ssi_att,
             VERIFIERS["SUPPORT_SET_INDEPENDENCE"],
             as_of=ASOF,
