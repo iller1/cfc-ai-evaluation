@@ -108,11 +108,22 @@ def require_positive_control(
 ) -> dict[str, Any]:
     out = execute(payload, resolved)
     if out.get("control_closure") is not True:
+        raw = out.get("raw") if isinstance(out.get("raw"), dict) else {}
+        diag = {
+            "claim_support_policy_violations": raw.get("claim_support_policy_violations"),
+            "matching_support_universes": raw.get("matching_support_universes"),
+            "critical_unresolved": raw.get("critical_unresolved"),
+            "global_consistency_violations": raw.get("global_consistency_violations"),
+            "constraint_relation_coverage_violations": raw.get("constraint_relation_coverage_violations"),
+            "constraint_coverage_violations": raw.get("constraint_coverage_violations"),
+            "gates": raw.get("gates"),
+        }
         raise RuntimeError(
             f"{label}: positive control did not close; "
             f"control_closure={out.get('control_closure')!r}, "
             f"stop_type={out.get('stop_type')!r}, "
-            f"claim_states={out.get('claim_states')!r}"
+            f"claim_states={out.get('claim_states')!r}, "
+            f"diagnostics={diag!r}"
         )
     return {
         "control_closure": True,
