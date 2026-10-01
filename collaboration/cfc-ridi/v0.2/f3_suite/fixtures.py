@@ -31,7 +31,7 @@ from cfc_anchor import (
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[3]
-ADAPTER_PATH = REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter/adapter.py"
+ADAPTER_PATH = REPO_ROOT / "collaboration/cfc-ridi/v0.2/f2_adapter_v0.2/adapter.py"
 WHEEL_PATH = REPO_ROOT / "demonstrator/cfc_anchor-0.2.90rc1-py3-none-any.whl"
 
 SPEC = importlib.util.spec_from_file_location("f3_frozen_adapter", ADAPTER_PATH)
@@ -286,7 +286,7 @@ def build_resolved_state(
 ) -> dict[str, Any]:
     if not 1 <= claim_relevant_count <= 10:
         raise ValueError("claim_relevant_count must be 1..10")
-    adapter.validate_neutral_arm(payload)
+    prepared = adapter.prepare_neutral_arm(payload)
     rows = _trust_rows()
     trust = _trust_policy(rows)
     c = Controller(scope=controller_scope, trust_policy=trust)
@@ -585,6 +585,7 @@ def build_resolved_state(
         }
 
     return {
+        "neutral_arm_binding": adapter.neutral_arm_binding(prepared),
         "decision_as_of": ASOF,
         "controller_scope": controller_scope,
         "claim_identity_map": {"c1": identity_id},
