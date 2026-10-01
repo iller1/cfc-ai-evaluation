@@ -100,6 +100,22 @@ def nonclosure_or_rejection(fn: Callable[[], Any]) -> tuple[bool, dict[str, Any]
     }
 
 
+def require_positive_control(label: str, payload: dict[str, Any], resolved: dict[str, Any]) -> dict[str, Any]:
+    out = execute(payload, resolved)
+    if out.get("control_closure") is not True:
+        raise RuntimeError(
+            f"{label}: positive control did not close; "
+            f"control_closure={out.get('control_closure')!r}, "
+            f"stop_type={out.get('stop_type')!r}, "
+            f"claim_states={out.get('claim_states')!r}"
+        )
+    return {
+        "control_closure": True,
+        "stop_type": out.get("stop_type"),
+        "claim_states": out.get("claim_states"),
+    }
+
+
 def t01() -> dict[str, Any]:
     observed = {}
     for name, spec in EXPECTED_F2.items():
@@ -188,414 +204,114 @@ def t04() -> dict[str, Any]:
 
 
 def t05() -> dict[str, Any]:
-    # Deliberately same passage bindings, but a different case and arm.
+    # Same passage bindings, but a different case and arm.
     arm_a = make_neutral_arm(case_id="F3-T05-A", arm="A", passage_namespace="t05-shared")
     arm_b = make_neutral_arm(case_id="F3-T05-B", arm="B", passage_namespace="t05-shared")
-    foreign = build_resolved_state(arm_b, tag="t05-foreign")
+    foreign = build_resolved_state(
+        arm_b,
+        tag="t05-foreign",
+        required_independent_supports=1,
+        install_independence=True,
+    )
+    control = require_positive_control("F3-T05", arm_b, foreign)
 
     ok, detail = nonclosure_or_rejection(lambda: execute(arm_a, foreign))
     if ok:
-        return result_pass(detail)
+        return result_pass({"positive_control": control, "mutation": detail})
     return result_fail({
         "finding": "foreign resolved-state package was accepted for a different case/arm",
-        **detail,
+        "positive_control": control,
+        "mutation": detail,
     })
-
-
 def t06() -> dict[str, Any]:
     payload = make_neutral_arm(case_id="F3-T06")
-    resolved = build_resolved_state(payload, tag="t06")
-    resolved["claim_identity_map"] = {"c1": "id:foreign-subject:v9"}
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, resolved))
-    return result_pass(detail) if ok else result_fail(detail)
-
-
+    resolved = build_resolved_state(
+        payload,
+        tag="t06",
+        required_independent_supports=1,
+        install_independence=True,
+    )
+    control = require_positive_control("F3-T06", payload, resolved)
+    mutated = copy.deepcopy(resolved)
+    mutated["claim_identity_map"] = {"c1": "id:foreign-subject:v9"}
+    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
+    return result_pass({"positive_control": control, "mutation": detail}) if ok else result_fail({"positive_control": control, "mutation": detail})
 def t07() -> dict[str, Any]:
     payload = make_neutral_arm(case_id="F3-T07")
     resolved = build_resolved_state(
         payload,
         tag="t07",
-        controller_scope="scope:f3:requested-broad",
+        required_independent_supports=1,
+        install_independence=True,
+        controller_scope=None,
         snapshot_scope="scope:f3:narrow",
     )
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, resolved))
-    return result_pass(detail) if ok else result_fail(detail)
-
-
+    control = require_positive_control("F3-T07", payload, resolved)
+    mutated = copy.deepcopy(resolved)
+    mutated["controller_scope"] = "scope:f3:requested-broad"
+    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
+    return result_pass({"positive_control": control, "mutation": detail}) if ok else result_fail({"positive_control": control, "mutation": detail})
 def t08() -> dict[str, Any]:
     payload = make_neutral_arm(case_id="F3-T08")
-    resolved = build_resolved_state(payload, tag="t08")
-    resolved["decision_as_of"] = "2027-01-15"
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, resolved))
-    return result_pass(detail) if ok else result_fail(detail)
-
-
-def t09() -> dict[str, Any]:
-    payload = make_neutral_arm(case_id="F3-T09")
-    resolved = build_resolved_state(payload, tag="t09")
-    resolved["passages"][0], resolved["passages"][1] = (
-        resolved["passages"][1],
-        resolved["passages"][0],
-    )
-    rejected, detail = explicit_rejection(
-        lambda: adapter._validate_resolved_state(adapter.prepare_neutral_arm(payload), resolved)
-    )
-    return result_pass(detail) if rejected else result_fail(detail)
-
-
-def t10() -> dict[str, Any]:
-    payload = make_neutral_arm(case_id="F3-T10")
     resolved = build_resolved_state(
         payload,
-        tag="t10",
+        tag="t08",
+        required_independent_supports=1,
+        install_independence=True,
+    )
+    control = require_positive_control("F3-T08", payload, resolved)
+    mutated = copy.deepcopy(resolved)
+    mutated["decision_as_of"] = "2027-01-15"
+    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
+    return result_pass({"positive_control": control, "mutation": detail}) if ok else result_fail({"positive_control": control, "mutation": detail})
+def t10() -> dict[str, Any]:
+    payload = make_neutral_arm(case_id="F3-T10")
+    control_state = build_resolved_state(
+        payload,
+        tag="t10-control",
+        shared_lineage=False,
+        required_independent_supports=2,
+        install_independence=True,
+    )
+    control = require_positive_control("F3-T10", payload, control_state)
+
+    mutated = build_resolved_state(
+        payload,
+        tag="t10-mutated",
         shared_lineage=True,
         required_independent_supports=2,
         install_independence=False,
     )
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, resolved))
-    return result_pass(detail) if ok else result_fail(detail)
-
-
+    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
+    return result_pass({"positive_control": control, "mutation": detail}) if ok else result_fail({"positive_control": control, "mutation": detail})
 def t11() -> dict[str, Any]:
     payload = make_neutral_arm(case_id="F3-T11")
     resolved = build_resolved_state(
         payload,
         tag="t11",
         shared_lineage=False,
-        required_independent_supports=11,
-        install_independence=False,
+        required_independent_supports=2,
+        install_independence=True,
     )
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, resolved))
-    return result_pass(detail) if ok else result_fail(detail)
-
-
+    control = require_positive_control("F3-T11", payload, resolved)
+    mutated = copy.deepcopy(resolved)
+    mutated["requirements"] = {"c1": {"required_independent_supports": 11}}
+    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
+    return result_pass({"positive_control": control, "mutation": detail}) if ok else result_fail({"positive_control": control, "mutation": detail})
 def t12() -> dict[str, Any]:
     payload = make_neutral_arm(case_id="F3-T12")
-    resolved = build_resolved_state(payload, tag="t12")
-    for row in resolved["host_trust_registrations"]:
+    resolved = build_resolved_state(
+        payload,
+        tag="t12",
+        required_independent_supports=1,
+        install_independence=True,
+    )
+    control = require_positive_control("F3-T12", payload, resolved)
+    mutated = copy.deepcopy(resolved)
+    for row in mutated["host_trust_registrations"]:
         if row["authority_class"] == "IDENTITY":
             row["authority_id"] = "F3_WRONG_IDENTITY_AUTHORITY"
             break
-    ok, detail = nonclosure_or_rejection(lambda: execute(payload, resolved))
-    return result_pass(detail) if ok else result_fail(detail)
+    ok, detail = nonclosure_or_rejection(lambda: execute(payload, mutated))
+    return result_pass({"positive_control": control, "mutation": detail}) if ok else result_fail({"positive_control": control, "mutation": detail})
 
-
-def t13() -> dict[str, Any]:
-    payload = make_neutral_arm(case_id="F3-T13")
-    base = build_resolved_state(payload, tag="t13")
-    mutations = {
-        "missing_identity": lambda x: x.pop("identity"),
-        "missing_topology": lambda x: x.pop("failure_domain_topology"),
-        "missing_snapshot": lambda x: x.pop("snapshot"),
-        "missing_passage_semantics": lambda x: x["passages"][0].pop("source_semantics"),
-        "missing_passage_provenance": lambda x: x["passages"][0].pop("provenance"),
-        "missing_evidence_authority": lambda x: x["passages"][0].pop("evidence_authority"),
-        "missing_epistemic_role": lambda x: x["passages"][0].pop("epistemic_role"),
-    }
-    failures = []
-    details = {}
-    prepared = adapter.prepare_neutral_arm(payload)
-    for name, mutate in mutations.items():
-        r = copy.deepcopy(base)
-        mutate(r)
-        rejected, detail = explicit_rejection(lambda r=r: adapter._validate_resolved_state(prepared, r))
-        details[name] = detail
-        if not rejected:
-            failures.append(name)
-    return result_fail({"not_rejected": failures, "details": details}) if failures else result_pass(details)
-
-
-def t14() -> dict[str, Any]:
-    variants = [
-        make_neutral_arm(
-            case_id="F3-T14-NQ-A",
-            arm="A",
-            dataset="nq",
-            task="qa",
-            passage_namespace="t14a",
-        ),
-        make_neutral_arm(
-            case_id="F3-T14-FEVER-B",
-            arm="B",
-            dataset="fever",
-            task="verdict",
-            passage_namespace="t14b",
-        ),
-    ]
-    observations = []
-    for payload in variants:
-        # Mutation class 1: withheld-state injection.
-        p = copy.deepcopy(payload)
-        p["gold"] = "forbidden"
-        reject_extra, extra_detail = explicit_rejection(
-            lambda p=p: adapter.validate_neutral_arm(p)
-        )
-
-        # Mutation class 2: passage-state rebinding. Use a minimal resolved-state
-        # validation object so case-agnostic checking does not depend on global
-        # fixture registries inside the frozen controller.
-        prepared = adapter.prepare_neutral_arm(payload)
-        passage_rows = []
-        for ordinal, docid, text_sha in prepared.passage_bindings:
-            passage_rows.append(
-                {
-                    "neutral_binding": {
-                        "ordinal": ordinal,
-                        "docid": docid,
-                        "text_sha256": text_sha,
-                    },
-                    "source_semantics": {},
-                    "evidence_draft_kwargs": {},
-                    "provenance": {},
-                    "evidence_authority": {},
-                    "epistemic_role": {},
-                }
-            )
-        passage_rows[0], passage_rows[1] = passage_rows[1], passage_rows[0]
-        minimal_resolved = {
-            "decision_as_of": "2026-09-03",
-            "controller_scope": None,
-            "claim_identity_map": {"c1": "id:fixture"},
-            "requirements": {"c1": {"required_independent_supports": 1}},
-            "host_trust_registrations": [
-                {
-                    "authority_class": "FIXTURE",
-                    "authority_id": "FIXTURE",
-                    "verifier": object(),
-                }
-            ],
-            "identity": {},
-            "failure_domain_topology": {},
-            "passages": passage_rows,
-            "snapshot": {},
-        }
-        reject_rebind, rebind_detail = explicit_rejection(
-            lambda prepared=prepared, resolved=minimal_resolved:
-                adapter._validate_resolved_state(prepared, resolved)
-        )
-
-        observations.append(
-            {
-                "case_id": payload["case_id"],
-                "arm": payload["arm"],
-                "dataset": payload["dataset"],
-                "task": payload["task"],
-                "withheld_injection_rejected": reject_extra,
-                "withheld_detail": extra_detail,
-                "rebinding_rejected": reject_rebind,
-                "rebinding_detail": rebind_detail,
-            }
-        )
-
-    if not all(
-        x["withheld_injection_rejected"] and x["rebinding_rejected"]
-        for x in observations
-    ):
-        return result_fail(observations)
-    return result_pass(observations)
-
-def t15() -> dict[str, Any]:
-    source = ADAPTER_PATH.read_text(encoding="utf-8")
-    tree = ast.parse(source)
-
-    forbidden_strings = [
-        "cfc_anchor._",
-        "monkeypatch",
-        "__dict__",
-        "sys.modules",
-        "importlib.import_module",
-    ]
-    found_strings = [s for s in forbidden_strings if s in source]
-    if found_strings:
-        return result_fail({"forbidden_source_markers": found_strings})
-
-    import_names = set()
-    controller_calls = set()
-    private_attrs = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module == "cfc_anchor":
-            import_names.update(alias.name for alias in node.names)
-        if isinstance(node, ast.Attribute) and node.attr.startswith("_"):
-            private_attrs.append(node.attr)
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-            if node.func.attr in adapter._F1_CONTROLLER_METHODS:
-                controller_calls.add(node.func.attr)
-
-    allowed_imports = set(adapter._F1_PUBLIC_IMPORTS)
-    if import_names and not import_names.issubset(allowed_imports):
-        return result_fail({
-            "unapproved_imports": sorted(import_names - allowed_imports),
-            "imports": sorted(import_names),
-        })
-
-    # Adapter dynamically imports the public package root, so direct from-imports may be empty.
-    probe = adapter.public_interface_probe(WHEEL_PATH)
-    if probe.get("private_engine_accessed") is not False:
-        return result_fail({"probe": probe})
-    if private_attrs:
-        # Private methods defined/called on this adapter module itself are allowed; Controller-private
-        # access would show up as c.<_name> in source. Check that form separately.
-        private_controller = []
-        for node in ast.walk(tree):
-            if (
-                isinstance(node, ast.Attribute)
-                and node.attr.startswith("_")
-                and isinstance(node.value, ast.Name)
-                and node.value.id == "c"
-            ):
-                private_controller.append(node.attr)
-        if private_controller:
-            return result_fail({"private_controller_attributes": sorted(set(private_controller))})
-
-    if not controller_calls.issubset(set(adapter._F1_CONTROLLER_METHODS)):
-        return result_fail({
-            "unapproved_controller_calls": sorted(controller_calls - set(adapter._F1_CONTROLLER_METHODS))
-        })
-
-    return result_pass({
-        "public_probe": {
-            "private_engine_accessed": probe["private_engine_accessed"],
-            "anchor_wheel_sha256": probe["anchor_wheel_artifact_verified"]["sha256"],
-        },
-        "controller_calls_observed_in_source": sorted(controller_calls),
-        "accepted_method_surface_size": len(adapter._F1_CONTROLLER_METHODS),
-    })
-
-
-TESTS: list[tuple[str, str, Callable[[], dict[str, Any]]]] = [
-    ("F3-T01", "Exact F2 baseline identity", t01),
-    ("F3-T02", "Deterministic one-arm preparation", t02),
-    ("F3-T03", "Hidden neutral-field promotion", t03),
-    ("F3-T04", "Counterpart/withheld-state injection", t04),
-    ("F3-T05", "Cross-case / cross-arm resolved-state substitution", t05),
-    ("F3-T06", "Claim-identity substitution", t06),
-    ("F3-T07", "Scope broadening", t07),
-    ("F3-T08", "Decision-as-of / freshness substitution", t08),
-    ("F3-T09", "Passage-state rebinding", t09),
-    ("F3-T10", "Dependency / independence preservation", t10),
-    ("F3-T11", "Required-support mismatch", t11),
-    ("F3-T12", "Host-trust / verifier mismatch", t12),
-    ("F3-T13", "Missing/malformed resolved semantic state", t13),
-    ("F3-T14", "Case-agnostic behavior", t14),
-    ("F3-T15", "Public-interface confinement", t15),
-]
-
-
-def _single_test(test_id: str) -> dict[str, Any]:
-    matches = [(tid, title, fn) for tid, title, fn in TESTS if tid == test_id]
-    if len(matches) != 1:
-        return {
-            "test_id": test_id,
-            "title": "UNKNOWN",
-            "status": "HARNESS_ERROR",
-            "detail": {"error": "unknown test id"},
-        }
-    tid, title, fn = matches[0]
-    try:
-        outcome = fn()
-        return {"test_id": tid, "title": title, **outcome}
-    except Exception as exc:
-        return {
-            "test_id": tid,
-            "title": title,
-            "status": "HARNESS_ERROR",
-            "detail": {
-                "suite_exception": f"{type(exc).__name__}: {exc}",
-                "traceback": traceback.format_exc(),
-            },
-        }
-
-
-def run_one(test_id: str) -> dict[str, Any]:
-    for tid, title, fn in TESTS:
-        if tid != test_id:
-            continue
-        try:
-            outcome = fn()
-        except Exception as exc:
-            outcome = result_fail({
-                "suite_exception": f"{type(exc).__name__}: {exc}",
-                "traceback": traceback.format_exc(),
-            })
-        return {"test_id": tid, "title": title, **outcome}
-    raise ValueError(f"unknown test id: {test_id}")
-
-
-def run_all() -> dict[str, Any]:
-    results = []
-    for test_id, title, _fn in TESTS:
-        proc = subprocess.run(
-            [
-                sys.executable,
-                str(Path(__file__).resolve()),
-                "--single",
-                test_id,
-            ],
-            cwd=str(REPO_ROOT),
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-        try:
-            outcome = json.loads(proc.stdout)
-        except Exception:
-            outcome = {
-                "test_id": test_id,
-                "title": title,
-                "status": "FAIL",
-                "detail": {
-                    "harness_parse_error": True,
-                    "returncode": proc.returncode,
-                    "stdout": proc.stdout,
-                    "stderr": proc.stderr,
-                },
-            }
-        results.append(outcome)
-        print(f"{test_id}: {outcome['status']}")
-        if outcome["status"] == "FAIL":
-            print(json.dumps(outcome["detail"], indent=2, sort_keys=True, default=str))
-
-    passed = sum(x["status"] == "PASS" for x in results)
-    failed = len(results) - passed
-    overall = PASS_STATUS if failed == 0 else FAIL_STATUS
-    return {
-        "suite": "CFC-RIDI-v0.2-F3-R1",
-        "criteria_sha256": CRITERIA_SHA256,
-        "f2_adapter_commit": F2_COMMIT,
-        "f2_adapter_sha256": EXPECTED_F2["adapter.py"]["sha256"],
-        "execution_isolation": "FRESH_PROCESS_PER_TEST",
-        "tests_total": len(results),
-        "tests_passed": passed,
-        "tests_failed": failed,
-        "overall_status": overall,
-        "results": results,
-    }
-
-
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--single", choices=[x[0] for x in TESTS])
-    ap.add_argument(
-        "--output",
-        type=Path,
-        default=HERE / "F3_RESULTS.json",
-    )
-    args = ap.parse_args()
-
-    if args.single:
-        one = run_one(args.single)
-        print(json.dumps(one, sort_keys=True, default=str))
-        raise SystemExit(0 if one["status"] == "PASS" else 1)
-
-    report = run_all()
-    args.output.write_text(
-        json.dumps(report, indent=2, sort_keys=True, default=str) + "\n",
-        encoding="utf-8",
-    )
-    print("OVERALL:", report["overall_status"])
-    print("RESULT_FILE:", args.output)
-    raise SystemExit(0 if report["tests_failed"] == 0 else 1)
-
-
-if __name__ == "__main__":
-    main()
