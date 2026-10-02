@@ -60,6 +60,21 @@ A host workflow still needs an explicit mapping from its own evidence semantics 
 
 No production-readiness, legal-accuracy, regulatory-compliance, commercial-ROI, or universal plug-and-play claim is made.
 
+### Runtime isolation
+
+Do not assume that separate Controller instances in one long-lived interpreter
+necessarily provide independent runtime registry state.
+
+Separate research against frozen CFC-next `0.3.0a2` found fail-closed
+cross-context interference when independently registered contexts shared the
+same canonical entity/event/version identity. No unauthorized closure was
+observed.
+
+Independent request/session execution should retain process isolation, or use a
+separately validated registry-level canonical identity coordination design.
+
+See [Claim boundary](BOUNDARY.md) for the exact scope and non-claims.
+
 ## External usability gates
 
 These remain open:
