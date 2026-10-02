@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CFC — 60-second review</title>
+<style>
+:root{--bg:#08101d;--panel:#111b2d;--line:#293954;--text:#f3f6fb;--muted:#9cabc1;--blue:#78b4ff;--green:#55dca5;--red:#ff7d8e;--amber:#ffd36e;--violet:#c1afff}*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#091426,#070d17);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:1040px;margin:auto;padding:32px 20px 56px}.kicker{font-size:11px;font-weight:850;letter-spacing:.13em;text-transform:uppercase;color:var(--blue)}h1{font-size:42px;line-height:1.08;letter-spacing:-.035em;max-width:850px;margin:10px 0 14px}.lead{font-size:18px;color:var(--muted);max-width:790px}.hero{padding:28px;border:1px solid var(--line);border-radius:18px;background:rgba(17,27,45,.92)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}button,a.btn{border:1px solid var(--line);border-radius:10px;padding:11px 15px;background:#17243a;color:var(--text);font-weight:800;text-decoration:none;cursor:pointer}button.primary{background:#2862ad;border-color:#4883d4;font-size:16px;padding:13px 18px}.legend{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px;color:var(--muted);font-size:12px}.tag{border:1px solid var(--line);border-radius:999px;padding:5px 9px}.tag.allow{color:var(--green)}.tag.stop{color:var(--red)}.tag.q{color:var(--amber)}.integrity{margin-top:14px;font:11px ui-monospace,monospace;color:var(--muted)}#review{display:none;margin-top:22px}.progress{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap}.step{border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:11px;color:var(--muted)}.step.active{color:var(--text);border-color:var(--blue);background:#182b48}.card{border:1px solid var(--line);border-radius:18px;background:rgba(17,27,45,.95);padding:24px}.case-kicker{font-size:11px;color:var(--blue);font-weight:850}.card h2{font-size:27px;margin:5px 0 5px}.subtitle{color:var(--muted)}.plain{margin:18px 0;padding:15px 16px;border-left:3px solid var(--violet);background:#0d1728;border-radius:10px;font-size:17px}.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:12px}.box{border:1px solid var(--line);border-radius:12px;background:#0b1423;padding:14px}.label{font-size:10px;color:var(--muted);font-weight:850;letter-spacing:.09em;text-transform:uppercase}.value{font-size:18px;font-weight:750;margin-top:7px}.state{font:850 19px ui-monospace,monospace;margin-top:7px}.decision{font-size:27px;font-weight:900;margin-top:5px}.decision.allow{color:var(--green)}.decision.stop{color:var(--red)}.evidence{margin-top:8px;color:var(--muted)}.evidence div{padding:5px 0;border-bottom:1px dashed #263751}.evidence div:last-child{border:0}.case-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:16px}.case-actions .next{margin-left:auto}.status{font-size:11px;color:var(--muted)}details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#0a1321}summary{cursor:pointer;font-weight:750}pre{white-space:pre-wrap;word-break:break-word;font-size:10.5px;max-height:360px;overflow:auto}.done{padding:26px;border:1px solid var(--line);border-radius:18px;background:#101b2c;text-align:center}.done h2{font-size:30px;margin:5px 0}.footer{margin-top:18px;color:var(--muted);font-size:11px}.footer a{color:var(--blue)}@media(max-width:720px){h1{font-size:34px}.grid{grid-template-columns:1fr}.case-actions .next{margin-left:0}}
+</style>
+</head>
+<body><div class="wrap">
+<section class="hero" id="hero">
+<div class="kicker">CFC Demonstrator · reviewer path</div>
+<h1 id="question">Does the available evidence actually justify closing the AI decision?</h1>
+<div class="lead">Five executable cases. About one minute. See CFC stop unresolved or conflicting closure — and allow closure when the frozen policy is actually satisfied.</div>
+<div class="actions"><button class="primary" id="start">Run the 60-second review</button><a class="btn" href="/index.html">Open full demonstrator</a></div>
+<div class="legend"><span class="tag allow">ALLOW = closure justified</span><span class="tag stop">STOP = do not close</span><span class="tag">UNRESOLVED = evidence state incomplete</span><span class="tag q">QUARANTINED = conflict preserved</span></div>
+<div class="integrity" id="integrity">Checking frozen artifact identity…</div>
+</section>
+<section id="review"><div class="progress" id="progress"></div><div id="case"></div></section>
+<div class="footer">This UX candidate changes presentation only. Live case execution still runs against the same frozen CFC Anchor 0.2.90rc1. <a href="/index.html">Full technical demonstrator</a>.</div>
+</div>
+<script>
+let UX=null, CASES=[], PATH=[], pos=0, lastRaw=null;
+const byId=id=>document.getElementById(id);
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+async function load(){
+  const [ux,status,cases]=await Promise.all([fetch('/ux_config_v1_1.json').then(r=>r.json()),fetch('/api/status').then(r=>r.json()),fetch('/api/cases').then(r=>r.json())]);
+  UX=ux;CASES=cases;PATH=ux.path;
+  byId('question').textContent=ux.question;
+  byId('integrity').textContent=(status.wheel_integrity?'FROZEN WHEEL · INTEGRITY VERIFIED':'INTEGRITY CHECK FAILED')+' · engine '+status.engine_sha256.slice(0,12)+'…';
+  drawProgress();
+}
+function drawProgress(){byId('progress').innerHTML=PATH.map((id,i)=>`<span class="step ${i===pos?'active':''}">${i+1}</span>`).join('');}
+function row(){return CASES.find(x=>x.id===PATH[pos]);}
+function render(){
+  drawProgress(); const c=row(); lastRaw=null;
+  const explanation=UX.human_explanations[c.id]||c.teaching_point;
+  byId('case').innerHTML=`<article class="card"><div class="case-kicker">CASE ${pos+1} OF ${PATH.length}</div><h2>${esc(c.title)}</h2><div class="subtitle">${esc(c.subtitle)}</div><div class="plain"><b>In plain English:</b> ${esc(explanation)}</div><div class="grid"><div class="box"><div class="label">Model conclusion</div><div class="value">${esc(c.model_conclusion)}</div><div class="label" style="margin-top:15px">Available evidence</div><div class="evidence">${c.evidence_lines.map(x=>`<div>${esc(x)}</div>`).join('')}</div></div><div class="box"><div class="label">CFC claim state</div><div class="state">${esc(c.claim_state)}</div><div class="label" style="margin-top:15px">Closure decision</div><div class="decision ${String(c.closure_decision).toLowerCase()}">${esc(c.closure_decision)}</div><div class="subtitle" style="margin-top:7px">${esc(UX.labels[c.claim_state]||c.reason)}</div></div></div><div class="case-actions"><button id="runLive">Run this case live</button><span class="status" id="liveStatus">Reference result shown above</span>${pos>0?'<button id="prev">← Previous</button>':''}<button class="next primary" id="next">${pos===PATH.length-1?'Finish review':'Next case →'}</button></div><details id="tech"><summary>Technical details</summary><pre>${esc(JSON.stringify({reason:c.reason,false_gates:c.false_gates,reference_file:c.reference_file},null,2))}</pre></details></article>`;
+  byId('runLive').onclick=runLive;
+  if(byId('prev'))byId('prev').onclick=()=>{pos--;render();};
+  byId('next').onclick=()=>{if(pos===PATH.length-1)finish();else{pos++;render();}};
+}
+async function runLive(){
+ const c=row(); const s=byId('liveStatus'); s.textContent='Running frozen controller…';
+ try{const r=await fetch('/api/run/'+encodeURIComponent(c.id),{method:'POST'}).then(x=>x.json());if(r.error)throw new Error(r.error);lastRaw=r;s.textContent=(r.replay_matches_reference?'LIVE PASS · matches frozen reference':'LIVE RESULT · reference mismatch');const pre=byId('tech').querySelector('pre');pre.textContent=JSON.stringify(r,null,2);}catch(e){s.textContent='Live run failed: '+e.message;}
+}
+function finish(){byId('review').innerHTML=`<div class="done"><div class="kicker">60-second path complete</div><h2>The point is not “STOP everything.”</h2><p>CFC preserves unresolved and conflicting states when closure is not justified, and permits closure when the frozen policy is satisfied.</p><div class="actions" style="justify-content:center"><a class="btn" href="/index.html">Explore all 10 cases</a><button id="again">Run again</button></div></div>`;byId('again').onclick=()=>location.reload();}
+byId('start').onclick=()=>{byId('hero').style.display='none';byId('review').style.display='block';pos=0;render();};
+load().catch(e=>{byId('integrity').textContent='Unable to load demonstrator data: '+e.message;});
+</script>
+</body></html>
