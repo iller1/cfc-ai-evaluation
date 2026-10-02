@@ -1,0 +1,73 @@
+{
+  "schema": "CFC_ATTESTATION_LIFECYCLE_CONTRACT_MATRIX_V0_2",
+  "date": "2026-09-13",
+  "baseline_modified": false,
+  "original_oracle_changed": false,
+  "original_results_rescored": false,
+  "adjudication": "NO_ESTABLISHED_FROZEN_ANCHOR_CONTRACT_VIOLATION__NORMATIVE_LIFECYCLE_GAP",
+  "layers": {
+    "operator_wrapper_v1_23": {
+      "current_use_expiry_semantics": "EXPLICIT_WHEN_RELEVANT_AND_SUPPLIED",
+      "independence_common_mode_semantics": "EXPLICIT",
+      "anchor_runtime_pin_lifecycle_contract": "NOT_APPLICABLE_DIFFERENT_COMPONENT"
+    },
+    "formal_spec_v1_0": {
+      "historical_vs_current_approval": "CONFIRMED",
+      "expired_certificate_current_approval": "BLOCKED_IN_G04_SCOPE",
+      "universal_authority_state_machine": "NOT_EXPRESSED_IN_V1_23",
+      "normative_anchor_si_ssi_mapping": "NOT_DEFINED"
+    },
+    "anchor_r267_r268": {
+      "freeze_scope": "PUBLIC_INTERFACE_AND_TRUST_BOUNDARY_SURFACE",
+      "current_use_external_attestation_freshness_at_evaluate": "NOT_EXPRESSED",
+      "failed_reverify_revokes_prior_runtime_pin": "NOT_EXPRESSED",
+      "provider_specific_verifier_implementation": "HOST_OWNED",
+      "support_policy": "OUTSIDE_FREEZE",
+      "correctness_or_safety_guarantee": false
+    },
+    "r254_dependency_independence": {
+      "fail_closed_if_runtime_pin_lost": true,
+      "fail_closed_if_engine_independence_certificate_invalid": true,
+      "later_modeled_common_mode_can_invalidate_engine_certificate": true,
+      "external_attestation_expiry_automatically_removes_existing_pin": "NOT_SPECIFIED"
+    }
+  },
+  "findings": [
+    {
+      "id": "A01",
+      "tests": ["T08", "T09", "T10"],
+      "behavior": "CONFIRMED_REPRODUCIBLE_CLOSURE",
+      "current_use_oracle": "FAIL",
+      "contract_violation": "NOT_ESTABLISHED",
+      "reason": "evaluate-time external-attestation freshness is not an expressed R267/R268 frozen guarantee"
+    },
+    {
+      "id": "A02",
+      "tests": ["T11", "T12"],
+      "behavior": "CONFIRMED_REPRODUCIBLE_CLOSURE_AFTER_REJECTED_REVERIFY_AND_CONTINUED_EVALUATE",
+      "current_use_oracle": "FAIL",
+      "contract_violation": "NOT_ESTABLISHED",
+      "reason": "frozen contract does not state that failed reverification revokes an already-installed runtime pin; host continuation is material"
+    },
+    {
+      "id": "A03",
+      "tests": ["T14"],
+      "behavior": "CONFIRMED_UNDER_ADDED_ONE_TIME_POLICY",
+      "contract_violation": "NOT_ESTABLISHED_OUTSIDE_FROZEN_POLICY"
+    },
+    {
+      "id": "A04",
+      "tests": ["T18"],
+      "behavior": "CONFIRMED_CLOSURE_WHEN_ISSUER_ROOT_RELATION_IS_UNMODELED",
+      "contract_violation": "NOT_ESTABLISHED",
+      "attribution": "UPSTREAM_UNMODELED_TRUST_DEPENDENCY"
+    }
+  ],
+  "integration_policy": {
+    "status": "EXPLICIT_NON_FROZEN_CURRENT_USE_PROFILE",
+    "guard_unit_tests": "23/23 PASS",
+    "normal_chain_e2e": "23/23 PASS",
+    "normal_chain_false_allow": 0,
+    "guard_success_semantics": "ELIGIBLE_FOR_ANCHOR_NOT_ALLOW"
+  }
+}
