@@ -78,6 +78,7 @@ class CFCRun:
     controller_result: dict[str, Any]
     presentation: dict[str, Any]
     replay_matches_reference: bool | None = None
+    hawm_snapshot_id: str | None = None
     created_at: str = field(default_factory=utc_now_iso)
 
 

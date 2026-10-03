@@ -492,11 +492,11 @@ class ProBetaAPI:
             controller_result=executed["controller_result"],
             presentation=executed["presentation"],
             replay_matches_reference=executed["replay_matches_reference"],
+            hawm_snapshot_id=snapshot.snapshot_id,
         )
         response = asdict(run)
         response["boundary"] = executed["boundary"]
         response["mapped_input"] = executed["mapped_input"]
-        response["hawm_snapshot_id"] = snapshot.snapshot_id
         return response
 
     def latest_cfc_run(
@@ -521,18 +521,27 @@ class ProBetaAPI:
             conversation = self.service.get_conversation(
                 auth, conversation_id
             )
-            hawm_snapshot = self.service.latest_hawm_snapshot(
-                auth, conversation_id
-            )
             cfc_run = self.service.latest_cfc_run(
                 auth, conversation_id
+            )
+            latest_snapshot = self.service.latest_hawm_snapshot(
+                auth, conversation_id
+            )
+            # Report the exact persisted execution snapshot, NOT an unrelated
+            # subsequently saved working state. Do not guess legacy linkage.
+            hawm_snapshot = (
+                self.service.get_hawm_snapshot(
+                    auth, conversation_id, cfc_run.hawm_snapshot_id
+                )
+                if cfc_run is not None and cfc_run.hawm_snapshot_id
+                else None
             )
         except NotFoundError as exc:
             raise APIError(404, str(exc)) from exc
         except OwnershipError as exc:
             raise APIError(403, str(exc)) from exc
 
-        if hawm_snapshot is None and cfc_run is None:
+        if latest_snapshot is None and cfc_run is None:
             raise APIError(400, "HAWM_OR_CFC_REQUIRED")
 
         from pro_beta.audit_report import build_audit_document, render_markdown
@@ -540,6 +549,7 @@ class ProBetaAPI:
         document = build_audit_document(
             conversation=conversation,
             hawm_snapshot=hawm_snapshot,
+            latest_hawm_snapshot=latest_snapshot,
             cfc_run=cfc_run,
         )
         report = self.service.save_audit_report(

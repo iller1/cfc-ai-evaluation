@@ -158,6 +158,32 @@ class ProBetaPersistenceTests(unittest.TestCase):
         with self.assertRaises(OwnershipError):
             self.store.add_audit_report(self.user_a.user_id, report)
 
+    def test_cfc_run_binding_rejects_missing_or_foreign_snapshot(self):
+        foreign = HAWMSnapshot(
+            snapshot_id="hawm_foreign",
+            conversation_id=self.conversation_b.conversation_id,
+            state={"goal": "private"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_b.user_id, foreign)
+        for snapshot_id, error in (
+            ("hawm_missing", NotFoundError),
+            ("hawm_foreign", OwnershipError),
+        ):
+            with self.subTest(snapshot_id=snapshot_id):
+                run = CFCRun(
+                    run_id=new_id("cfc"),
+                    conversation_id=self.conversation_a.conversation_id,
+                    case_id="HAWM_STRUCTURED_CUSTOM",
+                    controller_anchor="0.2.90rc1",
+                    controller_result={"control_closure": False},
+                    presentation={"decision": "STOP"},
+                    hawm_snapshot_id=snapshot_id,
+                )
+                with self.assertRaises(error):
+                    self.store.add_cfc_run(self.user_a.user_id, run)
+                self.assertNotIn(run.run_id, self.store.cfc_runs)
+
     def test_usage_event_cannot_be_written_for_another_user(self):
         event = UsageEvent(
             event_id=new_id("evt"),
