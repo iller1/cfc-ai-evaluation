@@ -363,13 +363,11 @@ class FrontendTests(unittest.TestCase):
             status, script, _ = self.get("/app.js")
         self.assertEqual(status, 200)
         self.assertIn("/evidence-drift", script)
-        self.assertIn("PERSISTED_CFC_RUN_BINDING", script)
+        self.assertIn("baseline_source", script)
         self.assertIn("MATERIAL_DRIFT", script)
-        self.assertIn(
-            "BLOCK_CARRY_FORWARD_REEVALUATION_REQUIRED",
-            script,
-        )
-        self.assertIn("DOES_NOT_AUTHORIZE_CLOSURE", script)
+        self.assertIn("requires_re_evaluation", script)
+        self.assertIn("propagation_effect", script)
+        self.assertIn("authorization_effect", script)
 
     def test_app_js_contains_hawm_cfc_bridge(self):
         with patch.dict(
