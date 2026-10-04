@@ -126,6 +126,29 @@ def _result(
     }
 
 
+
+def unresolved_evidence_drift(
+    reason: str,
+    *,
+    baseline_snapshot_id: str | None = None,
+    current_snapshot_id: str | None = None,
+) -> dict[str, Any]:
+    """Build the same fail-closed result shape when comparison inputs are absent."""
+    return {
+        "version": EVIDENCE_DRIFT_VERSION,
+        "status": UNRESOLVED,
+        "reason": reason,
+        "baseline_snapshot_id": baseline_snapshot_id,
+        "current_snapshot_id": current_snapshot_id,
+        "baseline_structured_fingerprint": None,
+        "current_structured_fingerprint": None,
+        "changed_paths": [],
+        "requires_re_evaluation": True,
+        "propagation_effect": BLOCK_CARRY_FORWARD,
+        "boundary": EVIDENCE_DRIFT_BOUNDARY,
+        "authorization_effect": "DOES_NOT_AUTHORIZE_CLOSURE",
+    }
+
 def assess_evidence_drift(
     baseline: HAWMSnapshot,
     current: HAWMSnapshot,

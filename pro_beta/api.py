@@ -511,6 +511,89 @@ class ProBetaAPI:
             raise APIError(403, str(exc)) from exc
         return asdict(run) if run is not None else None
 
+    def assess_evidence_drift(
+        self,
+        credential: str,
+        conversation_id: str,
+    ) -> dict:
+        auth = self._auth(credential)
+        try:
+            self.service.get_conversation(auth, conversation_id)
+            cfc_run = self.service.latest_cfc_run(auth, conversation_id)
+            current_snapshot = self.service.latest_hawm_snapshot(
+                auth, conversation_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        from pro_beta.evidence_drift import (
+            assess_evidence_drift,
+            unresolved_evidence_drift,
+        )
+
+        current_snapshot_id = (
+            current_snapshot.snapshot_id
+            if current_snapshot is not None
+            else None
+        )
+
+        if cfc_run is None:
+            result = unresolved_evidence_drift(
+                "NO_CFC_RUN",
+                current_snapshot_id=current_snapshot_id,
+            )
+            result["cfc_run_id"] = None
+            result["controller_anchor"] = None
+            result["baseline_source"] = "NONE"
+            return result
+
+        if not cfc_run.hawm_snapshot_id:
+            result = unresolved_evidence_drift(
+                "LATEST_CFC_RUN_UNBOUND",
+                current_snapshot_id=current_snapshot_id,
+            )
+            result["cfc_run_id"] = cfc_run.run_id
+            result["controller_anchor"] = cfc_run.controller_anchor
+            result["baseline_source"] = "NONE"
+            return result
+
+        try:
+            baseline_snapshot = self.service.get_hawm_snapshot(
+                auth,
+                conversation_id,
+                cfc_run.hawm_snapshot_id,
+            )
+        except NotFoundError:
+            result = unresolved_evidence_drift(
+                "BOUND_BASELINE_SNAPSHOT_NOT_FOUND",
+                baseline_snapshot_id=cfc_run.hawm_snapshot_id,
+                current_snapshot_id=current_snapshot_id,
+            )
+            result["cfc_run_id"] = cfc_run.run_id
+            result["controller_anchor"] = cfc_run.controller_anchor
+            result["baseline_source"] = "PERSISTED_CFC_RUN_BINDING"
+            return result
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        if current_snapshot is None:
+            result = unresolved_evidence_drift(
+                "CURRENT_HAWM_SNAPSHOT_MISSING",
+                baseline_snapshot_id=baseline_snapshot.snapshot_id,
+            )
+        else:
+            result = assess_evidence_drift(
+                baseline_snapshot,
+                current_snapshot,
+            )
+
+        result["cfc_run_id"] = cfc_run.run_id
+        result["controller_anchor"] = cfc_run.controller_anchor
+        result["baseline_source"] = "PERSISTED_CFC_RUN_BINDING"
+        return result
+
     def create_audit_report(
         self,
         credential: str,
