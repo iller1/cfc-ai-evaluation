@@ -346,6 +346,31 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('id="run-hawm-cfc"', body)
         self.assertIn("Free-text HAWM fields are not interpreted", body)
 
+    def test_evidence_drift_ui_and_route_are_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="check-evidence-drift"', body)
+        self.assertIn('id="evidence-drift-result"', body)
+
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, script, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/evidence-drift", script)
+        self.assertIn("PERSISTED_CFC_RUN_BINDING", script)
+        self.assertIn("MATERIAL_DRIFT", script)
+        self.assertIn(
+            "BLOCK_CARRY_FORWARD_REEVALUATION_REQUIRED",
+            script,
+        )
+        self.assertIn("DOES_NOT_AUTHORIZE_CLOSURE", script)
+
     def test_app_js_contains_hawm_cfc_bridge(self):
         with patch.dict(
             os.environ,
