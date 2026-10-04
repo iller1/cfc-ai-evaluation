@@ -1366,9 +1366,9 @@ window.addEventListener("load", async function () {
             })
           });
           hawmStatus.textContent = "HAWM snapshot saved.";
+          await loadHAWM();
           document.getElementById("evidence-drift-result").textContent =
             "HAWM changed. Run Evidence Drift to compare the latest state with the persisted CFC input.";
-          await loadHAWM();
         } catch (error) {
           hawmStatus.textContent = "HAWM error: " + error.message;
         }
@@ -1417,9 +1417,9 @@ window.addEventListener("load", async function () {
           );
           hawmStatus.textContent =
             "HAWM snapshot saved and structured CFC check completed.";
+          await loadHAWM();
           document.getElementById("evidence-drift-result").textContent =
             "New run-bound baseline created. Run Evidence Drift to confirm current state.";
-          await loadHAWM();
         } catch (error) {
           result.textContent = "HAWM → CFC error: " + error.message;
         }
