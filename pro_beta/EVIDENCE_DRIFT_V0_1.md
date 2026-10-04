@@ -153,12 +153,41 @@ Evidence Drift can therefore compare that exact execution input with a later HAW
 
 This module does not itself select a CFC run or latest snapshot yet. v0.1 is intentionally a deterministic comparison primitive first.
 
+## API integration candidate
+
+The current integration candidate adds the authenticated read-only endpoint:
+
+`GET /api/conversations/{conversation_id}/evidence-drift`
+
+Baseline selection is deliberately strict:
+
+1. resolve the latest persisted CFC run for the owned conversation;
+2. require that run to contain `hawm_snapshot_id`;
+3. resolve the baseline by that exact persisted snapshot ID;
+4. compare it with the latest persisted HAWM snapshot;
+5. never substitute the latest snapshot as the baseline;
+6. never fall back to an older bound run when the latest run is unbound.
+
+Additional fail-closed orchestration states are:
+
+- `NO_CFC_RUN`;
+- `LATEST_CFC_RUN_UNBOUND`;
+- `BOUND_BASELINE_SNAPSHOT_NOT_FOUND`;
+- `CURRENT_HAWM_SNAPSHOT_MISSING`.
+
+The endpoint adds `cfc_run_id`, `controller_anchor`, and `baseline_source` to the drift result. A bound comparison reports:
+
+`baseline_source = PERSISTED_CFC_RUN_BINDING`
+
+This remains a read-only assessment. It does not execute CFC, rewrite HAWM state, or authorize closure.
+
 ## Promotion gate
 
 Before production promotion:
 
 1. unit acceptance matrix must pass;
 2. existing Pro Beta regression must remain green;
-3. an API/service integration must resolve the baseline only from persisted run binding, never from "latest";
-4. material drift must be demonstrated in an authenticated end-to-end sequence;
-5. no frozen CFC artifact may change.
+3. API integration must prove the baseline is resolved only from persisted run binding, never from "latest";
+4. latest unbound CFC runs must fail closed without falling back to older bound runs;
+5. material drift must be demonstrated in an authenticated end-to-end production sequence;
+6. no frozen CFC artifact may change.
