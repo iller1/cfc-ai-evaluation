@@ -1812,6 +1812,252 @@ class ProBetaAPITests(unittest.TestCase):
         self.assertEqual(reply["authority"], "MODEL_REPLY_UNCHECKED")
         self.assertEqual(reply["cfc_status"], "NOT_CONNECTED_C2")
 
+    def test_evidence_drift_uses_run_bound_snapshot_not_latest_as_baseline(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Drift material"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Drift material"},
+        )["conversation_id"]
+        structured = {
+            "conclusion": "POSITIVE",
+            "required_independent_supports": 1,
+            "provenance_shape": "DISTINCT",
+            "independence_authority": "NONE",
+            "scope": "EXPECTED",
+            "evidence": [
+                {"polarity": "POSITIVE", "validity": "CURRENT"}
+            ],
+        }
+        baseline = self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "goal": "baseline",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        run = self.api.run_structured_hawm_cfc(
+            "token-a", conversation_id
+        )
+        changed = {
+            **structured,
+            "evidence": [
+                {"polarity": "POSITIVE", "validity": "STALE"}
+            ],
+        }
+        current = self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "goal": "newer working state",
+                    "cfc_structured": changed,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+
+        result = self.api.assess_evidence_drift(
+            "token-a", conversation_id
+        )
+
+        self.assertEqual(result["status"], "MATERIAL_DRIFT")
+        self.assertEqual(
+            result["baseline_snapshot_id"],
+            baseline["snapshot_id"],
+        )
+        self.assertEqual(
+            result["current_snapshot_id"],
+            current["snapshot_id"],
+        )
+        self.assertEqual(result["cfc_run_id"], run["run_id"])
+        self.assertEqual(
+            result["baseline_source"],
+            "PERSISTED_CFC_RUN_BINDING",
+        )
+        self.assertTrue(result["requires_re_evaluation"])
+        self.assertEqual(
+            result["propagation_effect"],
+            "BLOCK_CARRY_FORWARD_REEVALUATION_REQUIRED",
+        )
+
+    def test_evidence_drift_free_text_change_does_not_move_structured_baseline(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Drift free text"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Drift free text"},
+        )["conversation_id"]
+        structured = {
+            "conclusion": "POSITIVE",
+            "required_independent_supports": 1,
+            "provenance_shape": "DISTINCT",
+            "independence_authority": "NONE",
+            "scope": "EXPECTED",
+            "evidence": [
+                {"polarity": "POSITIVE", "validity": "CURRENT"}
+            ],
+        }
+        baseline = self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "goal": "A",
+                    "evidence": "free text A",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        self.api.run_structured_hawm_cfc("token-a", conversation_id)
+        current = self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "goal": "B",
+                    "evidence": "free text B",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+
+        result = self.api.assess_evidence_drift(
+            "token-a", conversation_id
+        )
+
+        self.assertEqual(result["status"], "NO_DRIFT")
+        self.assertEqual(
+            result["baseline_snapshot_id"],
+            baseline["snapshot_id"],
+        )
+        self.assertEqual(
+            result["current_snapshot_id"],
+            current["snapshot_id"],
+        )
+        self.assertFalse(result["requires_re_evaluation"])
+        self.assertEqual(
+            result["authorization_effect"],
+            "DOES_NOT_AUTHORIZE_CLOSURE",
+        )
+
+    def test_evidence_drift_does_not_fallback_past_latest_unbound_run(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Drift unbound"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Drift unbound"},
+        )["conversation_id"]
+        structured = {
+            "conclusion": "POSITIVE",
+            "required_independent_supports": 1,
+            "provenance_shape": "DISTINCT",
+            "independence_authority": "NONE",
+            "scope": "EXPECTED",
+            "evidence": [
+                {"polarity": "POSITIVE", "validity": "CURRENT"}
+            ],
+        }
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {"cfc_structured": structured},
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        self.api.run_structured_hawm_cfc("token-a", conversation_id)
+        latest_unbound = self.api.run_prepared_cfc_case(
+            "token-a",
+            conversation_id,
+            {"case_id": "CASE_01_UNRESOLVED_POSITIVE"},
+        )
+
+        result = self.api.assess_evidence_drift(
+            "token-a", conversation_id
+        )
+
+        self.assertEqual(result["status"], "UNRESOLVED")
+        self.assertEqual(result["reason"], "LATEST_CFC_RUN_UNBOUND")
+        self.assertEqual(result["cfc_run_id"], latest_unbound["run_id"])
+        self.assertIsNone(result["baseline_snapshot_id"])
+        self.assertEqual(result["baseline_source"], "NONE")
+        self.assertTrue(result["requires_re_evaluation"])
+
+    def test_evidence_drift_without_cfc_run_is_unresolved(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Drift no run"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Drift no run"},
+        )["conversation_id"]
+        current = self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "cfc_structured": {
+                        "conclusion": "POSITIVE",
+                        "required_independent_supports": 1,
+                        "provenance_shape": "DISTINCT",
+                        "independence_authority": "NONE",
+                        "scope": "EXPECTED",
+                        "evidence": [
+                            {
+                                "polarity": "POSITIVE",
+                                "validity": "CURRENT",
+                            }
+                        ],
+                    }
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+
+        result = self.api.assess_evidence_drift(
+            "token-a", conversation_id
+        )
+
+        self.assertEqual(result["status"], "UNRESOLVED")
+        self.assertEqual(result["reason"], "NO_CFC_RUN")
+        self.assertEqual(
+            result["current_snapshot_id"],
+            current["snapshot_id"],
+        )
+        self.assertEqual(result["baseline_source"], "NONE")
+        self.assertTrue(result["requires_re_evaluation"])
+
+    def test_wrong_owner_cannot_assess_evidence_drift(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "Drift private"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "Drift private"},
+        )["conversation_id"]
+
+        with self.assertRaises(APIError) as ctx:
+            self.api.assess_evidence_drift(
+                "token-b", conversation_id
+            )
+
+        self.assertEqual(ctx.exception.status, 403)
+
     def test_wrong_owner_cannot_list_messages(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "A workspace"}
