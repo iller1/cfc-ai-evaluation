@@ -406,6 +406,8 @@ window.addEventListener("load", async function () {
     document.getElementById("hawm-status").textContent = "";
     document.getElementById("hawm-cfc-result").textContent =
       "No structured HAWM CFC run yet.";
+    document.getElementById("evidence-drift-result").textContent =
+      "Evidence Drift not checked yet.";
   }
 
   async function loadHAWM() {
@@ -510,6 +512,48 @@ window.addEventListener("load", async function () {
       document.getElementById("hawm-cfc-result").textContent =
         "No structured HAWM CFC run yet.";
     }
+  }
+
+  function renderEvidenceDrift(result) {
+    const target = document.getElementById("evidence-drift-result");
+    if (!result) {
+      target.textContent = "Evidence Drift not checked yet.";
+      return;
+    }
+    const driftStatus = result.status || "UNRESOLVED";
+    const changedPaths = Array.isArray(result.changed_paths) ?
+      result.changed_paths : [];
+    let heading = "Evidence Drift: " + driftStatus;
+    if (driftStatus === "MATERIAL_DRIFT") {
+      heading = "Evidence Drift: MATERIAL_DRIFT — wymagana ponowna kontrola";
+    } else if (driftStatus === "NO_DRIFT") {
+      heading = "Evidence Drift: NO_DRIFT — brak dodatkowego blokera drift";
+    } else if (driftStatus === "UNRESOLVED") {
+      heading = "Evidence Drift: UNRESOLVED — carry-forward zablokowany";
+    }
+    target.textContent = [
+      heading,
+      "Reason: " + (result.reason || ""),
+      "Baseline source: " + (result.baseline_source || "NONE"),
+      "CFC run: " + (result.cfc_run_id || "NONE"),
+      "Baseline snapshot: " + (result.baseline_snapshot_id || "NONE"),
+      "Current snapshot: " + (result.current_snapshot_id || "NONE"),
+      "Changed paths: " + (changedPaths.length ? changedPaths.join(", ") : "none"),
+      "Requires re-evaluation: " + String(result.requires_re_evaluation),
+      "Propagation effect: " + (result.propagation_effect || ""),
+      "Authorization effect: " + (result.authorization_effect || ""),
+      "Boundary: " + (result.boundary || "")
+    ].join("\n");
+  }
+
+  async function checkEvidenceDrift() {
+    const conversationId = conversationSelect.value;
+    if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+    const result = await api(
+      "/api/conversations/" + conversationId + "/evidence-drift"
+    );
+    if (conversationSelect.value !== conversationId) return;
+    renderEvidenceDrift(result);
   }
 
   async function loadMessages() {
@@ -1322,6 +1366,8 @@ window.addEventListener("load", async function () {
             })
           });
           hawmStatus.textContent = "HAWM snapshot saved.";
+          document.getElementById("evidence-drift-result").textContent =
+            "HAWM changed. Run Evidence Drift to compare the latest state with the persisted CFC input.";
           await loadHAWM();
         } catch (error) {
           hawmStatus.textContent = "HAWM error: " + error.message;
@@ -1371,9 +1417,21 @@ window.addEventListener("load", async function () {
           );
           hawmStatus.textContent =
             "HAWM snapshot saved and structured CFC check completed.";
+          document.getElementById("evidence-drift-result").textContent =
+            "New run-bound baseline created. Run Evidence Drift to confirm current state.";
           await loadHAWM();
         } catch (error) {
           result.textContent = "HAWM → CFC error: " + error.message;
+        }
+      });
+
+      document.getElementById("check-evidence-drift").addEventListener("click", async () => {
+        const target = document.getElementById("evidence-drift-result");
+        try {
+          target.textContent = "Checking Evidence Drift…";
+          await checkEvidenceDrift();
+        } catch (error) {
+          target.textContent = "Evidence Drift error: " + error.message;
         }
       });
 
