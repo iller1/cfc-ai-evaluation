@@ -165,6 +165,40 @@ Both preserve:
 
 `authorization_effect = DOES_NOT_AUTHORIZE_CLOSURE`
 
+## API integration candidate
+
+The integration candidate adds the authenticated read-only endpoint:
+
+`GET /api/conversations/{conversation_id}/state-monitor`
+
+The API derives its inputs from persisted history only:
+
+1. load the owned HAWM snapshot history;
+2. require at least two snapshots;
+3. define `previous` as the immediately preceding persisted snapshot;
+4. define `current` as the latest persisted snapshot;
+5. inspect persisted CFC runs for an exact binding to `current.snapshot_id`;
+6. set `current_snapshot_evaluated = true` only when such an exact binding exists.
+
+The response adds:
+
+- `evaluation_source`;
+- `evaluation_cfc_run_id`.
+
+A verified current-snapshot evaluation reports:
+
+`evaluation_source = PERSISTED_CFC_RUN_BINDING`
+
+An older run bound to the previous snapshot does not satisfy the current-snapshot requirement.
+
+A later unrelated unbound prepared run does not erase historical proof that the exact current snapshot was evaluated; State Monitor is checking the transition-evaluation fact, not selecting the latest closure authority.
+
+If fewer than two HAWM snapshots exist, the API returns:
+
+`UNRESOLVED / INSUFFICIENT_HAWM_HISTORY`
+
+The endpoint is read-only and never executes CFC, rewrites HAWM, or authorizes closure.
+
 ## Promotion gate
 
 Before production promotion:
