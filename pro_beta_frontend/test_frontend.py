@@ -369,6 +369,30 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("propagation_effect", script)
         self.assertIn("authorization_effect", script)
 
+    def test_state_monitor_ui_and_route_are_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="check-state-monitor"', body)
+        self.assertIn('id="state-monitor-result"', body)
+
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, script, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/state-monitor", script)
+        self.assertIn("STATE_TRANSITION_ALERT", script)
+        self.assertIn("NO_MONITOR_ALERT", script)
+        self.assertIn("current_snapshot_evaluated", script)
+        self.assertIn("evaluation_source", script)
+        self.assertIn("requires_review", script)
+        self.assertIn("authorization_effect", script)
+
     def test_bound_cfc_result_is_rendered_after_hawm_reload(self):
         status, script, _ = self.get("/app.js")
         self.assertEqual(status, 200)

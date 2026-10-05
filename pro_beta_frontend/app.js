@@ -408,6 +408,8 @@ window.addEventListener("load", async function () {
       "No structured HAWM CFC run yet.";
     document.getElementById("evidence-drift-result").textContent =
       "Evidence Drift not checked yet.";
+    document.getElementById("state-monitor-result").textContent =
+      "State Monitor not checked yet.";
   }
 
   async function loadHAWM() {
@@ -554,6 +556,48 @@ window.addEventListener("load", async function () {
     );
     if (conversationSelect.value !== conversationId) return;
     renderEvidenceDrift(result);
+  }
+
+  function renderStateMonitor(result) {
+    const target = document.getElementById("state-monitor-result");
+    if (!result) {
+      target.textContent = "State Monitor not checked yet.";
+      return;
+    }
+    const monitorStatus = result.status || "UNRESOLVED";
+    let heading = "State Monitor: " + monitorStatus;
+    if (monitorStatus === "STATE_TRANSITION_ALERT") {
+      heading = "State Monitor: STATE_TRANSITION_ALERT — wymagany przegląd";
+    } else if (monitorStatus === "NO_MONITOR_ALERT") {
+      heading = "State Monitor: NO_MONITOR_ALERT — brak dodatkowego alertu";
+    } else if (monitorStatus === "UNRESOLVED") {
+      heading = "State Monitor: UNRESOLVED — przejście zablokowane";
+    }
+    target.textContent = [
+      heading,
+      "Reason: " + (result.reason || ""),
+      "Previous snapshot: " + (result.previous_snapshot_id || "NONE"),
+      "Current snapshot: " + (result.current_snapshot_id || "NONE"),
+      "Previous unresolved present: " + String(result.previous_unresolved_present),
+      "Current unresolved present: " + String(result.current_unresolved_present),
+      "Current snapshot evaluated: " + String(result.current_snapshot_evaluated),
+      "Evaluation source: " + (result.evaluation_source || "NONE"),
+      "Evaluation CFC run: " + (result.evaluation_cfc_run_id || "NONE"),
+      "Requires review: " + String(result.requires_review),
+      "Propagation effect: " + (result.propagation_effect || ""),
+      "Authorization effect: " + (result.authorization_effect || ""),
+      "Boundary: " + (result.boundary || "")
+    ].join("\n");
+  }
+
+  async function checkStateMonitor() {
+    const conversationId = conversationSelect.value;
+    if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+    const result = await api(
+      "/api/conversations/" + conversationId + "/state-monitor"
+    );
+    if (conversationSelect.value !== conversationId) return;
+    renderStateMonitor(result);
   }
 
   async function loadMessages() {
@@ -1372,6 +1416,8 @@ window.addEventListener("load", async function () {
           await loadHAWM();
           document.getElementById("evidence-drift-result").textContent =
             "HAWM changed. Run Evidence Drift to compare the latest state with the persisted CFC input.";
+          document.getElementById("state-monitor-result").textContent =
+            "HAWM changed. Run State Monitor to inspect the latest persisted transition.";
         } catch (error) {
           hawmStatus.textContent = "HAWM error: " + error.message;
         }
@@ -1426,6 +1472,8 @@ window.addEventListener("load", async function () {
           );
           document.getElementById("evidence-drift-result").textContent =
             "New run-bound baseline created. Run Evidence Drift to confirm current state.";
+          document.getElementById("state-monitor-result").textContent =
+            "Current snapshot was evaluated by CFC. Run State Monitor to inspect the transition.";
         } catch (error) {
           result.textContent = "HAWM → CFC error: " + error.message;
         }
@@ -1438,6 +1486,16 @@ window.addEventListener("load", async function () {
           await checkEvidenceDrift();
         } catch (error) {
           target.textContent = "Evidence Drift error: " + error.message;
+        }
+      });
+
+      document.getElementById("check-state-monitor").addEventListener("click", async () => {
+        const target = document.getElementById("state-monitor-result");
+        try {
+          target.textContent = "Checking State Monitor…";
+          await checkStateMonitor();
+        } catch (error) {
+          target.textContent = "State Monitor error: " + error.message;
         }
       });
 
