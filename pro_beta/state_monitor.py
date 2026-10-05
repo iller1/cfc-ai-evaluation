@@ -100,6 +100,29 @@ def _result(
     }
 
 
+
+def unresolved_state_monitor(
+    reason: str,
+    *,
+    previous_snapshot_id: str | None = None,
+    current_snapshot_id: str | None = None,
+    current_snapshot_evaluated: bool | None = None,
+) -> dict[str, Any]:
+    return {
+        "version": STATE_MONITOR_VERSION,
+        "status": UNRESOLVED,
+        "reason": reason,
+        "previous_snapshot_id": previous_snapshot_id,
+        "current_snapshot_id": current_snapshot_id,
+        "previous_unresolved_present": None,
+        "current_unresolved_present": None,
+        "current_snapshot_evaluated": current_snapshot_evaluated,
+        "requires_review": True,
+        "propagation_effect": BLOCK_STATE_CARRY_FORWARD,
+        "boundary": STATE_MONITOR_BOUNDARY,
+        "authorization_effect": "DOES_NOT_AUTHORIZE_CLOSURE",
+    }
+
 def assess_state_transition(
     previous: HAWMSnapshot,
     current: HAWMSnapshot,
