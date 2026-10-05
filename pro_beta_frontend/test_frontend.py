@@ -373,41 +373,27 @@ class FrontendTests(unittest.TestCase):
         status, script, _ = self.get("/app.js")
         self.assertEqual(status, 200)
 
-        structured_label = '"Structured HAWM → frozen CFC"'
-        structured_pos = script.index(structured_label)
-        structured_block_start = script.rfind(
-            'document.getElementById("run-hawm-cfc")',
-            0,
-            structured_pos,
+        self.assertIn(
+            'await loadHAWM();\n'
+            '          if (conversationSelect.value !== conversationId) {\n'
+            '            throw new Error("CONVERSATION_CHANGED_DURING_CFC_RUN");\n'
+            '          }\n'
+            '          renderCFC(\n'
+            '            run,\n'
+            '            "hawm-cfc-result",\n'
+            '            "Structured HAWM → frozen CFC"',
+            script,
         )
-        structured_reload = script.index(
-            "await loadHAWM();",
-            structured_block_start,
-        )
-        structured_render = script.index(
-            "renderCFC(",
-            structured_reload,
-        )
-        self.assertLess(structured_reload, structured_render)
 
-        review_label = '"Human-reviewed scope → analogous SYNTHETIC DemoSubject"'
-        review_pos = script.index(review_label)
-        review_block_start = script.rfind(
-            'document.getElementById("apply-reviewed-scope")',
-            0,
-            review_pos,
+        self.assertIn(
+            'await loadHAWM();\n'
+            '          if (conversationSelect.value !== conversationId) {\n'
+            '            throw new Error("CONVERSATION_CHANGED_DURING_REVIEW");\n'
+            '          }\n'
+            '          renderCFC(run, "hawm-cfc-result", '
+            '"Human-reviewed scope → analogous SYNTHETIC DemoSubject");',
+            script,
         )
-        review_reload = script.rfind(
-            "await loadHAWM();",
-            review_block_start,
-            review_pos,
-        )
-        review_render = script.rfind(
-            "renderCFC(",
-            review_block_start,
-            review_pos,
-        )
-        self.assertLess(review_reload, review_render)
 
     def test_app_js_contains_hawm_cfc_bridge(self):
         with patch.dict(
