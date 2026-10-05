@@ -369,6 +369,32 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("propagation_effect", script)
         self.assertIn("authorization_effect", script)
 
+    def test_bound_cfc_result_is_rendered_after_hawm_reload(self):
+        status, script, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+
+        self.assertIn(
+            'await loadHAWM();\n'
+            '          if (conversationSelect.value !== conversationId) {\n'
+            '            throw new Error("CONVERSATION_CHANGED_DURING_CFC_RUN");\n'
+            '          }\n'
+            '          renderCFC(\n'
+            '            run,\n'
+            '            "hawm-cfc-result",\n'
+            '            "Structured HAWM → frozen CFC"',
+            script,
+        )
+
+        self.assertIn(
+            'await loadHAWM();\n'
+            '          if (conversationSelect.value !== conversationId) {\n'
+            '            throw new Error("CONVERSATION_CHANGED_DURING_REVIEW");\n'
+            '          }\n'
+            '          renderCFC(run, "hawm-cfc-result", '
+            '"Human-reviewed scope → analogous SYNTHETIC DemoSubject");',
+            script,
+        )
+
     def test_app_js_contains_hawm_cfc_bridge(self):
         with patch.dict(
             os.environ,
