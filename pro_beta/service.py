@@ -292,6 +292,13 @@ class ProBetaService:
         )
         return snapshots[-1] if snapshots else None
 
+    def list_hawm_snapshots(
+        self, auth: AuthContext, conversation_id: str
+    ) -> list[HAWMSnapshot]:
+        return self.persistence.list_hawm_snapshots(
+            auth.user_id, conversation_id
+        )
+
     def get_hawm_snapshot(
         self, auth: AuthContext, conversation_id: str, snapshot_id: str
     ) -> HAWMSnapshot:
@@ -335,6 +342,13 @@ class ProBetaService:
             auth.user_id, conversation_id
         )
         return runs[-1] if runs else None
+
+    def list_cfc_runs(
+        self, auth: AuthContext, conversation_id: str
+    ) -> list[CFCRun]:
+        return self.persistence.list_cfc_runs(
+            auth.user_id, conversation_id
+        )
 
 
     def save_audit_report(
