@@ -65,6 +65,14 @@ class HTTPServerTests(unittest.TestCase):
         self.assertEqual(status, 401)
         self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
 
+    def test_state_monitor_route_requires_bearer(self):
+        status, payload = self.request(
+            "/api/conversations/conv_private/state-monitor",
+            method="GET",
+        )
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
+
     def test_document_preview_requires_bearer(self):
         status, payload = self.request(
             "/api/conversations/conv_private/extract-document",
