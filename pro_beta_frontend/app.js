@@ -1332,13 +1332,16 @@ window.addEventListener("load", async function () {
           if (run.hawm_snapshot_id !== savedReviewSnapshot.snapshot_id) {
             throw new Error("REVIEW_SNAPSHOT_MISMATCH_NO_RESULT_DISPLAY");
           }
-          renderCFC(run, "hawm-cfc-result", "Human-reviewed scope → analogous SYNTHETIC DemoSubject");
           const finishedMessage =
             "Uruchomiono wyłącznie demonstrację CFC (" + (run.presentation?.decision || "UNKNOWN") +
             "). Snapshot: " + (run.hawm_snapshot_id || "UNKNOWN") +
             ". Żaden wynik nie zatwierdza rzeczywistej sprawy. Źródła poza analogią pozostają poza kontrolą.";
           await loadHAWM();
-          if (conversationSelect.value === conversationId) result.textContent = finishedMessage;
+          if (conversationSelect.value !== conversationId) {
+            throw new Error("CONVERSATION_CHANGED_DURING_REVIEW");
+          }
+          renderCFC(run, "hawm-cfc-result", "Human-reviewed scope → analogous SYNTHETIC DemoSubject");
+          result.textContent = finishedMessage;
         } catch (error) {
           result.textContent = "Nie można przypisać wyniku do tego przeglądu: " + error.message +
             ". Sprawdź źródła, ich statusy, powody wyłączenia i zgody.";
@@ -1410,14 +1413,17 @@ window.addEventListener("load", async function () {
             "/api/conversations/" + conversationId + "/cfc-from-hawm",
             { method: "POST", body: "{}" }
           );
+          hawmStatus.textContent =
+            "HAWM snapshot saved and structured CFC check completed.";
+          await loadHAWM();
+          if (conversationSelect.value !== conversationId) {
+            throw new Error("CONVERSATION_CHANGED_DURING_CFC_RUN");
+          }
           renderCFC(
             run,
             "hawm-cfc-result",
             "Structured HAWM → frozen CFC"
           );
-          hawmStatus.textContent =
-            "HAWM snapshot saved and structured CFC check completed.";
-          await loadHAWM();
           document.getElementById("evidence-drift-result").textContent =
             "New run-bound baseline created. Run Evidence Drift to confirm current state.";
         } catch (error) {
