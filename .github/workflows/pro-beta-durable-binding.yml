@@ -41,7 +41,7 @@ jobs:
           python-version: "3.13"
       - name: Install API dependencies
         run: python -m pip install "psycopg[binary]>=3.2,<4" "PyJWT[crypto]>=2.10,<3" "pypdf==6.18.1" "defusedxml==0.7.1"
-      - name: Schema migration, API history, owner isolation, evidence drift and full Pro Beta regression
+      - name: Schema migration, API history, owner isolation, evidence drift, state monitor and full Pro Beta regression
         run: >-
           python -m unittest -v
           pro_beta.test_contracts
@@ -49,6 +49,7 @@ jobs:
           pro_beta.test_db_bootstrap
           pro_beta.test_binding_schema_migration
           pro_beta.test_evidence_drift
+          pro_beta.test_state_monitor
           pro_beta.test_auth_boundary
           pro_beta.test_persistence
           pro_beta.test_postgres_persistence
