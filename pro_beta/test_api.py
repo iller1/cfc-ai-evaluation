@@ -2058,6 +2058,298 @@ class ProBetaAPITests(unittest.TestCase):
 
         self.assertEqual(ctx.exception.status, 403)
 
+    def test_state_monitor_alerts_when_unresolved_clears_without_current_evaluation(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "State monitor alert"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "State monitor alert"},
+        )["conversation_id"]
+        structured = {
+            "conclusion": "POSITIVE",
+            "required_independent_supports": 1,
+            "provenance_shape": "DISTINCT",
+            "independence_authority": "NONE",
+            "scope": "EXPECTED",
+            "evidence": [
+                {"polarity": "POSITIVE", "validity": "CURRENT"}
+            ],
+        }
+        previous = self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "unresolved": "Need source",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        current = self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "unresolved": "",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+
+        result = self.api.assess_state_monitor(
+            "token-a", conversation_id
+        )
+
+        self.assertEqual(result["status"], "STATE_TRANSITION_ALERT")
+        self.assertEqual(
+            result["reason"],
+            "UNRESOLVED_CLEARED_WITHOUT_CURRENT_SNAPSHOT_EVALUATION",
+        )
+        self.assertEqual(
+            result["previous_snapshot_id"],
+            previous["snapshot_id"],
+        )
+        self.assertEqual(
+            result["current_snapshot_id"],
+            current["snapshot_id"],
+        )
+        self.assertFalse(result["current_snapshot_evaluated"])
+        self.assertEqual(result["evaluation_source"], "NONE")
+        self.assertIsNone(result["evaluation_cfc_run_id"])
+        self.assertTrue(result["requires_review"])
+
+    def test_state_monitor_accepts_exact_current_snapshot_evaluation(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "State monitor evaluated"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "State monitor evaluated"},
+        )["conversation_id"]
+        structured = {
+            "conclusion": "POSITIVE",
+            "required_independent_supports": 1,
+            "provenance_shape": "DISTINCT",
+            "independence_authority": "NONE",
+            "scope": "EXPECTED",
+            "evidence": [
+                {"polarity": "POSITIVE", "validity": "CURRENT"}
+            ],
+        }
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "unresolved": "Need source",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        current = self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "unresolved": "",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        run = self.api.run_structured_hawm_cfc(
+            "token-a", conversation_id
+        )
+
+        result = self.api.assess_state_monitor(
+            "token-a", conversation_id
+        )
+
+        self.assertEqual(result["status"], "NO_MONITOR_ALERT")
+        self.assertEqual(
+            result["reason"],
+            "UNRESOLVED_CLEARED_AFTER_CURRENT_SNAPSHOT_EVALUATION",
+        )
+        self.assertEqual(
+            result["current_snapshot_id"],
+            current["snapshot_id"],
+        )
+        self.assertTrue(result["current_snapshot_evaluated"])
+        self.assertEqual(
+            result["evaluation_source"],
+            "PERSISTED_CFC_RUN_BINDING",
+        )
+        self.assertEqual(result["evaluation_cfc_run_id"], run["run_id"])
+        self.assertEqual(
+            result["authorization_effect"],
+            "DOES_NOT_AUTHORIZE_CLOSURE",
+        )
+
+    def test_state_monitor_older_bound_run_does_not_evaluate_current_snapshot(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "State monitor old run"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "State monitor old run"},
+        )["conversation_id"]
+        structured = {
+            "conclusion": "POSITIVE",
+            "required_independent_supports": 1,
+            "provenance_shape": "DISTINCT",
+            "independence_authority": "NONE",
+            "scope": "EXPECTED",
+            "evidence": [
+                {"polarity": "POSITIVE", "validity": "CURRENT"}
+            ],
+        }
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "unresolved": "Need source",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        self.api.run_structured_hawm_cfc("token-a", conversation_id)
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "unresolved": "",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+
+        result = self.api.assess_state_monitor(
+            "token-a", conversation_id
+        )
+
+        self.assertEqual(result["status"], "STATE_TRANSITION_ALERT")
+        self.assertFalse(result["current_snapshot_evaluated"])
+        self.assertEqual(result["evaluation_source"], "NONE")
+
+    def test_state_monitor_exact_bound_run_survives_later_unbound_prepared_run(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "State monitor exact history"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "State monitor exact history"},
+        )["conversation_id"]
+        structured = {
+            "conclusion": "POSITIVE",
+            "required_independent_supports": 1,
+            "provenance_shape": "DISTINCT",
+            "independence_authority": "NONE",
+            "scope": "EXPECTED",
+            "evidence": [
+                {"polarity": "POSITIVE", "validity": "CURRENT"}
+            ],
+        }
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "unresolved": "Need source",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {
+                    "unresolved": "",
+                    "cfc_structured": structured,
+                },
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+        bound = self.api.run_structured_hawm_cfc(
+            "token-a", conversation_id
+        )
+        self.api.run_prepared_cfc_case(
+            "token-a",
+            conversation_id,
+            {"case_id": "CASE_01_UNRESOLVED_POSITIVE"},
+        )
+
+        result = self.api.assess_state_monitor(
+            "token-a", conversation_id
+        )
+
+        self.assertEqual(result["status"], "NO_MONITOR_ALERT")
+        self.assertTrue(result["current_snapshot_evaluated"])
+        self.assertEqual(
+            result["evaluation_cfc_run_id"],
+            bound["run_id"],
+        )
+
+    def test_state_monitor_requires_two_hawm_snapshots(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "State monitor history"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "State monitor history"},
+        )["conversation_id"]
+        current = self.api.save_hawm_snapshot(
+            "token-a",
+            conversation_id,
+            {
+                "state": {"unresolved": "Need source"},
+                "last_verified_state": "USER_WORKING_STATE",
+            },
+        )
+
+        result = self.api.assess_state_monitor(
+            "token-a", conversation_id
+        )
+
+        self.assertEqual(result["status"], "UNRESOLVED")
+        self.assertEqual(result["reason"], "INSUFFICIENT_HAWM_HISTORY")
+        self.assertEqual(
+            result["current_snapshot_id"],
+            current["snapshot_id"],
+        )
+        self.assertTrue(result["requires_review"])
+
+    def test_wrong_owner_cannot_assess_state_monitor(self):
+        workspace = self.api.create_workspace(
+            "token-a", {"name": "State monitor private"}
+        )
+        conversation_id = self.api.create_conversation(
+            "token-a",
+            workspace["workspace_id"],
+            {"title": "State monitor private"},
+        )["conversation_id"]
+
+        with self.assertRaises(APIError) as ctx:
+            self.api.assess_state_monitor(
+                "token-b", conversation_id
+            )
+
+        self.assertEqual(ctx.exception.status, 403)
+
     def test_wrong_owner_cannot_list_messages(self):
         workspace = self.api.create_workspace(
             "token-a", {"name": "A workspace"}

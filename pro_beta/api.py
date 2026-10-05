@@ -594,6 +594,74 @@ class ProBetaAPI:
         result["baseline_source"] = "PERSISTED_CFC_RUN_BINDING"
         return result
 
+    def assess_state_monitor(
+        self,
+        credential: str,
+        conversation_id: str,
+    ) -> dict:
+        auth = self._auth(credential)
+        try:
+            self.service.get_conversation(auth, conversation_id)
+            snapshots = self.service.list_hawm_snapshots(
+                auth, conversation_id
+            )
+            runs = self.service.list_cfc_runs(
+                auth, conversation_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        from pro_beta.state_monitor import (
+            assess_state_transition,
+            unresolved_state_monitor,
+        )
+
+        if not snapshots:
+            result = unresolved_state_monitor(
+                "NO_HAWM_SNAPSHOTS",
+            )
+            result["evaluation_source"] = "NONE"
+            result["evaluation_cfc_run_id"] = None
+            return result
+
+        current = snapshots[-1]
+        if len(snapshots) < 2:
+            result = unresolved_state_monitor(
+                "INSUFFICIENT_HAWM_HISTORY",
+                current_snapshot_id=current.snapshot_id,
+            )
+            result["evaluation_source"] = "NONE"
+            result["evaluation_cfc_run_id"] = None
+            return result
+
+        previous = snapshots[-2]
+        bound_runs = [
+            run
+            for run in runs
+            if run.hawm_snapshot_id == current.snapshot_id
+        ]
+        evaluation_run = bound_runs[-1] if bound_runs else None
+        current_snapshot_evaluated = evaluation_run is not None
+
+        result = assess_state_transition(
+            previous,
+            current,
+            current_snapshot_evaluated=current_snapshot_evaluated,
+        )
+        result["evaluation_source"] = (
+            "PERSISTED_CFC_RUN_BINDING"
+            if evaluation_run is not None
+            else "NONE"
+        )
+        result["evaluation_cfc_run_id"] = (
+            evaluation_run.run_id
+            if evaluation_run is not None
+            else None
+        )
+        return result
+
     def create_audit_report(
         self,
         credential: str,
