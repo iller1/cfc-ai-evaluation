@@ -22,5 +22,8 @@ jobs:
           python-version: "3.12"
       - name: Compile Control Stack contract
         run: python -m compileall -q control_stack
-      - name: Run Control Stack schema acceptance
-        run: python -m unittest -v control_stack.test_control_stack_schema
+      - name: Run Control Stack contract acceptance
+        run: |
+          python -m unittest -v \
+            control_stack.test_control_stack_schema \
+            control_stack.test_state_integrity
