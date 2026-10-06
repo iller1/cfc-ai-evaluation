@@ -558,6 +558,55 @@ class ProBetaAPI:
             identity=identity,
         )
 
+    def assess_state_integrity_adversarial_acceptance(
+        self,
+        credential: str,
+        conversation_id: str,
+    ) -> dict:
+        auth = self._auth(credential)
+        try:
+            self.service.get_conversation(auth, conversation_id)
+            snapshots = self.service.list_hawm_snapshots(
+                auth, conversation_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        from pro_beta.state_integrity_acceptance import (
+            run_state_integrity_adversarial_acceptance,
+            unresolved_state_integrity_acceptance,
+        )
+
+        if not snapshots:
+            return unresolved_state_integrity_acceptance(
+                "NO_HAWM_SNAPSHOTS"
+            )
+
+        current = snapshots[-1]
+        previous = snapshots[-2] if len(snapshots) >= 2 else None
+
+        try:
+            identity = self.service.get_hawm_snapshot_identity(
+                auth,
+                conversation_id,
+                current.snapshot_id,
+            )
+        except NotFoundError:
+            return unresolved_state_integrity_acceptance(
+                "SNAPSHOT_IDENTITY_NOT_REGISTERED",
+                current_snapshot_id=current.snapshot_id,
+            )
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        return run_state_integrity_adversarial_acceptance(
+            current=current,
+            previous=previous,
+            identity=identity,
+        )
+
     def assess_evidence_drift(
         self,
         credential: str,
