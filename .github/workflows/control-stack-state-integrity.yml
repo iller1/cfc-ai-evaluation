@@ -1,0 +1,33 @@
+name: Control Stack State Integrity v0.1
+
+on:
+  pull_request:
+    paths:
+      - "control_stack/**"
+      - ".github/workflows/control-stack-state-integrity.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "control_stack/**"
+      - ".github/workflows/control-stack-state-integrity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  state-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile Control Stack modules
+        run: python -m compileall -q control_stack
+      - name: Run schema regression and State Integrity acceptance
+        run: >-
+          python -m unittest -v
+          control_stack.test_control_stack_schema
+          control_stack.test_state_integrity
