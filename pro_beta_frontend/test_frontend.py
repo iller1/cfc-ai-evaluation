@@ -346,6 +346,35 @@ class FrontendTests(unittest.TestCase):
         self.assertIn('id="run-hawm-cfc"', body)
         self.assertIn("Free-text HAWM fields are not interpreted", body)
 
+    def test_current_hawm_cfc_control_does_not_save_new_snapshot(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="evaluate-current-hawm-cfc"', body)
+
+        status, script, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        start = script.index(
+            'document.getElementById("evaluate-current-hawm-cfc")'
+        )
+        end = script.index(
+            'document.getElementById("check-evidence-drift")',
+            start,
+        )
+        block = script[start:end]
+        self.assertIn("/cfc-from-hawm", block)
+        self.assertNotIn(
+            'method: "POST",\n            body: JSON.stringify({\n              state,',
+            block,
+        )
+        self.assertNotIn(
+            '"/api/conversations/" + conversationId + "/hawm"',
+            block,
+        )
+        self.assertIn(
+            "no new HAWM snapshot was saved by this control",
+            block,
+        )
+
     def test_evidence_drift_ui_and_route_are_present(self):
         status, body, _ = self.get("/")
         self.assertEqual(status, 200)
