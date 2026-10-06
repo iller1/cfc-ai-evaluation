@@ -2,7 +2,7 @@
 
 ## Status
 
-**IMPLEMENTATION CANDIDATE — NOT YET PRODUCTION PROMOTED**
+**PRODUCTION VERIFIED — authenticated v0.1 acceptance completed 2026-10-06**
 
 State Monitor is a host/application-layer control over persisted HAWM snapshots.
 
@@ -201,7 +201,11 @@ The endpoint is read-only and never executes CFC, rewrites HAWM, or authorizes c
 
 ## Promotion gate
 
-Before production promotion:
+Production promotion and authenticated acceptance were completed on 2026-10-06. The evidence receipt is:
+
+`pro_beta/PRODUCTION_STATE_MONITOR_VERIFICATION_2026-10-06.md`
+
+The completed gate required:
 
 1. the primitive acceptance matrix must pass;
 2. the existing Pro Beta regression must remain green;
