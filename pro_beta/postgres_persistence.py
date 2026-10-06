@@ -11,6 +11,7 @@ from pro_beta.contracts import (
     FoundingBetaMeasurement,
     Conversation,
     HAWMSnapshot,
+    HAWMSnapshotIdentity,
     Message,
     UserAccount,
     Workspace,
@@ -426,6 +427,73 @@ class PostgresPersistence:
             )
             for r in rows
         ]
+
+    def add_hawm_snapshot_identity(
+        self, user_id: str, identity: HAWMSnapshotIdentity
+    ) -> HAWMSnapshotIdentity:
+        self._assert_conversation_owned(user_id, identity.conversation_id)
+        row = self._one(
+            "select conversation_id from hawm_snapshots where snapshot_id = %s",
+            (identity.snapshot_id,),
+        )
+        if row is None:
+            raise NotFoundError("HAWM_SNAPSHOT_NOT_FOUND")
+        if row[0] != identity.conversation_id:
+            raise OwnershipError("HAWM_SNAPSHOT_CONVERSATION_MISMATCH")
+        self._execute(
+            """
+            insert into hawm_snapshot_identities (
+                snapshot_id, conversation_id, case_id, arm_id, state_id,
+                lineage_id, previous_state_id, registered_snapshot_fingerprint,
+                adapter_version, created_at
+            )
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                identity.snapshot_id,
+                identity.conversation_id,
+                identity.case_id,
+                identity.arm_id,
+                identity.state_id,
+                identity.lineage_id,
+                identity.previous_state_id,
+                identity.registered_snapshot_fingerprint,
+                identity.adapter_version,
+                identity.created_at,
+            ),
+        )
+        return identity
+
+    def get_hawm_snapshot_identity(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> HAWMSnapshotIdentity:
+        self._assert_conversation_owned(user_id, conversation_id)
+        row = self._one(
+            """
+            select snapshot_id, conversation_id, case_id, arm_id, state_id,
+                   lineage_id, previous_state_id, registered_snapshot_fingerprint,
+                   adapter_version, created_at::text
+            from hawm_snapshot_identities
+            where snapshot_id = %s
+            """,
+            (snapshot_id,),
+        )
+        if row is None:
+            raise NotFoundError("HAWM_SNAPSHOT_IDENTITY_NOT_FOUND")
+        if row[1] != conversation_id:
+            raise OwnershipError("HAWM_SNAPSHOT_IDENTITY_CONVERSATION_MISMATCH")
+        return HAWMSnapshotIdentity(
+            snapshot_id=row[0],
+            conversation_id=row[1],
+            case_id=row[2],
+            arm_id=row[3],
+            state_id=row[4],
+            lineage_id=row[5],
+            previous_state_id=row[6],
+            registered_snapshot_fingerprint=row[7],
+            adapter_version=row[8],
+            created_at=row[9],
+        )
 
     def list_cfc_runs(
         self, user_id: str, conversation_id: str

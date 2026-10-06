@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
+from control_stack.state_integrity import state_fingerprint
 from pro_beta.auth_boundary import AuthContext
 from pro_beta.contracts import (
     AuditReportRecord,
@@ -12,10 +13,16 @@ from pro_beta.contracts import (
     FoundingBetaMeasurement,
     Conversation,
     HAWMSnapshot,
+    HAWMSnapshotIdentity,
     Message,
     Workspace,
     new_id,
 )
+
+
+HAWM_STATE_IDENTITY_ADAPTER_VERSION = "HAWM_STATE_IDENTITY_ADAPTER_V0_1"
+HAWM_STATE_IDENTITY_CASE_ID = "HAWM_PRO_BETA_STATE"
+HAWM_STATE_IDENTITY_ARM_ID = "HAWM_WORKING_STATE"
 
 
 class PersistencePort(Protocol):
@@ -41,6 +48,12 @@ class PersistencePort(Protocol):
     def list_hawm_snapshots(
         self, user_id: str, conversation_id: str
     ) -> list[HAWMSnapshot]: ...
+    def add_hawm_snapshot_identity(
+        self, user_id: str, identity: HAWMSnapshotIdentity
+    ) -> HAWMSnapshotIdentity: ...
+    def get_hawm_snapshot_identity(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> HAWMSnapshotIdentity: ...
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun: ...
     def list_cfc_runs(
         self, user_id: str, conversation_id: str
@@ -274,15 +287,34 @@ class ProBetaService:
         state: dict,
         last_verified_state: str,
     ) -> HAWMSnapshot:
+        previous = self.persistence.list_hawm_snapshots(
+            auth.user_id, conversation_id
+        )
         snapshot = HAWMSnapshot(
             snapshot_id=new_id("hawm"),
             conversation_id=conversation_id,
             state=state,
             last_verified_state=last_verified_state,
         )
-        return self.persistence.add_hawm_snapshot(
-            auth.user_id, snapshot
+        saved = self.persistence.add_hawm_snapshot(auth.user_id, snapshot)
+        identity = HAWMSnapshotIdentity(
+            snapshot_id=saved.snapshot_id,
+            conversation_id=conversation_id,
+            case_id=HAWM_STATE_IDENTITY_CASE_ID,
+            arm_id=HAWM_STATE_IDENTITY_ARM_ID,
+            state_id=saved.snapshot_id,
+            lineage_id=conversation_id,
+            previous_state_id=(
+                previous[-1].snapshot_id if previous else None
+            ),
+            registered_snapshot_fingerprint=state_fingerprint(saved.state),
+            adapter_version=HAWM_STATE_IDENTITY_ADAPTER_VERSION,
         )
+        # If identity persistence fails, this operation fails closed. The
+        # snapshot may exist without an anchor, but must never be treated as
+        # STATE_VALID until a separately governed identity receipt exists.
+        self.persistence.add_hawm_snapshot_identity(auth.user_id, identity)
+        return saved
 
     def latest_hawm_snapshot(
         self, auth: AuthContext, conversation_id: str
@@ -310,6 +342,13 @@ class ProBetaService:
                 return snapshot
         from pro_beta.persistence import NotFoundError
         raise NotFoundError("HAWM_SNAPSHOT_NOT_FOUND")
+
+    def get_hawm_snapshot_identity(
+        self, auth: AuthContext, conversation_id: str, snapshot_id: str
+    ) -> HAWMSnapshotIdentity:
+        return self.persistence.get_hawm_snapshot_identity(
+            auth.user_id, conversation_id, snapshot_id
+        )
 
     def save_cfc_run(
         self,

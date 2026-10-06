@@ -70,6 +70,22 @@ class HAWMSnapshot:
 
 
 @dataclass(frozen=True)
+class HAWMSnapshotIdentity:
+    """Persisted host-side identity anchor for one exact HAWM snapshot."""
+
+    snapshot_id: str
+    conversation_id: str
+    case_id: str
+    arm_id: str
+    state_id: str
+    lineage_id: str
+    previous_state_id: str | None
+    registered_snapshot_fingerprint: str
+    adapter_version: str
+    created_at: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(frozen=True)
 class CFCRun:
     run_id: str
     conversation_id: str
