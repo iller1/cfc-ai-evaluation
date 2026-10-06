@@ -412,6 +412,8 @@ window.addEventListener("load", async function () {
       "State Monitor not checked yet.";
     document.getElementById("state-integrity-result").textContent =
       "State Integrity not checked yet.";
+    document.getElementById("state-integrity-acceptance-result").textContent =
+      "State Integrity adversarial acceptance not run yet.";
   }
 
   async function loadHAWM() {
@@ -650,6 +652,48 @@ window.addEventListener("load", async function () {
     );
     if (conversationSelect.value !== conversationId) return;
     renderStateIntegrity(result);
+  }
+
+  function renderStateIntegrityAcceptance(result) {
+    const target = document.getElementById("state-integrity-acceptance-result");
+    if (!result) {
+      target.textContent = "State Integrity adversarial acceptance not run yet.";
+      return;
+    }
+    const cases = Array.isArray(result.cases) ? result.cases : [];
+    const lines = [
+      "State Integrity acceptance: " + (result.status || "ACCEPTANCE_UNRESOLVED"),
+      "Reason: " + (result.reason || ""),
+      "Baseline: " + (result.baseline_status || "UNKNOWN") +
+        " / " + (result.baseline_reason || ""),
+      "Current snapshot: " + (result.current_snapshot_id || "NONE"),
+      "Read only: " + String(result.read_only),
+      "Persistence actions: " +
+        (Array.isArray(result.persistence_actions) && result.persistence_actions.length
+          ? result.persistence_actions.join(", ")
+          : "none"),
+      "CFC executed: " + String(result.cfc_executed),
+      "Authorization effect: " + (result.authorization_effect || ""),
+      "Boundary: " + (result.boundary || "")
+    ];
+    for (const item of cases) {
+      lines.push(
+        item.case + ": " + item.status + " / " + item.reason +
+        " · expected " + item.expected_status + " / " + item.expected_reason +
+        " · PASS=" + String(item.pass)
+      );
+    }
+    target.textContent = lines.join("\n");
+  }
+
+  async function checkStateIntegrityAcceptance() {
+    const conversationId = conversationSelect.value;
+    if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+    const result = await api(
+      "/api/conversations/" + conversationId + "/state-integrity-acceptance"
+    );
+    if (conversationSelect.value !== conversationId) return;
+    renderStateIntegrityAcceptance(result);
   }
 
   async function loadMessages() {
@@ -1599,6 +1643,16 @@ window.addEventListener("load", async function () {
           await checkStateIntegrity();
         } catch (error) {
           target.textContent = "State Integrity error: " + error.message;
+        }
+      });
+
+      document.getElementById("check-state-integrity-acceptance").addEventListener("click", async () => {
+        const target = document.getElementById("state-integrity-acceptance-result");
+        try {
+          target.textContent = "Running read-only adversarial State Integrity acceptance…";
+          await checkStateIntegrityAcceptance();
+        } catch (error) {
+          target.textContent = "State Integrity acceptance error: " + error.message;
         }
       });
 

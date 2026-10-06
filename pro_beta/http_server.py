@@ -219,6 +219,20 @@ class ProBetaHTTPHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "state-integrity-acceptance":
+            credential = _bearer(self.headers)
+            if not credential:
+                self._json(HTTPStatus.UNAUTHORIZED, {"error": "AUTH_CREDENTIAL_REQUIRED"})
+                return
+            conversation_id = parts[2]
+            self._api_call(
+                lambda api: api.assess_state_integrity_adversarial_acceptance(
+                    credential,
+                    conversation_id,
+                )
+            )
+            return
+
         if len(parts) == 4 and parts[0] == "api" and parts[1] == "conversations" and parts[3] == "evidence-drift":
             credential = _bearer(self.headers)
             if not credential:
