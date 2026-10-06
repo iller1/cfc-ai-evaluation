@@ -410,6 +410,8 @@ window.addEventListener("load", async function () {
       "Evidence Drift not checked yet.";
     document.getElementById("state-monitor-result").textContent =
       "State Monitor not checked yet.";
+    document.getElementById("state-integrity-result").textContent =
+      "State Integrity not checked yet.";
   }
 
   async function loadHAWM() {
@@ -598,6 +600,56 @@ window.addEventListener("load", async function () {
     );
     if (conversationSelect.value !== conversationId) return;
     renderStateMonitor(result);
+  }
+
+  function renderStateIntegrity(result) {
+    const target = document.getElementById("state-integrity-result");
+    if (!result) {
+      target.textContent = "State Integrity not checked yet.";
+      return;
+    }
+
+    const status = result.status || "STATE_UNRESOLVED";
+    let heading = "State Integrity: " + status;
+    if (status === "STATE_VALID") {
+      heading = "State Integrity: STATE_VALID — tożsamość stanu zgodna";
+    } else if (status === "STATE_INVALID") {
+      heading = "State Integrity: STATE_INVALID — integralność naruszona";
+    } else if (status === "STATE_UNRESOLVED") {
+      heading = "State Integrity: STATE_UNRESOLVED — brak podstaw do przeniesienia stanu";
+    }
+
+    target.textContent = [
+      heading,
+      "Reason: " + (result.reason || ""),
+      "Expectation source: " + (result.expectation_source || "NONE"),
+      "Case: " + (result.case_id || "NONE"),
+      "Arm: " + (result.arm_id || "NONE"),
+      "State ID: " + (result.state_id || "NONE"),
+      "Snapshot: " + (result.snapshot_id || "NONE"),
+      "Lineage: " + (result.lineage_id || "NONE"),
+      "Previous state: " + (result.previous_state_id || "NONE"),
+      "Binding status: " + (result.binding_status || "UNKNOWN"),
+      "Lineage status: " + (result.lineage_status || "UNKNOWN"),
+      "Identity adapter: " + (result.identity_adapter_version || "NONE"),
+      "State fingerprint: " + (result.state_fingerprint || "NONE"),
+      "Requires review: " + String(result.requires_review),
+      "Read only: " + String(result.read_only),
+      "Propagation effect: " + (result.propagation_effect || ""),
+      "Authorization effect: " + (result.authorization_effect || ""),
+      "Boundary: " + (result.boundary || ""),
+      "Adapter boundary: " + (result.adapter_boundary || "")
+    ].join("\n");
+  }
+
+  async function checkStateIntegrity() {
+    const conversationId = conversationSelect.value;
+    if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+    const result = await api(
+      "/api/conversations/" + conversationId + "/state-integrity"
+    );
+    if (conversationSelect.value !== conversationId) return;
+    renderStateIntegrity(result);
   }
 
   async function loadMessages() {
@@ -1418,6 +1470,8 @@ window.addEventListener("load", async function () {
             "HAWM changed. Run Evidence Drift to compare the latest state with the persisted CFC input.";
           document.getElementById("state-monitor-result").textContent =
             "HAWM changed. Run State Monitor to inspect the latest persisted transition.";
+          document.getElementById("state-integrity-result").textContent =
+            "New HAWM snapshot saved. Run State Integrity to verify its registered identity.";
         } catch (error) {
           hawmStatus.textContent = "HAWM error: " + error.message;
         }
@@ -1474,6 +1528,8 @@ window.addEventListener("load", async function () {
             "New run-bound baseline created. Run Evidence Drift to confirm current state.";
           document.getElementById("state-monitor-result").textContent =
             "Current snapshot was evaluated by CFC. Run State Monitor to inspect the transition.";
+          document.getElementById("state-integrity-result").textContent =
+            "Current HAWM snapshot has a registered identity. Run State Integrity to verify it.";
         } catch (error) {
           result.textContent = "HAWM → CFC error: " + error.message;
         }
@@ -1533,6 +1589,16 @@ window.addEventListener("load", async function () {
           await checkStateMonitor();
         } catch (error) {
           target.textContent = "State Monitor error: " + error.message;
+        }
+      });
+
+      document.getElementById("check-state-integrity").addEventListener("click", async () => {
+        const target = document.getElementById("state-integrity-result");
+        try {
+          target.textContent = "Checking State Integrity…";
+          await checkStateIntegrity();
+        } catch (error) {
+          target.textContent = "State Integrity error: " + error.message;
         }
       });
 
