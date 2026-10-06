@@ -11,6 +11,7 @@ from pro_beta.contracts import (
     FoundingBetaMeasurement,
     Conversation,
     HAWMSnapshot,
+    HAWMSnapshotIdentity,
     Message,
     UsageEvent,
     UserAccount,
@@ -40,6 +41,7 @@ class InMemoryPersistence:
         self.conversations: Dict[str, Conversation] = {}
         self.messages: Dict[str, Message] = {}
         self.hawm_snapshots: Dict[str, HAWMSnapshot] = {}
+        self.hawm_snapshot_identities: Dict[str, HAWMSnapshotIdentity] = {}
         self.cfc_runs: Dict[str, CFCRun] = {}
         self.founding_beta_measurements: Dict[str, FoundingBetaMeasurement] = {}
         self.audit_reports: Dict[str, AuditReportRecord] = {}
@@ -178,6 +180,32 @@ class InMemoryPersistence:
             for s in self.hawm_snapshots.values()
             if s.conversation_id == conversation_id
         ]
+
+    def add_hawm_snapshot_identity(
+        self, user_id: str, identity: HAWMSnapshotIdentity
+    ) -> HAWMSnapshotIdentity:
+        self._owned_conversation(user_id, identity.conversation_id)
+        snapshot = self.hawm_snapshots.get(identity.snapshot_id)
+        if snapshot is None:
+            raise NotFoundError("HAWM_SNAPSHOT_NOT_FOUND")
+        if snapshot.conversation_id != identity.conversation_id:
+            raise OwnershipError("HAWM_SNAPSHOT_CONVERSATION_MISMATCH")
+        if identity.snapshot_id in self.hawm_snapshot_identities:
+            raise ValueError("HAWM_SNAPSHOT_IDENTITY_ALREADY_EXISTS")
+        self.hawm_snapshot_identities[identity.snapshot_id] = identity
+        return identity
+
+    def get_hawm_snapshot_identity(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> HAWMSnapshotIdentity:
+        self._owned_conversation(user_id, conversation_id)
+        try:
+            identity = self.hawm_snapshot_identities[snapshot_id]
+        except KeyError as exc:
+            raise NotFoundError("HAWM_SNAPSHOT_IDENTITY_NOT_FOUND") from exc
+        if identity.conversation_id != conversation_id:
+            raise OwnershipError("HAWM_SNAPSHOT_IDENTITY_CONVERSATION_MISMATCH")
+        return identity
 
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun:
         self._owned_conversation(user_id, run.conversation_id)
