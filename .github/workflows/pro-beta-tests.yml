@@ -8,7 +8,6 @@ on:
       - "pro_beta/**"
       - "pro_beta_frontend/**"
       - "control_stack/**"
-      - "control_stack/**"
       - ".github/workflows/pro-beta-tests.yml"
   push:
     branches:
@@ -17,6 +16,7 @@ on:
     paths:
       - "pro_beta/**"
       - "pro_beta_frontend/**"
+      - "control_stack/**"
       - ".github/workflows/pro-beta-tests.yml"
   workflow_dispatch:
 
