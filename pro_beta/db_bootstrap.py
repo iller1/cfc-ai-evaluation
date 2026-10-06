@@ -11,6 +11,7 @@ EXPECTED_TABLES = (
     "conversations",
     "messages",
     "hawm_snapshots",
+    "hawm_snapshot_identities",
     "cfc_runs",
     "audit_reports",
     "benchmark_runs",
