@@ -37,6 +37,7 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                 "conversations",
                 "messages",
                 "hawm_snapshots",
+                "hawm_snapshot_identities",
                 "cfc_runs",
                 "audit_reports",
                 "benchmark_runs",
@@ -56,6 +57,7 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                            to_regclass('public.conversations'),
                            to_regclass('public.messages'),
                            to_regclass('public.hawm_snapshots'),
+                           to_regclass('public.hawm_snapshot_identities'),
                            to_regclass('public.cfc_runs')
                     """
                 )
@@ -69,6 +71,7 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                 "conversations",
                 "messages",
                 "hawm_snapshots",
+                "hawm_snapshot_identities",
                 "cfc_runs",
             ),
         )
