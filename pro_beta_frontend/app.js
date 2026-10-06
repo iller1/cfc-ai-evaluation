@@ -1479,6 +1479,43 @@ window.addEventListener("load", async function () {
         }
       });
 
+      document.getElementById("evaluate-current-hawm-cfc").addEventListener("click", async () => {
+        const result = document.getElementById("hawm-cfc-result");
+        const hawmStatus = document.getElementById("hawm-status");
+        try {
+          const conversationId = conversationSelect.value;
+          if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+
+          result.textContent =
+            "Running current persisted HAWM snapshot through frozen CFC…";
+          document.getElementById("decision-heading").textContent =
+            "Kontrola bieżącego snapshotu…";
+
+          const run = await api(
+            "/api/conversations/" + conversationId + "/cfc-from-hawm",
+            { method: "POST", body: "{}" }
+          );
+
+          if (conversationSelect.value !== conversationId) {
+            throw new Error("CONVERSATION_CHANGED_DURING_CURRENT_CFC_RUN");
+          }
+
+          renderCFC(
+            run,
+            "hawm-cfc-result",
+            "Current persisted HAWM snapshot → frozen CFC"
+          );
+          hawmStatus.textContent =
+            "Current persisted HAWM snapshot checked with CFC; no new HAWM snapshot was saved by this control.";
+          document.getElementById("evidence-drift-result").textContent =
+            "Current snapshot now has a persisted CFC binding. Run Evidence Drift if needed.";
+          document.getElementById("state-monitor-result").textContent =
+            "Current snapshot now has an exact persisted CFC evaluation. Run State Monitor again.";
+        } catch (error) {
+          result.textContent = "Current HAWM → CFC error: " + error.message;
+        }
+      });
+
       document.getElementById("check-evidence-drift").addEventListener("click", async () => {
         const target = document.getElementById("evidence-drift-result");
         try {
