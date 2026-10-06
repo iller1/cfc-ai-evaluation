@@ -422,6 +422,31 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("requires_review", script)
         self.assertIn("authorization_effect", script)
 
+    def test_state_integrity_ui_and_route_are_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="check-state-integrity"', body)
+        self.assertIn('id="state-integrity-result"', body)
+
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, script, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/state-integrity", script)
+        self.assertIn("STATE_VALID", script)
+        self.assertIn("STATE_INVALID", script)
+        self.assertIn("STATE_UNRESOLVED", script)
+        self.assertIn("expectation_source", script)
+        self.assertIn("identity_adapter_version", script)
+        self.assertIn("read_only", script)
+        self.assertIn("authorization_effect", script)
+
     def test_bound_cfc_result_is_rendered_after_hawm_reload(self):
         status, script, _ = self.get("/app.js")
         self.assertEqual(status, 200)
