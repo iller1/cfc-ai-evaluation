@@ -1,0 +1,481 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/iller1/cfc-ai-evaluation/control_stack/CONTROL_STACK_SCHEMA_v0.1.json",
+  "title": "CFC Control Stack Shared Envelope v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "envelope_id",
+    "identity",
+    "state_integrity",
+    "evidence",
+    "continuity",
+    "authority",
+    "cfc",
+    "execution",
+    "audit"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "CONTROL_STACK_SCHEMA_v0.1"
+    },
+    "envelope_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "state_id",
+        "snapshot_id",
+        "lineage_id",
+        "state_fingerprint"
+      ],
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "arm_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "conversation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lineage_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "previous_state_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state_fingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "state_integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "binding_status",
+        "lineage_status",
+        "unresolved"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "STATE_VALID",
+            "STATE_UNRESOLVED",
+            "STATE_INVALID"
+          ]
+        },
+        "binding_status": {
+          "enum": [
+            "BOUND",
+            "UNBOUND",
+            "MISMATCH",
+            "UNKNOWN"
+          ]
+        },
+        "lineage_status": {
+          "enum": [
+            "ESTABLISHED",
+            "DEGRADED",
+            "UNKNOWN",
+            "INVALID"
+          ]
+        },
+        "unresolved": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "provenance_state",
+        "applicability_state",
+        "dependency_state",
+        "evidence_set",
+        "missing_evidence",
+        "drift_state"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "EVIDENCE_APPLICABLE",
+            "EVIDENCE_PARTIAL",
+            "EVIDENCE_UNKNOWN",
+            "EVIDENCE_INVALID"
+          ]
+        },
+        "provenance_state": {
+          "enum": [
+            "ESTABLISHED",
+            "PARTIAL",
+            "UNKNOWN",
+            "INVALID"
+          ]
+        },
+        "applicability_state": {
+          "enum": [
+            "APPLICABLE",
+            "PARTIAL",
+            "UNKNOWN",
+            "NOT_APPLICABLE",
+            "INVALID"
+          ]
+        },
+        "dependency_state": {
+          "enum": [
+            "RESOLVED",
+            "PARTIAL",
+            "UNKNOWN",
+            "CONFLICTING"
+          ]
+        },
+        "evidence_set": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "evidence_id",
+              "source_id",
+              "validity",
+              "scope_status",
+              "failure_domain_id"
+            ],
+            "properties": {
+              "evidence_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "validity": {
+                "enum": [
+                  "CURRENT",
+                  "STALE",
+                  "UNKNOWN",
+                  "INVALID"
+                ]
+              },
+              "scope_status": {
+                "enum": [
+                  "MATCH",
+                  "PARTIAL",
+                  "WRONG",
+                  "UNKNOWN"
+                ]
+              },
+              "failure_domain_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "missing_evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "drift_state": {
+          "enum": [
+            "NO_DRIFT",
+            "MATERIAL_DRIFT",
+            "UNRESOLVED",
+            "NOT_ASSESSED"
+          ]
+        }
+      }
+    },
+    "continuity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "transition_type",
+        "reproducibility_state",
+        "threshold_state",
+        "unresolved"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "CONTINUITY_ESTABLISHED",
+            "CONTINUITY_DEGRADED",
+            "CONTINUITY_UNKNOWN"
+          ]
+        },
+        "transition_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reproducibility_state": {
+          "enum": [
+            "ESTABLISHED",
+            "DEGRADED",
+            "UNKNOWN",
+            "NOT_ASSESSED"
+          ]
+        },
+        "threshold_state": {
+          "enum": [
+            "WITHIN",
+            "BREACHED",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "unresolved": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "source",
+        "valid_from",
+        "valid_to",
+        "revoked"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "ESTABLISHED",
+            "NOT_ESTABLISHED",
+            "UNKNOWN",
+            "REVOKED",
+            "EXPIRED"
+          ]
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "valid_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "valid_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "revoked": {
+          "type": "boolean"
+        }
+      }
+    },
+    "cfc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "authority_state",
+        "blockers",
+        "reason",
+        "controller_version",
+        "controller_identity"
+      ],
+      "properties": {
+        "decision": {
+          "enum": [
+            "NOT_RUN",
+            "CONTINUE",
+            "HOLD",
+            "STOP",
+            "ESCALATE"
+          ]
+        },
+        "authority_state": {
+          "enum": [
+            "ESTABLISHED",
+            "NOT_ESTABLISHED",
+            "UNKNOWN",
+            "REVOKED",
+            "EXPIRED",
+            "NOT_ASSESSED"
+          ]
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "reason": {
+          "type": "string"
+        },
+        "controller_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "controller_identity": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attempted",
+        "executed",
+        "execution_status",
+        "effect_handle",
+        "idempotency_key",
+        "pre_execution_state_id",
+        "receipt_id"
+      ],
+      "properties": {
+        "attempted": {
+          "type": "boolean"
+        },
+        "executed": {
+          "type": "boolean"
+        },
+        "execution_status": {
+          "enum": [
+            "NOT_ATTEMPTED",
+            "BLOCKED",
+            "ATTEMPTED_NOT_EXECUTED",
+            "EXECUTED",
+            "FAILED"
+          ]
+        },
+        "effect_handle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "idempotency_key": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pre_execution_state_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "receipt_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_versions",
+        "receipts",
+        "supersedes",
+        "superseded_by",
+        "claim_ceiling"
+      ],
+      "properties": {
+        "component_versions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "supersedes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "superseded_by": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
