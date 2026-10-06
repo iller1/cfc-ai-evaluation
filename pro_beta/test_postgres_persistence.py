@@ -12,6 +12,7 @@ from pro_beta.contracts import (
     FoundingBetaMeasurement,
     Conversation,
     HAWMSnapshot,
+    HAWMSnapshotIdentity,
     Message,
     UserAccount,
     Workspace,
@@ -245,6 +246,40 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
         )
         self.assertEqual([r.snapshot_id for r in rows], ["hawm_1", "hawm_2"])
         self.assertEqual(rows[-1].state["goal"], "second")
+
+    def test_postgres_hawm_snapshot_identity_round_trip(self):
+        snap = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "identity-anchor"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, snap)
+        identity = HAWMSnapshotIdentity(
+            snapshot_id=snap.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="HAWM_PRO_BETA_STATE",
+            arm_id="HAWM_WORKING_STATE",
+            state_id=snap.snapshot_id,
+            lineage_id=self.conversation_a.conversation_id,
+            previous_state_id=None,
+            registered_snapshot_fingerprint="a" * 64,
+            adapter_version="HAWM_STATE_IDENTITY_ADAPTER_V0_1",
+        )
+        self.store.add_hawm_snapshot_identity(self.user_a.user_id, identity)
+        loaded = self.store.get_hawm_snapshot_identity(
+            self.user_a.user_id,
+            self.conversation_a.conversation_id,
+            snap.snapshot_id,
+        )
+        self.assertEqual(loaded.snapshot_id, snap.snapshot_id)
+        self.assertEqual(loaded.registered_snapshot_fingerprint, "a" * 64)
+        with self.assertRaises(OwnershipError):
+            self.store.get_hawm_snapshot_identity(
+                self.user_b.user_id,
+                self.conversation_a.conversation_id,
+                snap.snapshot_id,
+            )
 
     def test_postgres_cfc_keeps_raw_result_separate_from_presentation(self):
         run = CFCRun(

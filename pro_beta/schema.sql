@@ -66,6 +66,29 @@ alter table cfc_runs add column if not exists hawm_snapshot_id text;
 create unique index if not exists uq_hawm_snapshot_conversation
   on hawm_snapshots(snapshot_id, conversation_id);
 
+-- Identity anchors are created only for snapshots saved after this contract
+-- exists. Historical snapshots are intentionally not backfilled.
+create table if not exists hawm_snapshot_identities (
+  snapshot_id text primary key,
+  conversation_id text not null,
+  case_id text not null,
+  arm_id text not null,
+  state_id text not null,
+  lineage_id text not null,
+  previous_state_id text,
+  registered_snapshot_fingerprint text not null
+    check (registered_snapshot_fingerprint ~ '^[0-9a-f]{64}$'),
+  adapter_version text not null,
+  created_at timestamptz not null default now(),
+  constraint fk_hawm_identity_snapshot
+    foreign key (snapshot_id, conversation_id)
+    references hawm_snapshots(snapshot_id, conversation_id)
+    on delete cascade,
+  constraint fk_hawm_identity_predecessor
+    foreign key (previous_state_id, conversation_id)
+    references hawm_snapshots(snapshot_id, conversation_id)
+);
+
 do $binding$
 begin
   if not exists (

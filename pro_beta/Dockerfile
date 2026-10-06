@@ -5,6 +5,7 @@ WORKDIR /app
 RUN python -m pip install --no-cache-dir "psycopg[binary]>=3.2,<4" "PyJWT[crypto]>=2.10,<3" "pypdf==6.18.1" "defusedxml==0.7.1"
 
 COPY pro_beta /app/pro_beta
+COPY control_stack /app/control_stack
 COPY demonstrator /app/demonstrator
 
 ENV PYTHONDONTWRITEBYTECODE=1
