@@ -74,6 +74,28 @@ def _case_result(
     }
 
 
+def unresolved_state_integrity_acceptance(
+    reason: str,
+    *,
+    current_snapshot_id: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "version": STATE_INTEGRITY_ACCEPTANCE_VERSION,
+        "status": "ACCEPTANCE_UNRESOLVED",
+        "reason": reason,
+        "baseline_status": "UNKNOWN",
+        "baseline_reason": reason,
+        "current_snapshot_id": current_snapshot_id,
+        "identity_adapter_version": None,
+        "read_only": True,
+        "persistence_actions": [],
+        "cfc_executed": False,
+        "authorization_effect": "DOES_NOT_AUTHORIZE_CLOSURE",
+        "boundary": STATE_INTEGRITY_ACCEPTANCE_BOUNDARY,
+        "cases": [],
+    }
+
+
 def run_state_integrity_adversarial_acceptance(
     *,
     current: HAWMSnapshot,
