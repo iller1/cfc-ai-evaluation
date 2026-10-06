@@ -72,4 +72,5 @@ jobs:
           pro_beta_frontend.test_frontend
           pro_beta.test_service
           pro_beta.test_snapshot_identity_registry
+          pro_beta.test_state_integrity_adapter
           pro_beta.test_postgres_persistence
