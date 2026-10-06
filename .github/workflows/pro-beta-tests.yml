@@ -2,9 +2,13 @@ name: Pro Beta contracts
 
 on:
   pull_request:
+    branches:
+      - pro-beta-v0.1
     paths:
       - "pro_beta/**"
       - "pro_beta_frontend/**"
+      - "control_stack/**"
+      - "control_stack/**"
       - ".github/workflows/pro-beta-tests.yml"
   push:
     branches:
@@ -63,6 +67,8 @@ jobs:
           pro_beta.test_contracts
           pro_beta.test_auth_boundary
           pro_beta.test_api
+          pro_beta.test_evidence_drift
+          pro_beta.test_state_monitor
           pro_beta.test_db_bootstrap
           pro_beta.test_clerk_verifier
           pro_beta.test_http_server
@@ -71,6 +77,7 @@ jobs:
           pro_beta.test_retention
           pro_beta_frontend.test_frontend
           pro_beta.test_service
+          control_stack.test_state_integrity
           pro_beta.test_snapshot_identity_registry
           pro_beta.test_state_integrity_adapter
           pro_beta.test_postgres_persistence
