@@ -100,6 +100,49 @@ class StateIntegrityAdapterTests(unittest.TestCase):
             result["reason"], "SNAPSHOT_FINGERPRINT_MISMATCH"
         )
 
+    def test_adversarial_acceptance_api_passes_from_server_derived_state(self):
+        self.save({"goal": "first"})
+        snap = self.save({"goal": "second"})
+        before = self.store.hawm_snapshots[snap["snapshot_id"]]
+
+        result = self.api.assess_state_integrity_adversarial_acceptance(
+            "token-a", self.conversation_id
+        )
+
+        self.assertEqual(result["status"], "ACCEPTANCE_PASS")
+        self.assertEqual(result["baseline_status"], "STATE_VALID")
+        self.assertTrue(result["read_only"])
+        self.assertEqual(result["persistence_actions"], [])
+        self.assertFalse(result["cfc_executed"])
+        self.assertEqual(len(result["cases"]), 6)
+        self.assertTrue(all(item["pass"] for item in result["cases"]))
+        self.assertEqual(
+            self.store.hawm_snapshots[snap["snapshot_id"]],
+            before,
+        )
+
+    def test_adversarial_acceptance_legacy_snapshot_is_unresolved(self):
+        self.store.add_hawm_snapshot(
+            self.account.user_id,
+            HAWMSnapshot(
+                "hawm_legacy_acceptance",
+                self.conversation_id,
+                {"goal": "legacy"},
+                "USER_WORKING_STATE",
+            ),
+        )
+
+        result = self.api.assess_state_integrity_adversarial_acceptance(
+            "token-a", self.conversation_id
+        )
+
+        self.assertEqual(result["status"], "ACCEPTANCE_UNRESOLVED")
+        self.assertEqual(
+            result["reason"], "SNAPSHOT_IDENTITY_NOT_REGISTERED"
+        )
+        self.assertTrue(result["read_only"])
+        self.assertFalse(result["cfc_executed"])
+
     def test_predecessor_is_derived_from_persisted_history(self):
         first = self.save({"goal": "first"})
         second = self.save({"goal": "second"})
