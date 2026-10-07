@@ -290,7 +290,7 @@ class ExecutionGateRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             ValueError,
-            "EXECUTION_INTENT_RECEIPT_ALREADY_EXISTS",
+            "EXECUTION_RECEIPT_ALREADY_EXISTS",
         ):
             self.service.record_execution_receipt(
                 self.auth_a,
