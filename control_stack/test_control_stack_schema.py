@@ -363,9 +363,63 @@ class ControlStackSchemaTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(
             ContractError,
-            "EXECUTED_REQUIRES_ATTEMPTED",
+            "EXECUTED_STATUS_FLAG_MISMATCH",
         ):
             validate_envelope(value)
+
+    def test_blocked_execution_cannot_claim_attempt(self):
+        value = valid_envelope()
+        value["execution"] = {
+            "attempted": True,
+            "executed": False,
+            "execution_status": "BLOCKED",
+            "effect_handle": None,
+            "idempotency_key": "idem-1",
+            "pre_execution_state_id": "state-002",
+            "receipt_id": "exec-1",
+        }
+        with self.assertRaisesRegex(
+            ContractError,
+            "BLOCKED_FLAG_MISMATCH",
+        ):
+            validate_envelope(value)
+
+    def test_unknown_execution_outcome_requires_null_executed(self):
+        value = valid_envelope()
+        value["execution"] = {
+            "attempted": True,
+            "executed": False,
+            "execution_status": "OUTCOME_UNKNOWN",
+            "effect_handle": "provider-request-1",
+            "idempotency_key": "idem-1",
+            "pre_execution_state_id": "state-002",
+            "receipt_id": "exec-1",
+        }
+        with self.assertRaisesRegex(
+            ContractError,
+            "OUTCOME_UNKNOWN_FLAG_MISMATCH",
+        ):
+            validate_envelope(value)
+
+    def test_unknown_execution_outcome_preserves_null(self):
+        value = valid_envelope()
+        value["execution"] = {
+            "attempted": True,
+            "executed": None,
+            "execution_status": "OUTCOME_UNKNOWN",
+            "effect_handle": "provider-request-1",
+            "idempotency_key": "idem-1",
+            "pre_execution_state_id": "state-002",
+            "receipt_id": "exec-1",
+        }
+
+        result = validate_envelope(value)
+
+        self.assertIsNone(result["execution"]["executed"])
+        self.assertEqual(
+            result["execution"]["execution_status"],
+            "OUTCOME_UNKNOWN",
+        )
 
     def test_execution_requires_continue(self):
         value = valid_envelope()
