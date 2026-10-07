@@ -365,6 +365,11 @@ class InMemoryPersistence:
             for row in self.execution_intents.values()
         ):
             raise ValueError("EXECUTION_IDEMPOTENCY_KEY_ALREADY_REGISTERED")
+        if any(
+            row.receipt_id == intent.receipt_id
+            for row in self.execution_intents.values()
+        ):
+            raise ValueError("EXECUTION_RECEIPT_ID_ALREADY_REGISTERED")
         self.execution_intents[intent.intent_id] = intent
         return intent
 
@@ -398,7 +403,8 @@ class InMemoryPersistence:
             user_id, receipt.conversation_id, receipt.intent_id
         )
         exact = (
-            receipt.action_id == intent.action_id
+            receipt.receipt_id == intent.receipt_id
+            and receipt.action_id == intent.action_id
             and receipt.controller_run_id == intent.controller_run_id
             and receipt.state_id == intent.state_id
             and receipt.state_version == intent.state_version
