@@ -175,10 +175,26 @@ def _input_error(
             if current_authority_state in VALID_AUTHORITY_STATES
             else "UNKNOWN"
         ),
-        human_review_required=bool(human_review_required),
-        human_review_approved=bool(human_review_approved),
-        transaction_required=bool(transaction_required),
-        transaction_supported=bool(transaction_supported),
+        human_review_required=(
+            human_review_required
+            if isinstance(human_review_required, bool)
+            else False
+        ),
+        human_review_approved=(
+            human_review_approved
+            if isinstance(human_review_approved, bool)
+            else False
+        ),
+        transaction_required=(
+            transaction_required
+            if isinstance(transaction_required, bool)
+            else False
+        ),
+        transaction_supported=(
+            transaction_supported
+            if isinstance(transaction_supported, bool)
+            else False
+        ),
         execution=execution,
     )
 
@@ -188,6 +204,7 @@ def _prior_receipt_match(
     prior_execution_receipts: Any,
     action_id: str,
     idempotency_key: str,
+    receipt_id: str,
 ) -> tuple[str | None, str | None]:
     if not isinstance(prior_execution_receipts, list):
         return "PRIOR_EXECUTION_RECEIPTS_NOT_ARRAY", None
@@ -198,8 +215,14 @@ def _prior_receipt_match(
         prior_key = raw.get("idempotency_key")
         prior_action = raw.get("action_id")
         prior_receipt_id = raw.get("receipt_id")
-        if not _nonempty(prior_key) or not _nonempty(prior_action):
+        if (
+            not _nonempty(prior_key)
+            or not _nonempty(prior_action)
+            or not _nonempty(prior_receipt_id)
+        ):
             return "PRIOR_EXECUTION_RECEIPT_INVALID", None
+        if prior_receipt_id == receipt_id:
+            return "EXECUTION_RECEIPT_ID_REUSED", prior_receipt_id
         if prior_key != idempotency_key:
             continue
         if prior_action != action_id:
@@ -399,6 +422,7 @@ def assess_execution_gate(
         prior_execution_receipts=prior_execution_receipts,
         action_id=action_id,
         idempotency_key=idempotency_key,
+        receipt_id=receipt_id,
     )
     if prior_reason is not None:
         blockers.append(prior_reason)
