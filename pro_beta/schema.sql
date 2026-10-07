@@ -244,7 +244,8 @@ create table if not exists execution_receipts (
       and effect_handle is null)
     or
     (execution_status = 'OUTCOME_UNKNOWN'
-      and executed is null)
+      and executed is null
+      and (effect_handle is null or length(effect_handle) > 0))
   )
 );
 
