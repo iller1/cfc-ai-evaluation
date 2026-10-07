@@ -97,6 +97,20 @@ Current Pro Beta `review_manifest` remains:
 
 It is not automatically converted into provenance receipts.
 
+## Layer A prerequisite
+
+The read-only Layer B adapter requires the ordinary State Integrity assessment for the same persisted snapshot to be:
+
+`STATE_VALID`
+
+The State Integrity result must bind the same `snapshot_id` and `state_id` and must preserve:
+
+`DOES_NOT_AUTHORIZE_CLOSURE`
+
+Any `STATE_UNRESOLVED` or `STATE_INVALID` result blocks Layer B assessment from becoming applicable.
+
+This prevents a structurally registered evidence set from bypassing a payload/lineage failure detected by Layer A.
+
 ## Read-only adapter
 
 `pro_beta/evidence_provenance_adapter.py` consumes only persisted server records and a state-bound Evidence Drift result.
