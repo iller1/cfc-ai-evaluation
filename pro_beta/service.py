@@ -18,6 +18,8 @@ from pro_beta.contracts import (
     EvidenceSetRegistration,
     EvidenceProvenanceReceipt,
     EvidenceDependencyReceipt,
+    ExecutionIntentRegistration,
+    ExecutionReceiptRecord,
     Message,
     Workspace,
     new_id,
@@ -29,6 +31,9 @@ HAWM_STATE_IDENTITY_CASE_ID = "HAWM_PRO_BETA_STATE"
 HAWM_STATE_IDENTITY_ARM_ID = "HAWM_WORKING_STATE"
 EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_VERSION = (
     "EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1"
+)
+EXECUTION_GATE_REGISTRY_ADAPTER_VERSION = (
+    "EXECUTION_GATE_REGISTRY_ADAPTER_V0_1"
 )
 
 
@@ -79,6 +84,21 @@ class PersistencePort(Protocol):
     def get_evidence_dependency_receipt(
         self, user_id: str, conversation_id: str, snapshot_id: str
     ) -> EvidenceDependencyReceipt: ...
+    def add_execution_intent(
+        self, user_id: str, intent: ExecutionIntentRegistration
+    ) -> ExecutionIntentRegistration: ...
+    def list_execution_intents(
+        self, user_id: str, conversation_id: str
+    ) -> list[ExecutionIntentRegistration]: ...
+    def get_execution_intent(
+        self, user_id: str, conversation_id: str, intent_id: str
+    ) -> ExecutionIntentRegistration: ...
+    def add_execution_receipt(
+        self, user_id: str, receipt: ExecutionReceiptRecord
+    ) -> ExecutionReceiptRecord: ...
+    def list_execution_receipts(
+        self, user_id: str, conversation_id: str
+    ) -> list[ExecutionReceiptRecord]: ...
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun: ...
     def list_cfc_runs(
         self, user_id: str, conversation_id: str
@@ -558,6 +578,150 @@ class ProBetaService:
     ) -> EvidenceDependencyReceipt:
         return self.persistence.get_evidence_dependency_receipt(
             auth.user_id, conversation_id, snapshot_id
+        )
+
+    def register_execution_intent(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        *,
+        action_id: str,
+        controller_run_id: str,
+        action_payload: dict,
+        idempotency_key: str,
+        receipt_id: str | None = None,
+        human_review_required: bool = False,
+        transaction_required: bool = False,
+    ) -> ExecutionIntentRegistration:
+        if not isinstance(action_payload, dict):
+            raise ValueError("EXECUTION_ACTION_PAYLOAD_OBJECT_REQUIRED")
+        if not str(action_id).strip():
+            raise ValueError("EXECUTION_ACTION_ID_REQUIRED")
+        if not str(idempotency_key).strip():
+            raise ValueError("EXECUTION_IDEMPOTENCY_KEY_REQUIRED")
+        if not isinstance(human_review_required, bool):
+            raise ValueError("EXECUTION_HUMAN_REVIEW_REQUIRED_INVALID")
+        if not isinstance(transaction_required, bool):
+            raise ValueError("EXECUTION_TRANSACTION_REQUIRED_INVALID")
+
+        runs = self.list_cfc_runs(auth, conversation_id)
+        run = next(
+            (row for row in runs if row.run_id == controller_run_id),
+            None,
+        )
+        if run is None:
+            from pro_beta.persistence import NotFoundError
+            raise NotFoundError("CFC_RUN_NOT_FOUND")
+        if run.hawm_snapshot_id is None:
+            raise ValueError("EXECUTION_INTENT_REQUIRES_BOUND_CFC_RUN")
+
+        identity = self.get_hawm_snapshot_identity(
+            auth, conversation_id, run.hawm_snapshot_id
+        )
+        intent = ExecutionIntentRegistration(
+            intent_id=new_id("exec_intent"),
+            conversation_id=conversation_id,
+            action_id=action_id.strip(),
+            controller_run_id=run.run_id,
+            state_id=identity.state_id,
+            state_version=identity.registered_snapshot_fingerprint,
+            idempotency_key=idempotency_key.strip(),
+            receipt_id=(receipt_id.strip() if receipt_id else new_id("exec_receipt")),
+            action_payload_fingerprint=state_fingerprint(action_payload),
+            human_review_required=human_review_required,
+            transaction_required=transaction_required,
+            adapter_version=EXECUTION_GATE_REGISTRY_ADAPTER_VERSION,
+        )
+        return self.persistence.add_execution_intent(
+            auth.user_id, intent
+        )
+
+    def list_execution_intents(
+        self, auth: AuthContext, conversation_id: str
+    ) -> list[ExecutionIntentRegistration]:
+        return self.persistence.list_execution_intents(
+            auth.user_id, conversation_id
+        )
+
+    def get_execution_intent(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        intent_id: str,
+    ) -> ExecutionIntentRegistration:
+        return self.persistence.get_execution_intent(
+            auth.user_id, conversation_id, intent_id
+        )
+
+    def list_execution_receipts(
+        self, auth: AuthContext, conversation_id: str
+    ) -> list[ExecutionReceiptRecord]:
+        return self.persistence.list_execution_receipts(
+            auth.user_id, conversation_id
+        )
+
+    def record_execution_receipt(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        intent_id: str,
+        *,
+        gate_result: dict,
+    ) -> ExecutionReceiptRecord:
+        intent = self.get_execution_intent(
+            auth, conversation_id, intent_id
+        )
+        if not isinstance(gate_result, dict):
+            raise ValueError("EXECUTION_GATE_RESULT_OBJECT_REQUIRED")
+        execution = gate_result.get("execution")
+        if not isinstance(execution, dict):
+            raise ValueError("EXECUTION_GATE_RESULT_EXECUTION_REQUIRED")
+
+        if execution.get("receipt_id") != intent.receipt_id:
+            raise ValueError("EXECUTION_RESULT_RECEIPT_ID_MISMATCH")
+        if execution.get("idempotency_key") != intent.idempotency_key:
+            raise ValueError("EXECUTION_RESULT_IDEMPOTENCY_MISMATCH")
+        if execution.get("pre_execution_state_id") != intent.state_id:
+            raise ValueError("EXECUTION_RESULT_STATE_MISMATCH")
+        if not execution.get("attempted"):
+            raise ValueError("EXECUTION_RECEIPT_REQUIRES_ATTEMPT")
+
+        status = execution.get("execution_status")
+        executed = execution.get("executed")
+        effect_handle = execution.get("effect_handle")
+        if status not in {
+            "ATTEMPTED_NOT_EXECUTED",
+            "EXECUTED",
+            "OUTCOME_UNKNOWN",
+            "FAILED",
+        }:
+            raise ValueError("EXECUTION_RECEIPT_STATUS_INVALID")
+        if status == "EXECUTED":
+            if executed is not True or not isinstance(effect_handle, str) or not effect_handle:
+                raise ValueError("EXECUTION_RECEIPT_EXECUTED_COHERENCE_INVALID")
+        elif status in {"ATTEMPTED_NOT_EXECUTED", "FAILED"}:
+            if executed is not False or effect_handle is not None:
+                raise ValueError("EXECUTION_RECEIPT_NO_EFFECT_COHERENCE_INVALID")
+        elif status == "OUTCOME_UNKNOWN" and executed is not None:
+            raise ValueError("EXECUTION_RECEIPT_UNKNOWN_COHERENCE_INVALID")
+
+        receipt = ExecutionReceiptRecord(
+            receipt_id=intent.receipt_id,
+            intent_id=intent.intent_id,
+            conversation_id=intent.conversation_id,
+            action_id=intent.action_id,
+            controller_run_id=intent.controller_run_id,
+            state_id=intent.state_id,
+            state_version=intent.state_version,
+            idempotency_key=intent.idempotency_key,
+            execution_status=status,
+            attempted=True,
+            executed=executed,
+            effect_handle=effect_handle,
+            adapter_version=EXECUTION_GATE_REGISTRY_ADAPTER_VERSION,
+        )
+        return self.persistence.add_execution_receipt(
+            auth.user_id, receipt
         )
 
     def save_cfc_run(
