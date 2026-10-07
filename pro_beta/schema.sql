@@ -95,6 +95,9 @@ create unique index if not exists uq_hawm_identity_snapshot_conversation
 create unique index if not exists uq_cfc_run_conversation
   on cfc_runs(run_id, conversation_id);
 
+create unique index if not exists uq_cfc_run_conversation_snapshot
+  on cfc_runs(run_id, conversation_id, hawm_snapshot_id);
+
 -- Evidence/Provenance Layer B registrations are explicit and state-bound.
 -- Historical snapshots are intentionally not backfilled.
 create table if not exists evidence_set_registrations (
@@ -175,9 +178,9 @@ create table if not exists execution_intents (
   transaction_required boolean not null,
   adapter_version text not null,
   created_at timestamptz not null default now(),
-  constraint fk_execution_intent_run
-    foreign key (controller_run_id, conversation_id)
-    references cfc_runs(run_id, conversation_id)
+  constraint fk_execution_intent_run_state
+    foreign key (controller_run_id, conversation_id, state_id)
+    references cfc_runs(run_id, conversation_id, hawm_snapshot_id)
     on delete cascade,
   constraint fk_execution_intent_state
     foreign key (state_id, conversation_id)
@@ -188,6 +191,12 @@ create table if not exists execution_intents (
 
 create unique index if not exists uq_execution_intent_conversation
   on execution_intents(intent_id, conversation_id);
+
+create unique index if not exists uq_execution_intent_exact_binding
+  on execution_intents(
+    intent_id, conversation_id, action_id, controller_run_id,
+    state_id, state_version, idempotency_key, receipt_id
+  );
 
 -- Append-only final records for attempts that actually reached an executor.
 -- Preflight-only BLOCKED / NOT_ATTEMPTED states are intentionally not stored
@@ -214,9 +223,15 @@ create table if not exists execution_receipts (
   effect_handle text,
   adapter_version text not null,
   created_at timestamptz not null default now(),
-  constraint fk_execution_receipt_intent
-    foreign key (intent_id, conversation_id)
-    references execution_intents(intent_id, conversation_id)
+  constraint fk_execution_receipt_exact_intent
+    foreign key (
+      intent_id, conversation_id, action_id, controller_run_id,
+      state_id, state_version, idempotency_key, receipt_id
+    )
+    references execution_intents(
+      intent_id, conversation_id, action_id, controller_run_id,
+      state_id, state_version, idempotency_key, receipt_id
+    )
     on delete cascade,
   check (
     (execution_status = 'EXECUTED'
