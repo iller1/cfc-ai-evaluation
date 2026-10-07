@@ -91,6 +91,12 @@ create table if not exists hawm_snapshot_identities (
 
 create unique index if not exists uq_hawm_identity_snapshot_conversation
   on hawm_snapshot_identities(snapshot_id, conversation_id);
+create unique index if not exists uq_hawm_identity_snapshot_conversation_fingerprint
+  on hawm_snapshot_identities(
+    snapshot_id,
+    conversation_id,
+    registered_snapshot_fingerprint
+  );
 
 -- Evidence/Provenance Layer B registrations are explicit and state-bound.
 -- Historical snapshots are intentionally not backfilled.
@@ -198,12 +204,28 @@ create table if not exists execution_receipts (
   constraint fk_execution_controller_run_state
     foreign key (controller_run_id, controller_state_id, conversation_id)
     references cfc_runs(run_id, hawm_snapshot_id, conversation_id),
-  constraint fk_execution_controller_state
-    foreign key (controller_state_id, conversation_id)
-    references hawm_snapshot_identities(snapshot_id, conversation_id),
-  constraint fk_execution_pre_state
-    foreign key (pre_execution_state_id, conversation_id)
-    references hawm_snapshot_identities(snapshot_id, conversation_id),
+  constraint fk_execution_controller_state_version
+    foreign key (
+      controller_state_id,
+      conversation_id,
+      controller_state_version
+    )
+    references hawm_snapshot_identities(
+      snapshot_id,
+      conversation_id,
+      registered_snapshot_fingerprint
+    ),
+  constraint fk_execution_pre_state_version
+    foreign key (
+      pre_execution_state_id,
+      conversation_id,
+      pre_execution_state_version
+    )
+    references hawm_snapshot_identities(
+      snapshot_id,
+      conversation_id,
+      registered_snapshot_fingerprint
+    ),
   check (
     (execution_status = 'NOT_ATTEMPTED' and attempted = false and executed = false)
     or (execution_status = 'BLOCKED' and attempted = false and executed = false)
