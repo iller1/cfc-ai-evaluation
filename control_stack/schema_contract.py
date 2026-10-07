@@ -248,6 +248,10 @@ def _validate_evidence(value: Any) -> dict[str, Any]:
             raise ContractError(
                 "evidence:APPLICABLE_REQUIRES_NO_MISSING_EVIDENCE"
             )
+        if obj["drift_state"] != "NO_DRIFT":
+            raise ContractError(
+                "evidence:APPLICABLE_REQUIRES_NO_DRIFT"
+            )
         if not records:
             raise ContractError(
                 "evidence:APPLICABLE_REQUIRES_EVIDENCE_RECORD"
