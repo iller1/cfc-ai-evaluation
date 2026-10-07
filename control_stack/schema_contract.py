@@ -230,6 +230,48 @@ def _validate_evidence(value: Any) -> dict[str, Any]:
             f"{path}.scope_status",
         )
         _nullable_string(rec["failure_domain_id"], f"{path}.failure_domain_id")
+
+    if obj["status"] == "EVIDENCE_APPLICABLE":
+        if obj["provenance_state"] != "ESTABLISHED":
+            raise ContractError(
+                "evidence:APPLICABLE_REQUIRES_ESTABLISHED_PROVENANCE"
+            )
+        if obj["applicability_state"] != "APPLICABLE":
+            raise ContractError(
+                "evidence:APPLICABLE_REQUIRES_APPLICABILITY"
+            )
+        if obj["dependency_state"] != "RESOLVED":
+            raise ContractError(
+                "evidence:APPLICABLE_REQUIRES_RESOLVED_DEPENDENCIES"
+            )
+        if obj["missing_evidence"]:
+            raise ContractError(
+                "evidence:APPLICABLE_REQUIRES_NO_MISSING_EVIDENCE"
+            )
+        if obj["drift_state"] != "NO_DRIFT":
+            raise ContractError(
+                "evidence:APPLICABLE_REQUIRES_NO_DRIFT"
+            )
+        if not records:
+            raise ContractError(
+                "evidence:APPLICABLE_REQUIRES_EVIDENCE_RECORD"
+            )
+        if any(rec["validity"] != "CURRENT" for rec in records):
+            raise ContractError(
+                "evidence:APPLICABLE_REQUIRES_CURRENT_RECORDS"
+            )
+        if any(rec["scope_status"] != "MATCH" for rec in records):
+            raise ContractError(
+                "evidence:APPLICABLE_REQUIRES_SCOPE_MATCH"
+            )
+        if any(
+            not isinstance(rec["failure_domain_id"], str)
+            or not rec["failure_domain_id"]
+            for rec in records
+        ):
+            raise ContractError(
+                "evidence:APPLICABLE_REQUIRES_FAILURE_DOMAIN"
+            )
     return obj
 
 
