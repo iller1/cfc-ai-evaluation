@@ -184,6 +184,20 @@ class ExecutionGateTests(unittest.TestCase):
         self.assertIn("IDEMPOTENCY_REPLAY_BLOCKED", result["blockers"])
         self.assertEqual(result["prior_receipt_id"], "old-receipt")
 
+    def test_execution_receipt_id_cannot_be_reused(self):
+        prior = [{
+            "receipt_id": "exec-receipt-1",
+            "action_id": "other-action",
+            "idempotency_key": "other-key",
+        }]
+
+        result = assess_execution_gate(
+            **gate_inputs(prior_execution_receipts=prior)
+        )
+
+        self.assertEqual(result["gate_status"], EXECUTION_BLOCKED)
+        self.assertIn("EXECUTION_RECEIPT_ID_REUSED", result["blockers"])
+
     def test_idempotency_key_reused_for_other_action_is_blocked(self):
         prior = [{
             "receipt_id": "old-receipt",
