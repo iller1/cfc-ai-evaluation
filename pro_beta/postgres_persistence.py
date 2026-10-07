@@ -15,6 +15,7 @@ from pro_beta.contracts import (
     EvidenceSetRegistration,
     EvidenceProvenanceReceipt,
     EvidenceDependencyReceipt,
+    ExecutionReceiptRecord,
     Message,
     UserAccount,
     Workspace,
@@ -683,6 +684,147 @@ class PostgresPersistence:
             adapter_version=row[7],
             created_at=row[8],
         )
+
+    def add_execution_receipt(
+        self, user_id: str, receipt: ExecutionReceiptRecord
+    ) -> ExecutionReceiptRecord:
+        self._assert_conversation_owned(user_id, receipt.conversation_id)
+
+        run = self._one(
+            """
+            select conversation_id
+            from cfc_runs
+            where run_id = %s
+            """,
+            (receipt.controller_run_id,),
+        )
+        if run is None:
+            raise NotFoundError("CFC_RUN_NOT_FOUND")
+        if run[0] != receipt.conversation_id:
+            raise OwnershipError("CFC_RUN_CONVERSATION_MISMATCH")
+
+        for state_id, missing_code, mismatch_code in (
+            (
+                receipt.controller_state_id,
+                "CONTROLLER_STATE_IDENTITY_NOT_FOUND",
+                "CONTROLLER_STATE_CONVERSATION_MISMATCH",
+            ),
+            (
+                receipt.pre_execution_state_id,
+                "PRE_EXECUTION_STATE_IDENTITY_NOT_FOUND",
+                "PRE_EXECUTION_STATE_CONVERSATION_MISMATCH",
+            ),
+        ):
+            row = self._one(
+                """
+                select conversation_id
+                from hawm_snapshot_identities
+                where snapshot_id = %s
+                """,
+                (state_id,),
+            )
+            if row is None:
+                raise NotFoundError(missing_code)
+            if row[0] != receipt.conversation_id:
+                raise OwnershipError(mismatch_code)
+
+        self._execute(
+            """
+            insert into execution_receipts (
+                receipt_id, conversation_id, action_id, controller_run_id,
+                controller_decision, controller_state_id,
+                controller_state_version, pre_execution_state_id,
+                pre_execution_state_version, idempotency_key,
+                cfc_authority_state, current_authority_state,
+                human_review_required, human_review_approved,
+                transaction_required, transaction_supported,
+                attempted, executed, execution_status, effect_handle,
+                blockers, reason, adapter_version, created_at
+            )
+            values (
+                %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                %s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb,%s,%s,%s
+            )
+            """,
+            (
+                receipt.receipt_id,
+                receipt.conversation_id,
+                receipt.action_id,
+                receipt.controller_run_id,
+                receipt.controller_decision,
+                receipt.controller_state_id,
+                receipt.controller_state_version,
+                receipt.pre_execution_state_id,
+                receipt.pre_execution_state_version,
+                receipt.idempotency_key,
+                receipt.cfc_authority_state,
+                receipt.current_authority_state,
+                receipt.human_review_required,
+                receipt.human_review_approved,
+                receipt.transaction_required,
+                receipt.transaction_supported,
+                receipt.attempted,
+                receipt.executed,
+                receipt.execution_status,
+                receipt.effect_handle,
+                json.dumps(receipt.blockers, ensure_ascii=False),
+                receipt.reason,
+                receipt.adapter_version,
+                receipt.created_at,
+            ),
+        )
+        return receipt
+
+    def list_execution_receipts(
+        self, user_id: str, conversation_id: str
+    ) -> list[ExecutionReceiptRecord]:
+        self._assert_conversation_owned(user_id, conversation_id)
+        rows = self._all(
+            """
+            select receipt_id, conversation_id, action_id, controller_run_id,
+                   controller_decision, controller_state_id,
+                   controller_state_version, pre_execution_state_id,
+                   pre_execution_state_version, idempotency_key,
+                   cfc_authority_state, current_authority_state,
+                   human_review_required, human_review_approved,
+                   transaction_required, transaction_supported,
+                   attempted, executed, execution_status, effect_handle,
+                   blockers, reason, adapter_version, created_at::text
+            from execution_receipts
+            where conversation_id = %s
+            order by created_at, receipt_id
+            """,
+            (conversation_id,),
+        )
+        return [
+            ExecutionReceiptRecord(
+                receipt_id=row[0],
+                conversation_id=row[1],
+                action_id=row[2],
+                controller_run_id=row[3],
+                controller_decision=row[4],
+                controller_state_id=row[5],
+                controller_state_version=row[6],
+                pre_execution_state_id=row[7],
+                pre_execution_state_version=row[8],
+                idempotency_key=row[9],
+                cfc_authority_state=row[10],
+                current_authority_state=row[11],
+                human_review_required=row[12],
+                human_review_approved=row[13],
+                transaction_required=row[14],
+                transaction_supported=row[15],
+                attempted=row[16],
+                executed=row[17],
+                execution_status=row[18],
+                effect_handle=row[19],
+                blockers=row[20],
+                reason=row[21],
+                adapter_version=row[22],
+                created_at=row[23],
+            )
+            for row in rows
+        ]
 
     def list_cfc_runs(
         self, user_id: str, conversation_id: str
