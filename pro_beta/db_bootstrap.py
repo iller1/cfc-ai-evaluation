@@ -15,6 +15,8 @@ EXPECTED_TABLES = (
     "evidence_set_registrations",
     "evidence_provenance_receipts",
     "evidence_dependency_receipts",
+    "execution_intents",
+    "execution_receipts",
     "cfc_runs",
     "audit_reports",
     "benchmark_runs",

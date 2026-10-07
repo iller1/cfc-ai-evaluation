@@ -15,6 +15,8 @@ from pro_beta.contracts import (
     EvidenceSetRegistration,
     EvidenceProvenanceReceipt,
     EvidenceDependencyReceipt,
+    ExecutionIntentRegistration,
+    ExecutionReceiptRecord,
     Message,
     UsageEvent,
     UserAccount,
@@ -48,6 +50,8 @@ class InMemoryPersistence:
         self.evidence_set_registrations: Dict[str, EvidenceSetRegistration] = {}
         self.evidence_provenance_receipts: Dict[str, EvidenceProvenanceReceipt] = {}
         self.evidence_dependency_receipts: Dict[str, EvidenceDependencyReceipt] = {}
+        self.execution_intents: Dict[str, ExecutionIntentRegistration] = {}
+        self.execution_receipts: Dict[str, ExecutionReceiptRecord] = {}
         self.cfc_runs: Dict[str, CFCRun] = {}
         self.founding_beta_measurements: Dict[str, FoundingBetaMeasurement] = {}
         self.audit_reports: Dict[str, AuditReportRecord] = {}
@@ -331,6 +335,114 @@ class InMemoryPersistence:
             r
             for r in self.cfc_runs.values()
             if r.conversation_id == conversation_id
+        ]
+
+    def add_execution_intent(
+        self, user_id: str, intent: ExecutionIntentRegistration
+    ) -> ExecutionIntentRegistration:
+        self._owned_conversation(user_id, intent.conversation_id)
+        run = self.cfc_runs.get(intent.controller_run_id)
+        if run is None:
+            raise NotFoundError("CFC_RUN_NOT_FOUND")
+        if run.conversation_id != intent.conversation_id:
+            raise OwnershipError("CFC_RUN_CONVERSATION_MISMATCH")
+        if run.hawm_snapshot_id is None:
+            raise ValueError("EXECUTION_INTENT_REQUIRES_BOUND_CFC_RUN")
+        if run.hawm_snapshot_id != intent.state_id:
+            raise ValueError("EXECUTION_INTENT_STATE_RUN_MISMATCH")
+        identity = self.hawm_snapshot_identities.get(intent.state_id)
+        if identity is None:
+            raise NotFoundError("HAWM_SNAPSHOT_IDENTITY_NOT_FOUND")
+        if identity.conversation_id != intent.conversation_id:
+            raise OwnershipError("HAWM_SNAPSHOT_IDENTITY_CONVERSATION_MISMATCH")
+        if intent.state_version != identity.registered_snapshot_fingerprint:
+            raise ValueError("EXECUTION_INTENT_STATE_VERSION_MISMATCH")
+        if intent.intent_id in self.execution_intents:
+            raise ValueError("EXECUTION_INTENT_ALREADY_EXISTS")
+        if any(
+            row.conversation_id == intent.conversation_id
+            and row.idempotency_key == intent.idempotency_key
+            for row in self.execution_intents.values()
+        ):
+            raise ValueError("EXECUTION_IDEMPOTENCY_KEY_ALREADY_REGISTERED")
+        if any(
+            row.receipt_id == intent.receipt_id
+            for row in self.execution_intents.values()
+        ):
+            raise ValueError("EXECUTION_RECEIPT_ID_ALREADY_REGISTERED")
+        self.execution_intents[intent.intent_id] = intent
+        return intent
+
+    def list_execution_intents(
+        self, user_id: str, conversation_id: str
+    ) -> List[ExecutionIntentRegistration]:
+        self._owned_conversation(user_id, conversation_id)
+        return [
+            row
+            for row in self.execution_intents.values()
+            if row.conversation_id == conversation_id
+        ]
+
+    def get_execution_intent(
+        self, user_id: str, conversation_id: str, intent_id: str
+    ) -> ExecutionIntentRegistration:
+        self._owned_conversation(user_id, conversation_id)
+        try:
+            intent = self.execution_intents[intent_id]
+        except KeyError as exc:
+            raise NotFoundError("EXECUTION_INTENT_NOT_FOUND") from exc
+        if intent.conversation_id != conversation_id:
+            raise OwnershipError("EXECUTION_INTENT_CONVERSATION_MISMATCH")
+        return intent
+
+    def add_execution_receipt(
+        self, user_id: str, receipt: ExecutionReceiptRecord
+    ) -> ExecutionReceiptRecord:
+        self._owned_conversation(user_id, receipt.conversation_id)
+        intent = self.get_execution_intent(
+            user_id, receipt.conversation_id, receipt.intent_id
+        )
+        exact = (
+            receipt.receipt_id == intent.receipt_id
+            and receipt.action_id == intent.action_id
+            and receipt.controller_run_id == intent.controller_run_id
+            and receipt.state_id == intent.state_id
+            and receipt.state_version == intent.state_version
+            and receipt.idempotency_key == intent.idempotency_key
+        )
+        if not exact:
+            raise ValueError("EXECUTION_RECEIPT_INTENT_BINDING_MISMATCH")
+        if receipt.receipt_id in self.execution_receipts:
+            raise ValueError("EXECUTION_RECEIPT_ALREADY_EXISTS")
+        if any(
+            row.intent_id == receipt.intent_id
+            for row in self.execution_receipts.values()
+        ):
+            raise ValueError("EXECUTION_INTENT_RECEIPT_ALREADY_EXISTS")
+        if not receipt.attempted:
+            raise ValueError("EXECUTION_RECEIPT_REQUIRES_ATTEMPT")
+        if receipt.execution_status == "EXECUTED":
+            if receipt.executed is not True or not receipt.effect_handle:
+                raise ValueError("EXECUTION_RECEIPT_EXECUTED_COHERENCE_INVALID")
+        elif receipt.execution_status in {"ATTEMPTED_NOT_EXECUTED", "FAILED"}:
+            if receipt.executed is not False or receipt.effect_handle is not None:
+                raise ValueError("EXECUTION_RECEIPT_NO_EFFECT_COHERENCE_INVALID")
+        elif receipt.execution_status == "OUTCOME_UNKNOWN":
+            if receipt.executed is not None:
+                raise ValueError("EXECUTION_RECEIPT_UNKNOWN_COHERENCE_INVALID")
+        else:
+            raise ValueError("EXECUTION_RECEIPT_STATUS_INVALID")
+        self.execution_receipts[receipt.receipt_id] = receipt
+        return receipt
+
+    def list_execution_receipts(
+        self, user_id: str, conversation_id: str
+    ) -> List[ExecutionReceiptRecord]:
+        self._owned_conversation(user_id, conversation_id)
+        return [
+            row
+            for row in self.execution_receipts.values()
+            if row.conversation_id == conversation_id
         ]
 
     def add_audit_report(
