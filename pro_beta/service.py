@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+import copy
 from typing import Protocol
 
 from control_stack.state_integrity import state_fingerprint
@@ -14,6 +15,9 @@ from pro_beta.contracts import (
     Conversation,
     HAWMSnapshot,
     HAWMSnapshotIdentity,
+    EvidenceSetRegistration,
+    EvidenceProvenanceReceipt,
+    EvidenceDependencyReceipt,
     Message,
     Workspace,
     new_id,
@@ -23,6 +27,9 @@ from pro_beta.contracts import (
 HAWM_STATE_IDENTITY_ADAPTER_VERSION = "HAWM_STATE_IDENTITY_ADAPTER_V0_1"
 HAWM_STATE_IDENTITY_CASE_ID = "HAWM_PRO_BETA_STATE"
 HAWM_STATE_IDENTITY_ARM_ID = "HAWM_WORKING_STATE"
+EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_VERSION = (
+    "EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1"
+)
 
 
 class PersistencePort(Protocol):
@@ -54,6 +61,24 @@ class PersistencePort(Protocol):
     def get_hawm_snapshot_identity(
         self, user_id: str, conversation_id: str, snapshot_id: str
     ) -> HAWMSnapshotIdentity: ...
+    def add_evidence_set_registration(
+        self, user_id: str, registration: EvidenceSetRegistration
+    ) -> EvidenceSetRegistration: ...
+    def get_evidence_set_registration(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> EvidenceSetRegistration: ...
+    def add_evidence_provenance_receipt(
+        self, user_id: str, receipt: EvidenceProvenanceReceipt
+    ) -> EvidenceProvenanceReceipt: ...
+    def list_evidence_provenance_receipts(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> list[EvidenceProvenanceReceipt]: ...
+    def add_evidence_dependency_receipt(
+        self, user_id: str, receipt: EvidenceDependencyReceipt
+    ) -> EvidenceDependencyReceipt: ...
+    def get_evidence_dependency_receipt(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> EvidenceDependencyReceipt: ...
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun: ...
     def list_cfc_runs(
         self, user_id: str, conversation_id: str
@@ -347,6 +372,191 @@ class ProBetaService:
         self, auth: AuthContext, conversation_id: str, snapshot_id: str
     ) -> HAWMSnapshotIdentity:
         return self.persistence.get_hawm_snapshot_identity(
+            auth.user_id, conversation_id, snapshot_id
+        )
+
+    def register_evidence_set(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        snapshot_id: str,
+        *,
+        evidence_set: list[dict],
+        missing_evidence: list[str],
+    ) -> EvidenceSetRegistration:
+        snapshot = self.get_hawm_snapshot(
+            auth, conversation_id, snapshot_id
+        )
+        identity = self.get_hawm_snapshot_identity(
+            auth, conversation_id, snapshot_id
+        )
+        if identity.state_id != snapshot.snapshot_id:
+            raise ValueError("EVIDENCE_REGISTRATION_STATE_IDENTITY_MISMATCH")
+
+        from control_stack.evidence_provenance import (
+            EVIDENCE_INVALID,
+            assess_evidence_provenance,
+        )
+
+        probe = assess_evidence_provenance(
+            state_id=snapshot.snapshot_id,
+            evidence_set=evidence_set,
+            provenance_receipts=[],
+            dependency_receipt=None,
+            missing_evidence=missing_evidence,
+            drift_state="NOT_ASSESSED",
+        )
+        if probe["status"] == EVIDENCE_INVALID:
+            raise ValueError(probe["reason"])
+
+        registration = EvidenceSetRegistration(
+            registration_id=new_id("evidence_set"),
+            snapshot_id=snapshot.snapshot_id,
+            conversation_id=conversation_id,
+            state_id=snapshot.snapshot_id,
+            evidence_set=copy.deepcopy(evidence_set),
+            missing_evidence=list(missing_evidence),
+            adapter_version=EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_VERSION,
+        )
+        return self.persistence.add_evidence_set_registration(
+            auth.user_id, registration
+        )
+
+    def get_evidence_set_registration(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        snapshot_id: str,
+    ) -> EvidenceSetRegistration:
+        return self.persistence.get_evidence_set_registration(
+            auth.user_id, conversation_id, snapshot_id
+        )
+
+    def register_evidence_provenance_receipt(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        snapshot_id: str,
+        *,
+        evidence_id: str,
+        source_id: str,
+        status: str,
+    ) -> EvidenceProvenanceReceipt:
+        registration = self.get_evidence_set_registration(
+            auth, conversation_id, snapshot_id
+        )
+        record = next(
+            (
+                item
+                for item in registration.evidence_set
+                if item.get("evidence_id") == evidence_id
+            ),
+            None,
+        )
+        if record is None:
+            raise ValueError("EVIDENCE_PROVENANCE_EVIDENCE_NOT_REGISTERED")
+        if record.get("source_id") != source_id:
+            raise ValueError("EVIDENCE_PROVENANCE_SOURCE_MISMATCH")
+        if status not in {"ESTABLISHED", "PARTIAL", "UNKNOWN", "INVALID"}:
+            raise ValueError("EVIDENCE_PROVENANCE_STATUS_INVALID")
+
+        receipt = EvidenceProvenanceReceipt(
+            receipt_id=new_id("evidence_prov"),
+            snapshot_id=registration.snapshot_id,
+            conversation_id=registration.conversation_id,
+            state_id=registration.state_id,
+            evidence_id=evidence_id,
+            source_id=source_id,
+            status=status,
+            adapter_version=EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_VERSION,
+        )
+        return self.persistence.add_evidence_provenance_receipt(
+            auth.user_id, receipt
+        )
+
+    def list_evidence_provenance_receipts(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        snapshot_id: str,
+    ) -> list[EvidenceProvenanceReceipt]:
+        return self.persistence.list_evidence_provenance_receipts(
+            auth.user_id, conversation_id, snapshot_id
+        )
+
+    def register_evidence_dependency_receipt(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        snapshot_id: str,
+        *,
+        evidence_ids: list[str],
+        failure_domains: dict[str, str | None],
+        status: str,
+    ) -> EvidenceDependencyReceipt:
+        registration = self.get_evidence_set_registration(
+            auth, conversation_id, snapshot_id
+        )
+        if status not in {"RESOLVED", "PARTIAL", "UNKNOWN", "CONFLICTING"}:
+            raise ValueError("EVIDENCE_DEPENDENCY_STATUS_INVALID")
+
+        candidate = {
+            "receipt_id": "candidate",
+            "state_id": registration.state_id,
+            "evidence_ids": list(evidence_ids),
+            "failure_domains": copy.deepcopy(failure_domains),
+            "status": status,
+        }
+        provenance = [
+            {
+                "receipt_id": receipt.receipt_id,
+                "state_id": receipt.state_id,
+                "evidence_id": receipt.evidence_id,
+                "source_id": receipt.source_id,
+                "status": receipt.status,
+            }
+            for receipt in self.list_evidence_provenance_receipts(
+                auth, conversation_id, snapshot_id
+            )
+        ]
+
+        from control_stack.evidence_provenance import (
+            EVIDENCE_INVALID,
+            assess_evidence_provenance,
+        )
+
+        probe = assess_evidence_provenance(
+            state_id=registration.state_id,
+            evidence_set=registration.evidence_set,
+            provenance_receipts=provenance,
+            dependency_receipt=candidate,
+            missing_evidence=registration.missing_evidence,
+            drift_state="NOT_ASSESSED",
+        )
+        if probe["status"] == EVIDENCE_INVALID:
+            raise ValueError(probe["reason"])
+
+        receipt = EvidenceDependencyReceipt(
+            receipt_id=new_id("evidence_dep"),
+            snapshot_id=registration.snapshot_id,
+            conversation_id=registration.conversation_id,
+            state_id=registration.state_id,
+            evidence_ids=list(evidence_ids),
+            failure_domains=copy.deepcopy(failure_domains),
+            status=status,
+            adapter_version=EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_VERSION,
+        )
+        return self.persistence.add_evidence_dependency_receipt(
+            auth.user_id, receipt
+        )
+
+    def get_evidence_dependency_receipt(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        snapshot_id: str,
+    ) -> EvidenceDependencyReceipt:
+        return self.persistence.get_evidence_dependency_receipt(
             auth.user_id, conversation_id, snapshot_id
         )
 
