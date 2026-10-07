@@ -18,6 +18,7 @@ from pro_beta.contracts import (
     EvidenceSetRegistration,
     EvidenceProvenanceReceipt,
     EvidenceDependencyReceipt,
+    ExecutionReceiptRecord,
     Message,
     Workspace,
     new_id,
@@ -29,6 +30,9 @@ HAWM_STATE_IDENTITY_CASE_ID = "HAWM_PRO_BETA_STATE"
 HAWM_STATE_IDENTITY_ARM_ID = "HAWM_WORKING_STATE"
 EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_VERSION = (
     "EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1"
+)
+EXECUTION_GATE_RECEIPT_ADAPTER_VERSION = (
+    "EXECUTION_GATE_RECEIPT_ADAPTER_V0_1"
 )
 
 
@@ -79,6 +83,12 @@ class PersistencePort(Protocol):
     def get_evidence_dependency_receipt(
         self, user_id: str, conversation_id: str, snapshot_id: str
     ) -> EvidenceDependencyReceipt: ...
+    def add_execution_receipt(
+        self, user_id: str, receipt: ExecutionReceiptRecord
+    ) -> ExecutionReceiptRecord: ...
+    def list_execution_receipts(
+        self, user_id: str, conversation_id: str
+    ) -> list[ExecutionReceiptRecord]: ...
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun: ...
     def list_cfc_runs(
         self, user_id: str, conversation_id: str
@@ -558,6 +568,98 @@ class ProBetaService:
     ) -> EvidenceDependencyReceipt:
         return self.persistence.get_evidence_dependency_receipt(
             auth.user_id, conversation_id, snapshot_id
+        )
+
+    def save_execution_gate_receipt(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+        gate_result: dict,
+    ) -> ExecutionReceiptRecord:
+        self.get_conversation(auth, conversation_id)
+
+        if not isinstance(gate_result, dict):
+            raise ValueError("EXECUTION_GATE_RESULT_REQUIRED")
+        if gate_result.get("version") != "EXECUTION_GATE_V0_1":
+            raise ValueError("EXECUTION_GATE_VERSION_UNSUPPORTED")
+        if gate_result.get("authority_effect") != "DOES_NOT_CREATE_AUTHORITY":
+            raise ValueError("EXECUTION_GATE_AUTHORITY_BOUNDARY_MISMATCH")
+
+        execution = gate_result.get("execution")
+        if not isinstance(execution, dict):
+            raise ValueError("EXECUTION_GATE_EXECUTION_RECEIPT_REQUIRED")
+
+        required_outer = (
+            "action_id",
+            "controller_run_id",
+            "controller_decision",
+            "controller_state_id",
+            "current_state_id",
+            "controller_state_version",
+            "current_state_version",
+            "cfc_authority_state",
+            "current_authority_state",
+            "human_review_required",
+            "human_review_approved",
+            "transaction_required",
+            "transaction_supported",
+            "blockers",
+            "reason",
+        )
+        if any(key not in gate_result for key in required_outer):
+            raise ValueError("EXECUTION_GATE_RESULT_INCOMPLETE")
+
+        required_execution = (
+            "receipt_id",
+            "idempotency_key",
+            "attempted",
+            "executed",
+            "execution_status",
+            "effect_handle",
+            "pre_execution_state_id",
+        )
+        if any(key not in execution for key in required_execution):
+            raise ValueError("EXECUTION_GATE_RECEIPT_INCOMPLETE")
+
+        if execution["pre_execution_state_id"] != gate_result["current_state_id"]:
+            raise ValueError("EXECUTION_GATE_PRE_STATE_BINDING_MISMATCH")
+
+        receipt = ExecutionReceiptRecord(
+            receipt_id=execution["receipt_id"],
+            conversation_id=conversation_id,
+            action_id=gate_result["action_id"],
+            controller_run_id=gate_result["controller_run_id"],
+            controller_decision=gate_result["controller_decision"],
+            controller_state_id=gate_result["controller_state_id"],
+            controller_state_version=gate_result["controller_state_version"],
+            pre_execution_state_id=execution["pre_execution_state_id"],
+            pre_execution_state_version=gate_result["current_state_version"],
+            idempotency_key=execution["idempotency_key"],
+            cfc_authority_state=gate_result["cfc_authority_state"],
+            current_authority_state=gate_result["current_authority_state"],
+            human_review_required=gate_result["human_review_required"],
+            human_review_approved=gate_result["human_review_approved"],
+            transaction_required=gate_result["transaction_required"],
+            transaction_supported=gate_result["transaction_supported"],
+            attempted=execution["attempted"],
+            executed=execution["executed"],
+            execution_status=execution["execution_status"],
+            effect_handle=execution["effect_handle"],
+            blockers=list(gate_result["blockers"]),
+            reason=gate_result["reason"],
+            adapter_version=EXECUTION_GATE_RECEIPT_ADAPTER_VERSION,
+        )
+        return self.persistence.add_execution_receipt(
+            auth.user_id, receipt
+        )
+
+    def list_execution_receipts(
+        self,
+        auth: AuthContext,
+        conversation_id: str,
+    ) -> list[ExecutionReceiptRecord]:
+        return self.persistence.list_execution_receipts(
+            auth.user_id, conversation_id
         )
 
     def save_cfc_run(
