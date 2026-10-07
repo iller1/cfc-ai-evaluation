@@ -421,6 +421,17 @@ class InMemoryPersistence:
             raise ValueError("EXECUTION_INTENT_RECEIPT_ALREADY_EXISTS")
         if not receipt.attempted:
             raise ValueError("EXECUTION_RECEIPT_REQUIRES_ATTEMPT")
+        if receipt.execution_status == "EXECUTED":
+            if receipt.executed is not True or not receipt.effect_handle:
+                raise ValueError("EXECUTION_RECEIPT_EXECUTED_COHERENCE_INVALID")
+        elif receipt.execution_status in {"ATTEMPTED_NOT_EXECUTED", "FAILED"}:
+            if receipt.executed is not False or receipt.effect_handle is not None:
+                raise ValueError("EXECUTION_RECEIPT_NO_EFFECT_COHERENCE_INVALID")
+        elif receipt.execution_status == "OUTCOME_UNKNOWN":
+            if receipt.executed is not None:
+                raise ValueError("EXECUTION_RECEIPT_UNKNOWN_COHERENCE_INVALID")
+        else:
+            raise ValueError("EXECUTION_RECEIPT_STATUS_INVALID")
         self.execution_receipts[receipt.receipt_id] = receipt
         return receipt
 
