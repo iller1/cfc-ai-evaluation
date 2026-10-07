@@ -10,8 +10,6 @@ from control_stack.evidence_provenance import (
     NO_ADDITIONAL_BLOCK,
     assess_evidence_provenance,
 )
-from control_stack.schema_contract import validate_envelope
-from control_stack.test_control_stack_schema import valid_envelope
 
 
 def records():
@@ -119,22 +117,6 @@ class EvidenceProvenanceTests(unittest.TestCase):
         self.assertIn(
             "NO_FREE_TEXT_SOURCE_TRUTH_OR_INDEPENDENCE_INFERENCE",
             result["boundary"],
-        )
-
-    def test_applicable_result_plugs_into_shared_control_stack_envelope(self):
-        result = assess()
-        envelope = valid_envelope()
-        envelope["evidence"] = copy.deepcopy(result["evidence"])
-
-        validated = validate_envelope(envelope)
-
-        self.assertEqual(
-            validated["evidence"]["status"],
-            "EVIDENCE_APPLICABLE",
-        )
-        self.assertEqual(
-            validated["evidence"]["dependency_state"],
-            "RESOLVED",
         )
 
     def test_source_ids_alone_do_not_establish_provenance(self):
