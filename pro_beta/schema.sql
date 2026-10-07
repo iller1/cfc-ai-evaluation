@@ -156,6 +156,8 @@ create table if not exists evidence_dependency_receipts (
 
 create unique index if not exists uq_cfc_run_conversation
   on cfc_runs(run_id, conversation_id);
+create unique index if not exists uq_cfc_run_snapshot_conversation
+  on cfc_runs(run_id, hawm_snapshot_id, conversation_id);
 
 -- Execution Gate receipts are append-only action-boundary records.
 -- They bind both the controller-evaluated state and the pre-execution state
@@ -193,9 +195,9 @@ create table if not exists execution_receipts (
   adapter_version text not null,
   created_at timestamptz not null default now(),
   unique (conversation_id, idempotency_key),
-  constraint fk_execution_controller_run
-    foreign key (controller_run_id, conversation_id)
-    references cfc_runs(run_id, conversation_id),
+  constraint fk_execution_controller_run_state
+    foreign key (controller_run_id, controller_state_id, conversation_id)
+    references cfc_runs(run_id, hawm_snapshot_id, conversation_id),
   constraint fk_execution_controller_state
     foreign key (controller_state_id, conversation_id)
     references hawm_snapshot_identities(snapshot_id, conversation_id),
