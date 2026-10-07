@@ -5,6 +5,7 @@ import unittest
 from pro_beta.auth_boundary import AuthContext
 from pro_beta.contracts import (
     Conversation,
+    EvidenceSetRegistration,
     HAWMSnapshot,
     UserAccount,
     Workspace,
@@ -117,6 +118,32 @@ class EvidenceProvenanceRegistryTests(unittest.TestCase):
 
         with self.assertRaises(NotFoundError):
             self.register_set(legacy.snapshot_id)
+
+    def test_inmemory_persistence_requires_identity_anchor_directly(self):
+        legacy = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "bare-snapshot"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, legacy)
+        registration = EvidenceSetRegistration(
+            registration_id=new_id("evidence_set"),
+            snapshot_id=legacy.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            state_id=legacy.snapshot_id,
+            evidence_set=evidence_records(),
+            missing_evidence=[],
+            adapter_version=EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_VERSION,
+        )
+
+        with self.assertRaisesRegex(
+            NotFoundError,
+            "HAWM_SNAPSHOT_IDENTITY_NOT_FOUND",
+        ):
+            self.store.add_evidence_set_registration(
+                self.user_a.user_id, registration
+            )
 
     def test_malformed_evidence_record_fails_closed(self):
         snapshot = self.save_snapshot()
