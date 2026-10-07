@@ -13,12 +13,15 @@ from pro_beta.contracts import (
     Conversation,
     HAWMSnapshot,
     HAWMSnapshotIdentity,
+    EvidenceSetRegistration,
+    EvidenceProvenanceReceipt,
+    EvidenceDependencyReceipt,
     Message,
     UserAccount,
     Workspace,
     new_id,
 )
-from pro_beta.persistence import OwnershipError
+from pro_beta.persistence import NotFoundError, OwnershipError
 from pro_beta.postgres_persistence import PostgresPersistence
 
 try:
@@ -279,6 +282,185 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
                 self.user_b.user_id,
                 self.conversation_a.conversation_id,
                 snap.snapshot_id,
+            )
+
+    def test_postgres_evidence_provenance_registry_round_trip(self):
+        snap = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "evidence-registry"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, snap)
+        identity = HAWMSnapshotIdentity(
+            snapshot_id=snap.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="HAWM_PRO_BETA_STATE",
+            arm_id="HAWM_WORKING_STATE",
+            state_id=snap.snapshot_id,
+            lineage_id=self.conversation_a.conversation_id,
+            previous_state_id=None,
+            registered_snapshot_fingerprint="b" * 64,
+            adapter_version="HAWM_STATE_IDENTITY_ADAPTER_V0_1",
+        )
+        self.store.add_hawm_snapshot_identity(self.user_a.user_id, identity)
+
+        registration = EvidenceSetRegistration(
+            registration_id=new_id("evidence_set"),
+            snapshot_id=snap.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            state_id=snap.snapshot_id,
+            evidence_set=[
+                {
+                    "evidence_id": "E1",
+                    "source_id": "S1",
+                    "validity": "CURRENT",
+                    "scope_status": "MATCH",
+                    "failure_domain_id": "FD1",
+                }
+            ],
+            missing_evidence=[],
+            adapter_version="EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1",
+        )
+        self.store.add_evidence_set_registration(
+            self.user_a.user_id, registration
+        )
+
+        provenance = EvidenceProvenanceReceipt(
+            receipt_id=new_id("evidence_prov"),
+            snapshot_id=snap.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            state_id=snap.snapshot_id,
+            evidence_id="E1",
+            source_id="S1",
+            status="ESTABLISHED",
+            adapter_version="EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1",
+        )
+        self.store.add_evidence_provenance_receipt(
+            self.user_a.user_id, provenance
+        )
+
+        dependency = EvidenceDependencyReceipt(
+            receipt_id=new_id("evidence_dep"),
+            snapshot_id=snap.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            state_id=snap.snapshot_id,
+            evidence_ids=["E1"],
+            failure_domains={"E1": "FD1"},
+            status="RESOLVED",
+            adapter_version="EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1",
+        )
+        self.store.add_evidence_dependency_receipt(
+            self.user_a.user_id, dependency
+        )
+
+        loaded_registration = self.store.get_evidence_set_registration(
+            self.user_a.user_id,
+            self.conversation_a.conversation_id,
+            snap.snapshot_id,
+        )
+        loaded_provenance = self.store.list_evidence_provenance_receipts(
+            self.user_a.user_id,
+            self.conversation_a.conversation_id,
+            snap.snapshot_id,
+        )
+        loaded_dependency = self.store.get_evidence_dependency_receipt(
+            self.user_a.user_id,
+            self.conversation_a.conversation_id,
+            snap.snapshot_id,
+        )
+
+        self.assertEqual(loaded_registration.evidence_set, registration.evidence_set)
+        self.assertEqual(loaded_provenance[0].source_id, "S1")
+        self.assertEqual(loaded_dependency.failure_domains, {"E1": "FD1"})
+
+        with self.assertRaises(OwnershipError):
+            self.store.get_evidence_set_registration(
+                self.user_b.user_id,
+                self.conversation_a.conversation_id,
+                snap.snapshot_id,
+            )
+
+    def test_postgres_evidence_registration_requires_identity_anchor(self):
+        snap = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "snapshot-without-identity"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, snap)
+        registration = EvidenceSetRegistration(
+            registration_id=new_id("evidence_set"),
+            snapshot_id=snap.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            state_id=snap.snapshot_id,
+            evidence_set=[],
+            missing_evidence=[],
+            adapter_version="EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1",
+        )
+
+        with self.assertRaisesRegex(
+            NotFoundError,
+            "HAWM_SNAPSHOT_IDENTITY_NOT_FOUND",
+        ):
+            self.store.add_evidence_set_registration(
+                self.user_a.user_id, registration
+            )
+
+        from psycopg.errors import ForeignKeyViolation
+        with self.assertRaises(ForeignKeyViolation):
+            with self.connection.cursor() as cur:
+                cur.execute(
+                    """
+                    insert into evidence_set_registrations (
+                        registration_id, snapshot_id, conversation_id, state_id,
+                        evidence_set, missing_evidence, adapter_version
+                    ) values (%s,%s,%s,%s,'[]'::jsonb,'[]'::jsonb,%s)
+                    """,
+                    (
+                        new_id("evidence_set"),
+                        snap.snapshot_id,
+                        self.conversation_a.conversation_id,
+                        snap.snapshot_id,
+                        "EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1",
+                    ),
+                )
+        self.connection.rollback()
+
+    def test_postgres_evidence_registry_rejects_cross_conversation_snapshot(self):
+        snap_b = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_b.conversation_id,
+            state={"goal": "other-owner"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_b.user_id, snap_b)
+        identity_b = HAWMSnapshotIdentity(
+            snapshot_id=snap_b.snapshot_id,
+            conversation_id=self.conversation_b.conversation_id,
+            case_id="HAWM_PRO_BETA_STATE",
+            arm_id="HAWM_WORKING_STATE",
+            state_id=snap_b.snapshot_id,
+            lineage_id=self.conversation_b.conversation_id,
+            previous_state_id=None,
+            registered_snapshot_fingerprint="c" * 64,
+            adapter_version="HAWM_STATE_IDENTITY_ADAPTER_V0_1",
+        )
+        self.store.add_hawm_snapshot_identity(self.user_b.user_id, identity_b)
+
+        registration = EvidenceSetRegistration(
+            registration_id=new_id("evidence_set"),
+            snapshot_id=snap_b.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            state_id=snap_b.snapshot_id,
+            evidence_set=[],
+            missing_evidence=[],
+            adapter_version="EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1",
+        )
+
+        with self.assertRaises(OwnershipError):
+            self.store.add_evidence_set_registration(
+                self.user_a.user_id, registration
             )
 
     def test_postgres_cfc_keeps_raw_result_separate_from_presentation(self):
