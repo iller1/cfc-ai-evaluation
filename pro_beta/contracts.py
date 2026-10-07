@@ -86,6 +86,50 @@ class HAWMSnapshotIdentity:
 
 
 @dataclass(frozen=True)
+class EvidenceSetRegistration:
+    """Server-side Layer B evidence-set registration for one exact snapshot."""
+
+    registration_id: str
+    snapshot_id: str
+    conversation_id: str
+    state_id: str
+    evidence_set: list[dict[str, Any]]
+    missing_evidence: list[str]
+    adapter_version: str
+    created_at: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(frozen=True)
+class EvidenceProvenanceReceipt:
+    """One explicit provenance binding for one registered evidence record."""
+
+    receipt_id: str
+    snapshot_id: str
+    conversation_id: str
+    state_id: str
+    evidence_id: str
+    source_id: str
+    status: str
+    adapter_version: str
+    created_at: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(frozen=True)
+class EvidenceDependencyReceipt:
+    """Dependency/failure-domain resolution bound to one exact evidence set."""
+
+    receipt_id: str
+    snapshot_id: str
+    conversation_id: str
+    state_id: str
+    evidence_ids: list[str]
+    failure_domains: dict[str, str | None]
+    status: str
+    adapter_version: str
+    created_at: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(frozen=True)
 class CFCRun:
     run_id: str
     conversation_id: str
