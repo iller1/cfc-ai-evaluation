@@ -414,6 +414,8 @@ window.addEventListener("load", async function () {
       "State Integrity not checked yet.";
     document.getElementById("state-integrity-acceptance-result").textContent =
       "State Integrity adversarial acceptance not run yet.";
+    document.getElementById("evidence-provenance-result").textContent =
+      "Evidence Provenance not checked yet.";
   }
 
   async function loadHAWM() {
