@@ -470,6 +470,32 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("expected_status", script)
         self.assertIn("authorization_effect", script)
 
+    def test_evidence_provenance_ui_and_route_are_present(self):
+        status, body, _ = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn('id="check-evidence-provenance"', body)
+        self.assertIn('id="evidence-provenance-result"', body)
+
+        with patch.dict(
+            os.environ,
+            {
+                "CLERK_PUBLISHABLE_KEY": "pk_test_example",
+                "PRO_BETA_API_BASE": "https://api.example.test",
+            },
+            clear=True,
+        ):
+            status, script, _ = self.get("/app.js")
+        self.assertEqual(status, 200)
+        self.assertIn("/evidence-provenance", script)
+        self.assertIn("EVIDENCE_APPLICABLE", script)
+        self.assertIn("EVIDENCE_UNKNOWN", script)
+        self.assertIn("provenance_state", script)
+        self.assertIn("dependency_state", script)
+        self.assertIn("drift_state", script)
+        self.assertIn("registry_source", script)
+        self.assertIn("read_only", script)
+        self.assertIn("authorization_effect", script)
+
     def test_bound_cfc_result_is_rendered_after_hawm_reload(self):
         status, script, _ = self.get("/app.js")
         self.assertEqual(status, 200)
