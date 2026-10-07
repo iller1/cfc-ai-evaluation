@@ -763,6 +763,67 @@ window.addEventListener("load", async function () {
     renderEvidenceProvenance(result);
   }
 
+  function renderExecutionPreflight(result) {
+    const target = document.getElementById("execution-preflight-result");
+    if (!result) {
+      target.textContent = "Execution Gate preflight not checked yet.";
+      return;
+    }
+
+    const preflightStatus = result.preflight_status || "PREFLIGHT_UNRESOLVED";
+    const gateStatus = result.gate_status || "EXECUTION_BLOCKED";
+    let heading = "Execution Gate: " + preflightStatus + " / " + gateStatus;
+    if (preflightStatus === "PREFLIGHT_UNRESOLVED") {
+      heading = "Execution Gate: PREFLIGHT_UNRESOLVED — brak podstaw do próby wykonania";
+    } else if (gateStatus === "EXECUTION_BLOCKED") {
+      heading = "Execution Gate: EXECUTION_BLOCKED — wykonanie zablokowane";
+    } else if (gateStatus === "EXECUTION_ALLOWED") {
+      heading = "Execution Gate: EXECUTION_ALLOWED — preflight spełniony w granicy gate";
+    }
+
+    const execution = result.execution || {};
+    const blockers = Array.isArray(result.blockers) ? result.blockers : [];
+    const persistenceActions = Array.isArray(result.persistence_actions) ?
+      result.persistence_actions : [];
+
+    target.textContent = [
+      heading,
+      "Reason: " + (result.reason || ""),
+      "Intent: " + (result.intent_id || "NONE"),
+      "Action: " + (result.action_id || "NONE"),
+      "Controller run: " + (result.controller_run_id || "NONE"),
+      "Controller decision: " + (result.controller_decision || "NOT_RUN"),
+      "Current state: " + (result.current_state_id || "NONE"),
+      "State Integrity: " + (result.state_integrity_status || "UNKNOWN"),
+      "Authority status: " + (result.authority_status || "UNKNOWN"),
+      "Authority source: " + (result.authority_source || "NONE"),
+      "Prior execution receipts: " + String(result.prior_execution_receipt_count || 0),
+      "Blockers: " + (blockers.length ? blockers.join(", ") : "none"),
+      "Attempted: " + String(execution.attempted),
+      "Executed: " + String(execution.executed),
+      "Execution status: " + (execution.execution_status || "BLOCKED"),
+      "Effect handle: " + (execution.effect_handle || "NONE"),
+      "Idempotency key: " + (execution.idempotency_key || "NONE"),
+      "Receipt ID: " + (execution.receipt_id || "NONE"),
+      "Read only: " + String(result.read_only),
+      "Persistence actions: " +
+        (persistenceActions.length ? persistenceActions.join(", ") : "none"),
+      "CFC executed: " + String(result.cfc_executed),
+      "Authority effect: " + (result.authority_effect || ""),
+      "Boundary: " + (result.boundary || "")
+    ].join("\n");
+  }
+
+  async function checkExecutionPreflight() {
+    const conversationId = conversationSelect.value;
+    if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+    const result = await api(
+      "/api/conversations/" + conversationId + "/execution-preflight"
+    );
+    if (conversationSelect.value !== conversationId) return;
+    renderExecutionPreflight(result);
+  }
+
   async function loadMessages() {
     messages.innerHTML = "";
     const conversationId = conversationSelect.value;
