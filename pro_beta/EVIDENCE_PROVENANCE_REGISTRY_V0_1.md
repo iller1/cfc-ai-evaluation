@@ -34,7 +34,7 @@ For v0.1:
 
 `state_id == snapshot_id`
 
-The database additionally enforces the owned snapshot/conversation relationship.
+The database additionally enforces that an evidence-set registration references an existing HAWM snapshot identity anchor for the same snapshot/conversation pair. A bare HAWM snapshot is not sufficient.
 
 Historical HAWM snapshots are not backfilled.
 
@@ -49,7 +49,7 @@ A registration stores:
 
 Registration requires an existing HAWM snapshot with an existing HAWM identity anchor.
 
-A legacy snapshot without an identity anchor cannot be registered through the service.
+A legacy snapshot without an identity anchor cannot be registered through the service or by a direct database insert because the registration foreign key targets the identity anchor, not the bare snapshot.
 
 ## Provenance receipt
 
