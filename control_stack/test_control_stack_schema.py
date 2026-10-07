@@ -104,6 +104,7 @@ class ControlStackSchemaTests(unittest.TestCase):
             "https://json-schema.org/draft/2020-12/schema",
         )
         self.assertFalse(schema["additionalProperties"])
+        self.assertIn("allOf", schema["properties"]["evidence"])
         self.assertEqual(
             set(schema["required"]),
             {
@@ -182,6 +183,15 @@ class ControlStackSchemaTests(unittest.TestCase):
         with self.assertRaisesRegex(
             ContractError,
             "APPLICABLE_REQUIRES_ESTABLISHED_PROVENANCE",
+        ):
+            validate_envelope(value)
+
+    def test_applicable_evidence_requires_applicable_substate(self):
+        value = valid_envelope()
+        value["evidence"]["applicability_state"] = "UNKNOWN"
+        with self.assertRaisesRegex(
+            ContractError,
+            "APPLICABLE_REQUIRES_APPLICABILITY",
         ):
             validate_envelope(value)
 
