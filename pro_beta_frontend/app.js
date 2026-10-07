@@ -1721,6 +1721,16 @@ window.addEventListener("load", async function () {
         }
       });
 
+      document.getElementById("check-evidence-provenance").addEventListener("click", async () => {
+        const target = document.getElementById("evidence-provenance-result");
+        try {
+          target.textContent = "Checking Evidence Provenance…";
+          await checkEvidenceProvenance();
+        } catch (error) {
+          target.textContent = "Evidence Provenance error: " + error.message;
+        }
+      });
+
       document.getElementById("export-report").addEventListener("click", async () => {
         const reportStatus = document.getElementById("report-status");
         try {
