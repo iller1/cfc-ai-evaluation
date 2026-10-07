@@ -38,6 +38,9 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                 "messages",
                 "hawm_snapshots",
                 "hawm_snapshot_identities",
+                "evidence_set_registrations",
+                "evidence_provenance_receipts",
+                "evidence_dependency_receipts",
                 "cfc_runs",
                 "audit_reports",
                 "benchmark_runs",
@@ -58,6 +61,9 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                            to_regclass('public.messages'),
                            to_regclass('public.hawm_snapshots'),
                            to_regclass('public.hawm_snapshot_identities'),
+                           to_regclass('public.evidence_set_registrations'),
+                           to_regclass('public.evidence_provenance_receipts'),
+                           to_regclass('public.evidence_dependency_receipts'),
                            to_regclass('public.cfc_runs')
                     """
                 )
@@ -72,6 +78,9 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                 "messages",
                 "hawm_snapshots",
                 "hawm_snapshot_identities",
+                "evidence_set_registrations",
+                "evidence_provenance_receipts",
+                "evidence_dependency_receipts",
                 "cfc_runs",
             ),
         )
