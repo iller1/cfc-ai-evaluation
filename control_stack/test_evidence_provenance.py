@@ -10,6 +10,8 @@ from control_stack.evidence_provenance import (
     NO_ADDITIONAL_BLOCK,
     assess_evidence_provenance,
 )
+from control_stack.schema_contract import validate_envelope
+from control_stack.test_control_stack_schema import valid_envelope
 
 
 def records():
@@ -119,6 +121,22 @@ class EvidenceProvenanceTests(unittest.TestCase):
             result["boundary"],
         )
 
+    def test_applicable_result_plugs_into_shared_control_stack_envelope(self):
+        result = assess()
+        envelope = valid_envelope()
+        envelope["evidence"] = copy.deepcopy(result["evidence"])
+
+        validated = validate_envelope(envelope)
+
+        self.assertEqual(
+            validated["evidence"]["status"],
+            "EVIDENCE_APPLICABLE",
+        )
+        self.assertEqual(
+            validated["evidence"]["dependency_state"],
+            "RESOLVED",
+        )
+
     def test_source_ids_alone_do_not_establish_provenance(self):
         result = assess(provenance=[])
 
@@ -128,9 +146,6 @@ class EvidenceProvenanceTests(unittest.TestCase):
         self.assertEqual(result["propagation_effect"], BLOCK_EVIDENCE)
 
     def test_distinct_source_ids_do_not_resolve_dependencies(self):
-        result = assess(dependency=None, provenance=provenance_receipts())
-
-        # Explicitly pass no dependency receipt rather than helper default.
         result = assess_evidence_provenance(
             state_id="state-1",
             evidence_set=records(),
