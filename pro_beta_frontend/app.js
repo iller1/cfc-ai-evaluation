@@ -416,6 +416,8 @@ window.addEventListener("load", async function () {
       "State Integrity adversarial acceptance not run yet.";
     document.getElementById("evidence-provenance-result").textContent =
       "Evidence Provenance not checked yet.";
+    document.getElementById("execution-preflight-result").textContent =
+      "Execution Preflight not checked yet.";
   }
 
   async function loadHAWM() {
@@ -759,6 +761,65 @@ window.addEventListener("load", async function () {
     );
     if (conversationSelect.value !== conversationId) return;
     renderEvidenceProvenance(result);
+  }
+
+  function renderExecutionPreflight(result) {
+    const target = document.getElementById("execution-preflight-result");
+    if (!result) {
+      target.textContent = "Execution Preflight not checked yet.";
+      return;
+    }
+
+    const preflightStatus = result.preflight_status || "PREFLIGHT_UNRESOLVED";
+    const execution = result.execution || {};
+    const blockers = Array.isArray(result.blockers) ? result.blockers : [];
+    const persistenceActions = Array.isArray(result.persistence_actions) ?
+      result.persistence_actions : [];
+
+    let heading = "Execution Preflight: " + preflightStatus;
+    if (preflightStatus === "PREFLIGHT_BLOCKED") {
+      heading = "Execution Preflight: PREFLIGHT_BLOCKED — wykonanie zablokowane";
+    } else if (preflightStatus === "PREFLIGHT_UNRESOLVED") {
+      heading = "Execution Preflight: PREFLIGHT_UNRESOLVED — brak podstaw do próby wykonania";
+    }
+
+    target.textContent = [
+      heading,
+      "Gate status: " + (result.gate_status || "EXECUTION_BLOCKED"),
+      "Reason: " + (result.reason || ""),
+      "Blockers: " + (blockers.length ? blockers.join(", ") : "none"),
+      "Intent: " + (result.intent_id || "NONE"),
+      "Action: " + (result.action_id || "NONE"),
+      "Controller run: " + (result.controller_run_id || "NONE"),
+      "Controller decision: " + (result.controller_decision || "NOT_RUN"),
+      "Current state: " + (result.current_state_id || "NONE"),
+      "Current state version: " + (result.current_state_version || "NONE"),
+      "State Integrity: " + (result.state_integrity_status || "UNKNOWN"),
+      "Authority status: " + (result.authority_status || "UNKNOWN"),
+      "Authority source: " + (result.authority_source || "NONE"),
+      "Prior execution receipts: " + String(result.prior_execution_receipt_count || 0),
+      "Attempted: " + String(execution.attempted),
+      "Executed: " + String(execution.executed),
+      "Execution status: " + (execution.execution_status || "BLOCKED"),
+      "Effect handle: " + (execution.effect_handle || "NONE"),
+      "Receipt ID: " + (execution.receipt_id || "NONE"),
+      "Read only: " + String(result.read_only),
+      "Persistence actions: " +
+        (persistenceActions.length ? persistenceActions.join(", ") : "none"),
+      "CFC executed: " + String(result.cfc_executed),
+      "Authority effect: " + (result.authority_effect || ""),
+      "Boundary: " + (result.boundary || "")
+    ].join("\n");
+  }
+
+  async function checkExecutionPreflight() {
+    const conversationId = conversationSelect.value;
+    if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+    const result = await api(
+      "/api/conversations/" + conversationId + "/execution-preflight"
+    );
+    if (conversationSelect.value !== conversationId) return;
+    renderExecutionPreflight(result);
   }
 
   async function loadMessages() {
@@ -1728,6 +1789,16 @@ window.addEventListener("load", async function () {
           await checkEvidenceProvenance();
         } catch (error) {
           target.textContent = "Evidence Provenance error: " + error.message;
+        }
+      });
+
+      document.getElementById("check-execution-preflight").addEventListener("click", async () => {
+        const target = document.getElementById("execution-preflight-result");
+        try {
+          target.textContent = "Checking Execution Preflight…";
+          await checkExecutionPreflight();
+        } catch (error) {
+          target.textContent = "Execution Preflight error: " + error.message;
         }
       });
 
