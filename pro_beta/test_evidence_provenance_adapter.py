@@ -115,11 +115,26 @@ def drift(status="NO_DRIFT", current_id="hawm-current"):
     }
 
 
+def state_integrity(
+    status="STATE_VALID",
+    snapshot_id="hawm-current",
+    state_id="hawm-current",
+    authorization_effect="DOES_NOT_AUTHORIZE_CLOSURE",
+):
+    return {
+        "status": status,
+        "snapshot_id": snapshot_id,
+        "state_id": state_id,
+        "authorization_effect": authorization_effect,
+    }
+
+
 class EvidenceProvenanceAdapterTests(unittest.TestCase):
     def test_exact_persisted_state_is_applicable(self):
         result = assess_persisted_evidence_provenance(
             current=current_snapshot(),
             identity=identity(),
+            state_integrity_result=state_integrity(),
             registration=registration(),
             provenance_receipts=provenance_receipts(),
             dependency_receipt=dependency_receipt(),
@@ -145,6 +160,7 @@ class EvidenceProvenanceAdapterTests(unittest.TestCase):
         result = assess_persisted_evidence_provenance(
             current=current_snapshot(),
             identity=identity(),
+            state_integrity_result=state_integrity(),
             registration=registration(),
             provenance_receipts=provenance_receipts(),
             dependency_receipt=None,
@@ -157,12 +173,67 @@ class EvidenceProvenanceAdapterTests(unittest.TestCase):
             "UNKNOWN",
         )
 
+    def test_nonvalid_state_integrity_blocks_layer_b(self):
+        result = assess_persisted_evidence_provenance(
+            current=current_snapshot(),
+            identity=identity(),
+            state_integrity_result=state_integrity(status="STATE_INVALID"),
+            registration=registration(),
+            provenance_receipts=provenance_receipts(),
+            dependency_receipt=dependency_receipt(),
+            drift_result=drift(),
+        )
+
+        self.assertEqual(result["status"], "EVIDENCE_UNKNOWN")
+        self.assertEqual(result["reason"], "STATE_INTEGRITY_NOT_VALID")
+        self.assertEqual(result["state_integrity_status"], "STATE_INVALID")
+
+    def test_state_integrity_result_must_bind_current_snapshot(self):
+        result = assess_persisted_evidence_provenance(
+            current=current_snapshot(),
+            identity=identity(),
+            state_integrity_result=state_integrity(
+                snapshot_id="hawm-other",
+                state_id="hawm-other",
+            ),
+            registration=registration(),
+            provenance_receipts=provenance_receipts(),
+            dependency_receipt=dependency_receipt(),
+            drift_result=drift(),
+        )
+
+        self.assertEqual(result["status"], "EVIDENCE_INVALID")
+        self.assertEqual(
+            result["reason"],
+            "STATE_INTEGRITY_RESULT_BINDING_MISMATCH",
+        )
+
+    def test_state_integrity_cannot_upgrade_authorization_boundary(self):
+        result = assess_persisted_evidence_provenance(
+            current=current_snapshot(),
+            identity=identity(),
+            state_integrity_result=state_integrity(
+                authorization_effect="AUTHORIZES_CLOSURE"
+            ),
+            registration=registration(),
+            provenance_receipts=provenance_receipts(),
+            dependency_receipt=dependency_receipt(),
+            drift_result=drift(),
+        )
+
+        self.assertEqual(result["status"], "EVIDENCE_INVALID")
+        self.assertEqual(
+            result["reason"],
+            "STATE_INTEGRITY_AUTHORIZATION_BOUNDARY_MISMATCH",
+        )
+
     def test_wrong_registration_binding_is_invalid(self):
         wrong = replace(registration(), state_id="hawm-other")
 
         result = assess_persisted_evidence_provenance(
             current=current_snapshot(),
             identity=identity(),
+            state_integrity_result=state_integrity(),
             registration=wrong,
             provenance_receipts=provenance_receipts(),
             dependency_receipt=dependency_receipt(),
@@ -186,6 +257,7 @@ class EvidenceProvenanceAdapterTests(unittest.TestCase):
         result = assess_persisted_evidence_provenance(
             current=current_snapshot(),
             identity=identity(),
+            state_integrity_result=state_integrity(),
             registration=registration(),
             provenance_receipts=receipts,
             dependency_receipt=dependency_receipt(),
@@ -208,6 +280,7 @@ class EvidenceProvenanceAdapterTests(unittest.TestCase):
         result = assess_persisted_evidence_provenance(
             current=current_snapshot(),
             identity=identity(),
+            state_integrity_result=state_integrity(),
             registration=registration(),
             provenance_receipts=provenance_receipts(),
             dependency_receipt=receipt,
@@ -224,6 +297,7 @@ class EvidenceProvenanceAdapterTests(unittest.TestCase):
         result = assess_persisted_evidence_provenance(
             current=current_snapshot(),
             identity=identity(),
+            state_integrity_result=state_integrity(),
             registration=registration(),
             provenance_receipts=provenance_receipts(),
             dependency_receipt=dependency_receipt(),
@@ -240,6 +314,7 @@ class EvidenceProvenanceAdapterTests(unittest.TestCase):
         result = assess_persisted_evidence_provenance(
             current=current_snapshot(),
             identity=identity(),
+            state_integrity_result=state_integrity(),
             registration=registration(),
             provenance_receipts=provenance_receipts(),
             dependency_receipt=dependency_receipt(),
@@ -256,6 +331,7 @@ class EvidenceProvenanceAdapterTests(unittest.TestCase):
         result = assess_persisted_evidence_provenance(
             current=current_snapshot(),
             identity=identity(),
+            state_integrity_result=state_integrity(),
             registration=wrong,
             provenance_receipts=provenance_receipts(),
             dependency_receipt=dependency_receipt(),
@@ -274,6 +350,7 @@ class EvidenceProvenanceAdapterTests(unittest.TestCase):
         result = assess_persisted_evidence_provenance(
             current=current_snapshot(),
             identity=wrong_identity,
+            state_integrity_result=state_integrity(),
             registration=registration(),
             provenance_receipts=provenance_receipts(),
             dependency_receipt=dependency_receipt(),
