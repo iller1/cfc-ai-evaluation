@@ -692,7 +692,7 @@ class PostgresPersistence:
 
         run = self._one(
             """
-            select conversation_id
+            select conversation_id, hawm_snapshot_id
             from cfc_runs
             where run_id = %s
             """,
@@ -702,22 +702,34 @@ class PostgresPersistence:
             raise NotFoundError("CFC_RUN_NOT_FOUND")
         if run[0] != receipt.conversation_id:
             raise OwnershipError("CFC_RUN_CONVERSATION_MISMATCH")
+        if run[1] != receipt.controller_state_id:
+            raise ValueError("EXECUTION_CONTROLLER_RUN_STATE_MISMATCH")
 
-        for state_id, missing_code, mismatch_code in (
+        for (
+            state_id,
+            expected_version,
+            missing_code,
+            mismatch_code,
+            version_code,
+        ) in (
             (
                 receipt.controller_state_id,
+                receipt.controller_state_version,
                 "CONTROLLER_STATE_IDENTITY_NOT_FOUND",
                 "CONTROLLER_STATE_CONVERSATION_MISMATCH",
+                "EXECUTION_CONTROLLER_STATE_VERSION_MISMATCH",
             ),
             (
                 receipt.pre_execution_state_id,
+                receipt.pre_execution_state_version,
                 "PRE_EXECUTION_STATE_IDENTITY_NOT_FOUND",
                 "PRE_EXECUTION_STATE_CONVERSATION_MISMATCH",
+                "EXECUTION_PRE_STATE_VERSION_MISMATCH",
             ),
         ):
             row = self._one(
                 """
-                select conversation_id
+                select conversation_id, registered_snapshot_fingerprint
                 from hawm_snapshot_identities
                 where snapshot_id = %s
                 """,
@@ -727,6 +739,8 @@ class PostgresPersistence:
                 raise NotFoundError(missing_code)
             if row[0] != receipt.conversation_id:
                 raise OwnershipError(mismatch_code)
+            if row[1] != expected_version:
+                raise ValueError(version_code)
 
         self._execute(
             """
