@@ -675,6 +675,17 @@ class ProBetaService:
         )
         if not isinstance(gate_result, dict):
             raise ValueError("EXECUTION_GATE_RESULT_OBJECT_REQUIRED")
+        if gate_result.get("gate_status") != "EXECUTION_ALLOWED":
+            raise ValueError("EXECUTION_RECEIPT_REQUIRES_ALLOWED_GATE")
+        if (
+            gate_result.get("action_id") != intent.action_id
+            or gate_result.get("controller_run_id") != intent.controller_run_id
+            or gate_result.get("current_state_id") != intent.state_id
+            or gate_result.get("current_state_version") != intent.state_version
+        ):
+            raise ValueError("EXECUTION_GATE_RESULT_INTENT_BINDING_MISMATCH")
+        if gate_result.get("authority_effect") != "DOES_NOT_CREATE_AUTHORITY":
+            raise ValueError("EXECUTION_GATE_AUTHORITY_BOUNDARY_MISMATCH")
         execution = gate_result.get("execution")
         if not isinstance(execution, dict):
             raise ValueError("EXECUTION_GATE_RESULT_EXECUTION_REQUIRED")
