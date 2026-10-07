@@ -344,6 +344,8 @@ class InMemoryPersistence:
             raise NotFoundError("CFC_RUN_NOT_FOUND")
         if run.conversation_id != receipt.conversation_id:
             raise OwnershipError("CFC_RUN_CONVERSATION_MISMATCH")
+        if run.hawm_snapshot_id != receipt.controller_state_id:
+            raise ValueError("EXECUTION_CONTROLLER_RUN_STATE_MISMATCH")
 
         controller_identity = self.hawm_snapshot_identities.get(
             receipt.controller_state_id
@@ -352,6 +354,11 @@ class InMemoryPersistence:
             raise NotFoundError("CONTROLLER_STATE_IDENTITY_NOT_FOUND")
         if controller_identity.conversation_id != receipt.conversation_id:
             raise OwnershipError("CONTROLLER_STATE_CONVERSATION_MISMATCH")
+        if (
+            controller_identity.registered_snapshot_fingerprint
+            != receipt.controller_state_version
+        ):
+            raise ValueError("EXECUTION_CONTROLLER_STATE_VERSION_MISMATCH")
 
         pre_identity = self.hawm_snapshot_identities.get(
             receipt.pre_execution_state_id
@@ -360,6 +367,11 @@ class InMemoryPersistence:
             raise NotFoundError("PRE_EXECUTION_STATE_IDENTITY_NOT_FOUND")
         if pre_identity.conversation_id != receipt.conversation_id:
             raise OwnershipError("PRE_EXECUTION_STATE_CONVERSATION_MISMATCH")
+        if (
+            pre_identity.registered_snapshot_fingerprint
+            != receipt.pre_execution_state_version
+        ):
+            raise ValueError("EXECUTION_PRE_STATE_VERSION_MISMATCH")
 
         if receipt.receipt_id in self.execution_receipts:
             raise ValueError("EXECUTION_RECEIPT_ALREADY_EXISTS")
