@@ -797,6 +797,91 @@ class ProBetaAPI:
             drift_result=drift_result,
         )
 
+    def assess_execution_preflight(
+        self,
+        credential: str,
+        conversation_id: str,
+    ) -> dict:
+        auth = self._auth(credential)
+        try:
+            self.service.get_conversation(auth, conversation_id)
+            snapshots = self.service.list_hawm_snapshots(
+                auth, conversation_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        from pro_beta.execution_gate_preflight import (
+            assess_persisted_execution_preflight,
+            unresolved_execution_preflight,
+        )
+
+        if not snapshots:
+            return unresolved_execution_preflight(
+                "NO_HAWM_SNAPSHOTS"
+            )
+
+        current = snapshots[-1]
+        state_integrity = self.assess_state_integrity(
+            credential, conversation_id
+        )
+        if state_integrity.get("status") != "STATE_VALID":
+            return unresolved_execution_preflight(
+                "STATE_INTEGRITY_NOT_VALID",
+                current_state_id=current.snapshot_id,
+                state_integrity_status=str(
+                    state_integrity.get("status") or "UNKNOWN"
+                ),
+            )
+
+        if (
+            state_integrity.get("snapshot_id") != current.snapshot_id
+            or state_integrity.get("state_id") != current.snapshot_id
+        ):
+            return unresolved_execution_preflight(
+                "CURRENT_SNAPSHOT_CHANGED_DURING_PREFLIGHT",
+                current_state_id=current.snapshot_id,
+                state_integrity_status="STATE_VALID",
+            )
+
+        current_version = state_integrity.get("state_fingerprint")
+        if not isinstance(current_version, str) or not current_version:
+            return unresolved_execution_preflight(
+                "CURRENT_STATE_VERSION_UNAVAILABLE",
+                current_state_id=current.snapshot_id,
+                state_integrity_status="STATE_VALID",
+            )
+
+        try:
+            intents = self.service.list_execution_intents(
+                auth, conversation_id
+            )
+            receipts = self.service.list_execution_receipts(
+                auth, conversation_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        if not intents:
+            return unresolved_execution_preflight(
+                "EXECUTION_INTENT_NOT_REGISTERED",
+                current_state_id=current.snapshot_id,
+                state_integrity_status="STATE_VALID",
+            )
+
+        intent = intents[-1]
+        return assess_persisted_execution_preflight(
+            current_state_id=current.snapshot_id,
+            current_state_version=current_version,
+            state_integrity_result=state_integrity,
+            intent=intent,
+            prior_receipts=receipts,
+        )
+
     def assess_state_monitor(
         self,
         credential: str,
