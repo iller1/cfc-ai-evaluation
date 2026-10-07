@@ -140,6 +140,7 @@ class ExecutionIntentRegistration:
     state_id: str
     state_version: str
     idempotency_key: str
+    receipt_id: str
     action_payload_fingerprint: str
     human_review_required: bool
     transaction_required: bool
