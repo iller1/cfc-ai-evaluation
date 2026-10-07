@@ -518,7 +518,7 @@ class FrontendTests(unittest.TestCase):
         self.assertIn("authority_status", script)
         self.assertIn("persistence_actions", script)
         self.assertIn("cfc_executed", script)
-        self.assertIn("DOES_NOT_CREATE_AUTHORITY", script)
+        self.assertIn("authority_effect", script)
 
     def test_bound_cfc_result_is_rendered_after_hawm_reload(self):
         status, script, _ = self.get("/app.js")
