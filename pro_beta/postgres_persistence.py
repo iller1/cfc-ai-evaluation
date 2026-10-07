@@ -12,6 +12,9 @@ from pro_beta.contracts import (
     Conversation,
     HAWMSnapshot,
     HAWMSnapshotIdentity,
+    EvidenceSetRegistration,
+    EvidenceProvenanceReceipt,
+    EvidenceDependencyReceipt,
     Message,
     UserAccount,
     Workspace,
@@ -493,6 +496,192 @@ class PostgresPersistence:
             registered_snapshot_fingerprint=row[7],
             adapter_version=row[8],
             created_at=row[9],
+        )
+
+    def add_evidence_set_registration(
+        self, user_id: str, registration: EvidenceSetRegistration
+    ) -> EvidenceSetRegistration:
+        self._assert_conversation_owned(user_id, registration.conversation_id)
+        row = self._one(
+            """
+            select conversation_id, state_id
+            from hawm_snapshot_identities
+            where snapshot_id = %s
+            """,
+            (registration.snapshot_id,),
+        )
+        if row is None:
+            raise NotFoundError("HAWM_SNAPSHOT_IDENTITY_NOT_FOUND")
+        if row[0] != registration.conversation_id:
+            raise OwnershipError("HAWM_SNAPSHOT_IDENTITY_CONVERSATION_MISMATCH")
+        if registration.state_id != row[1]:
+            raise ValueError("EVIDENCE_REGISTRATION_STATE_IDENTITY_MISMATCH")
+        self._execute(
+            """
+            insert into evidence_set_registrations (
+                registration_id, snapshot_id, conversation_id, state_id,
+                evidence_set, missing_evidence, adapter_version, created_at
+            )
+            values (%s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s)
+            """,
+            (
+                registration.registration_id,
+                registration.snapshot_id,
+                registration.conversation_id,
+                registration.state_id,
+                json.dumps(registration.evidence_set, ensure_ascii=False),
+                json.dumps(registration.missing_evidence, ensure_ascii=False),
+                registration.adapter_version,
+                registration.created_at,
+            ),
+        )
+        return registration
+
+    def get_evidence_set_registration(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> EvidenceSetRegistration:
+        self._assert_conversation_owned(user_id, conversation_id)
+        row = self._one(
+            """
+            select registration_id, snapshot_id, conversation_id, state_id,
+                   evidence_set, missing_evidence, adapter_version, created_at::text
+            from evidence_set_registrations
+            where snapshot_id = %s
+            """,
+            (snapshot_id,),
+        )
+        if row is None:
+            raise NotFoundError("EVIDENCE_SET_REGISTRATION_NOT_FOUND")
+        if row[2] != conversation_id:
+            raise OwnershipError("EVIDENCE_SET_REGISTRATION_CONVERSATION_MISMATCH")
+        return EvidenceSetRegistration(
+            registration_id=row[0],
+            snapshot_id=row[1],
+            conversation_id=row[2],
+            state_id=row[3],
+            evidence_set=row[4],
+            missing_evidence=row[5],
+            adapter_version=row[6],
+            created_at=row[7],
+        )
+
+    def add_evidence_provenance_receipt(
+        self, user_id: str, receipt: EvidenceProvenanceReceipt
+    ) -> EvidenceProvenanceReceipt:
+        self._assert_conversation_owned(user_id, receipt.conversation_id)
+        self.get_evidence_set_registration(
+            user_id, receipt.conversation_id, receipt.snapshot_id
+        )
+        self._execute(
+            """
+            insert into evidence_provenance_receipts (
+                receipt_id, snapshot_id, conversation_id, state_id,
+                evidence_id, source_id, status, adapter_version, created_at
+            )
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                receipt.receipt_id,
+                receipt.snapshot_id,
+                receipt.conversation_id,
+                receipt.state_id,
+                receipt.evidence_id,
+                receipt.source_id,
+                receipt.status,
+                receipt.adapter_version,
+                receipt.created_at,
+            ),
+        )
+        return receipt
+
+    def list_evidence_provenance_receipts(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> list[EvidenceProvenanceReceipt]:
+        self._assert_conversation_owned(user_id, conversation_id)
+        self.get_evidence_set_registration(user_id, conversation_id, snapshot_id)
+        rows = self._all(
+            """
+            select receipt_id, snapshot_id, conversation_id, state_id,
+                   evidence_id, source_id, status, adapter_version, created_at::text
+            from evidence_provenance_receipts
+            where snapshot_id = %s
+            order by created_at, receipt_id
+            """,
+            (snapshot_id,),
+        )
+        return [
+            EvidenceProvenanceReceipt(
+                receipt_id=row[0],
+                snapshot_id=row[1],
+                conversation_id=row[2],
+                state_id=row[3],
+                evidence_id=row[4],
+                source_id=row[5],
+                status=row[6],
+                adapter_version=row[7],
+                created_at=row[8],
+            )
+            for row in rows
+        ]
+
+    def add_evidence_dependency_receipt(
+        self, user_id: str, receipt: EvidenceDependencyReceipt
+    ) -> EvidenceDependencyReceipt:
+        self._assert_conversation_owned(user_id, receipt.conversation_id)
+        self.get_evidence_set_registration(
+            user_id, receipt.conversation_id, receipt.snapshot_id
+        )
+        self._execute(
+            """
+            insert into evidence_dependency_receipts (
+                receipt_id, snapshot_id, conversation_id, state_id,
+                evidence_ids, failure_domains, status, adapter_version, created_at
+            )
+            values (%s, %s, %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s)
+            """,
+            (
+                receipt.receipt_id,
+                receipt.snapshot_id,
+                receipt.conversation_id,
+                receipt.state_id,
+                json.dumps(receipt.evidence_ids, ensure_ascii=False),
+                json.dumps(receipt.failure_domains, ensure_ascii=False),
+                receipt.status,
+                receipt.adapter_version,
+                receipt.created_at,
+            ),
+        )
+        return receipt
+
+    def get_evidence_dependency_receipt(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> EvidenceDependencyReceipt:
+        self._assert_conversation_owned(user_id, conversation_id)
+        self.get_evidence_set_registration(user_id, conversation_id, snapshot_id)
+        row = self._one(
+            """
+            select receipt_id, snapshot_id, conversation_id, state_id,
+                   evidence_ids, failure_domains, status, adapter_version,
+                   created_at::text
+            from evidence_dependency_receipts
+            where snapshot_id = %s
+            """,
+            (snapshot_id,),
+        )
+        if row is None:
+            raise NotFoundError("EVIDENCE_DEPENDENCY_RECEIPT_NOT_FOUND")
+        if row[2] != conversation_id:
+            raise OwnershipError("EVIDENCE_DEPENDENCY_RECEIPT_CONVERSATION_MISMATCH")
+        return EvidenceDependencyReceipt(
+            receipt_id=row[0],
+            snapshot_id=row[1],
+            conversation_id=row[2],
+            state_id=row[3],
+            evidence_ids=row[4],
+            failure_domains=row[5],
+            status=row[6],
+            adapter_version=row[7],
+            created_at=row[8],
         )
 
     def list_cfc_runs(

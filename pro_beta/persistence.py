@@ -12,6 +12,9 @@ from pro_beta.contracts import (
     Conversation,
     HAWMSnapshot,
     HAWMSnapshotIdentity,
+    EvidenceSetRegistration,
+    EvidenceProvenanceReceipt,
+    EvidenceDependencyReceipt,
     Message,
     UsageEvent,
     UserAccount,
@@ -42,6 +45,9 @@ class InMemoryPersistence:
         self.messages: Dict[str, Message] = {}
         self.hawm_snapshots: Dict[str, HAWMSnapshot] = {}
         self.hawm_snapshot_identities: Dict[str, HAWMSnapshotIdentity] = {}
+        self.evidence_set_registrations: Dict[str, EvidenceSetRegistration] = {}
+        self.evidence_provenance_receipts: Dict[str, EvidenceProvenanceReceipt] = {}
+        self.evidence_dependency_receipts: Dict[str, EvidenceDependencyReceipt] = {}
         self.cfc_runs: Dict[str, CFCRun] = {}
         self.founding_beta_measurements: Dict[str, FoundingBetaMeasurement] = {}
         self.audit_reports: Dict[str, AuditReportRecord] = {}
@@ -206,6 +212,105 @@ class InMemoryPersistence:
         if identity.conversation_id != conversation_id:
             raise OwnershipError("HAWM_SNAPSHOT_IDENTITY_CONVERSATION_MISMATCH")
         return identity
+
+    def add_evidence_set_registration(
+        self, user_id: str, registration: EvidenceSetRegistration
+    ) -> EvidenceSetRegistration:
+        self._owned_conversation(user_id, registration.conversation_id)
+        snapshot = self.hawm_snapshots.get(registration.snapshot_id)
+        if snapshot is None:
+            raise NotFoundError("HAWM_SNAPSHOT_NOT_FOUND")
+        if snapshot.conversation_id != registration.conversation_id:
+            raise OwnershipError("HAWM_SNAPSHOT_CONVERSATION_MISMATCH")
+        identity = self.hawm_snapshot_identities.get(registration.snapshot_id)
+        if identity is None:
+            raise NotFoundError("HAWM_SNAPSHOT_IDENTITY_NOT_FOUND")
+        if identity.conversation_id != registration.conversation_id:
+            raise OwnershipError("HAWM_SNAPSHOT_IDENTITY_CONVERSATION_MISMATCH")
+        if registration.state_id != identity.state_id:
+            raise ValueError("EVIDENCE_REGISTRATION_STATE_IDENTITY_MISMATCH")
+        if registration.state_id != registration.snapshot_id:
+            raise ValueError("EVIDENCE_REGISTRATION_STATE_ID_MISMATCH")
+        if registration.snapshot_id in self.evidence_set_registrations:
+            raise ValueError("EVIDENCE_SET_REGISTRATION_ALREADY_EXISTS")
+        self.evidence_set_registrations[registration.snapshot_id] = registration
+        return registration
+
+    def get_evidence_set_registration(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> EvidenceSetRegistration:
+        self._owned_conversation(user_id, conversation_id)
+        try:
+            registration = self.evidence_set_registrations[snapshot_id]
+        except KeyError as exc:
+            raise NotFoundError("EVIDENCE_SET_REGISTRATION_NOT_FOUND") from exc
+        if registration.conversation_id != conversation_id:
+            raise OwnershipError("EVIDENCE_SET_REGISTRATION_CONVERSATION_MISMATCH")
+        return registration
+
+    def add_evidence_provenance_receipt(
+        self, user_id: str, receipt: EvidenceProvenanceReceipt
+    ) -> EvidenceProvenanceReceipt:
+        self._owned_conversation(user_id, receipt.conversation_id)
+        registration = self.evidence_set_registrations.get(receipt.snapshot_id)
+        if registration is None:
+            raise NotFoundError("EVIDENCE_SET_REGISTRATION_NOT_FOUND")
+        if registration.conversation_id != receipt.conversation_id:
+            raise OwnershipError("EVIDENCE_SET_REGISTRATION_CONVERSATION_MISMATCH")
+        if receipt.state_id != registration.state_id:
+            raise ValueError("EVIDENCE_PROVENANCE_RECEIPT_STATE_MISMATCH")
+        if receipt.receipt_id in self.evidence_provenance_receipts:
+            raise ValueError("EVIDENCE_PROVENANCE_RECEIPT_ALREADY_EXISTS")
+        if any(
+            current.snapshot_id == receipt.snapshot_id
+            and current.evidence_id == receipt.evidence_id
+            for current in self.evidence_provenance_receipts.values()
+        ):
+            raise ValueError("EVIDENCE_PROVENANCE_RECEIPT_FOR_EVIDENCE_ALREADY_EXISTS")
+        self.evidence_provenance_receipts[receipt.receipt_id] = receipt
+        return receipt
+
+    def list_evidence_provenance_receipts(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> List[EvidenceProvenanceReceipt]:
+        self._owned_conversation(user_id, conversation_id)
+        registration = self.get_evidence_set_registration(
+            user_id, conversation_id, snapshot_id
+        )
+        return [
+            receipt
+            for receipt in self.evidence_provenance_receipts.values()
+            if receipt.snapshot_id == registration.snapshot_id
+        ]
+
+    def add_evidence_dependency_receipt(
+        self, user_id: str, receipt: EvidenceDependencyReceipt
+    ) -> EvidenceDependencyReceipt:
+        self._owned_conversation(user_id, receipt.conversation_id)
+        registration = self.evidence_set_registrations.get(receipt.snapshot_id)
+        if registration is None:
+            raise NotFoundError("EVIDENCE_SET_REGISTRATION_NOT_FOUND")
+        if registration.conversation_id != receipt.conversation_id:
+            raise OwnershipError("EVIDENCE_SET_REGISTRATION_CONVERSATION_MISMATCH")
+        if receipt.state_id != registration.state_id:
+            raise ValueError("EVIDENCE_DEPENDENCY_RECEIPT_STATE_MISMATCH")
+        if receipt.snapshot_id in self.evidence_dependency_receipts:
+            raise ValueError("EVIDENCE_DEPENDENCY_RECEIPT_ALREADY_EXISTS")
+        self.evidence_dependency_receipts[receipt.snapshot_id] = receipt
+        return receipt
+
+    def get_evidence_dependency_receipt(
+        self, user_id: str, conversation_id: str, snapshot_id: str
+    ) -> EvidenceDependencyReceipt:
+        self._owned_conversation(user_id, conversation_id)
+        self.get_evidence_set_registration(user_id, conversation_id, snapshot_id)
+        try:
+            receipt = self.evidence_dependency_receipts[snapshot_id]
+        except KeyError as exc:
+            raise NotFoundError("EVIDENCE_DEPENDENCY_RECEIPT_NOT_FOUND") from exc
+        if receipt.conversation_id != conversation_id:
+            raise OwnershipError("EVIDENCE_DEPENDENCY_RECEIPT_CONVERSATION_MISMATCH")
+        return receipt
 
     def add_cfc_run(self, user_id: str, run: CFCRun) -> CFCRun:
         self._owned_conversation(user_id, run.conversation_id)

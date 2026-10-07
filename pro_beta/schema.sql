@@ -89,6 +89,71 @@ create table if not exists hawm_snapshot_identities (
     references hawm_snapshots(snapshot_id, conversation_id)
 );
 
+create unique index if not exists uq_hawm_identity_snapshot_conversation
+  on hawm_snapshot_identities(snapshot_id, conversation_id);
+
+-- Evidence/Provenance Layer B registrations are explicit and state-bound.
+-- Historical snapshots are intentionally not backfilled.
+create table if not exists evidence_set_registrations (
+  registration_id text primary key,
+  snapshot_id text not null unique,
+  conversation_id text not null,
+  state_id text not null,
+  evidence_set jsonb not null
+    check (jsonb_typeof(evidence_set) = 'array'),
+  missing_evidence jsonb not null
+    check (jsonb_typeof(missing_evidence) = 'array'),
+  adapter_version text not null,
+  created_at timestamptz not null default now(),
+  check (state_id = snapshot_id),
+  constraint fk_evidence_registration_identity
+    foreign key (snapshot_id, conversation_id)
+    references hawm_snapshot_identities(snapshot_id, conversation_id)
+    on delete cascade
+);
+
+create unique index if not exists uq_evidence_registration_snapshot_conversation
+  on evidence_set_registrations(snapshot_id, conversation_id);
+
+create table if not exists evidence_provenance_receipts (
+  receipt_id text primary key,
+  snapshot_id text not null,
+  conversation_id text not null,
+  state_id text not null,
+  evidence_id text not null,
+  source_id text not null,
+  status text not null
+    check (status in ('ESTABLISHED','PARTIAL','UNKNOWN','INVALID')),
+  adapter_version text not null,
+  created_at timestamptz not null default now(),
+  check (state_id = snapshot_id),
+  constraint fk_evidence_provenance_registration
+    foreign key (snapshot_id, conversation_id)
+    references evidence_set_registrations(snapshot_id, conversation_id)
+    on delete cascade,
+  unique (snapshot_id, evidence_id)
+);
+
+create table if not exists evidence_dependency_receipts (
+  receipt_id text primary key,
+  snapshot_id text not null unique,
+  conversation_id text not null,
+  state_id text not null,
+  evidence_ids jsonb not null
+    check (jsonb_typeof(evidence_ids) = 'array'),
+  failure_domains jsonb not null
+    check (jsonb_typeof(failure_domains) = 'object'),
+  status text not null
+    check (status in ('RESOLVED','PARTIAL','UNKNOWN','CONFLICTING')),
+  adapter_version text not null,
+  created_at timestamptz not null default now(),
+  check (state_id = snapshot_id),
+  constraint fk_evidence_dependency_registration
+    foreign key (snapshot_id, conversation_id)
+    references evidence_set_registrations(snapshot_id, conversation_id)
+    on delete cascade
+);
+
 do $binding$
 begin
   if not exists (
@@ -184,6 +249,10 @@ create index if not exists idx_conversations_workspace on conversations(workspac
 create index if not exists idx_messages_conversation_created on messages(conversation_id, created_at);
 create index if not exists idx_hawm_conversation_created on hawm_snapshots(conversation_id, created_at);
 create index if not exists idx_cfc_runs_conversation_created on cfc_runs(conversation_id, created_at);
+create index if not exists idx_evidence_provenance_snapshot
+  on evidence_provenance_receipts(snapshot_id, created_at);
+create index if not exists idx_evidence_dependency_snapshot
+  on evidence_dependency_receipts(snapshot_id, created_at);
 create index if not exists idx_benchmark_runs_conversation_created on benchmark_runs(conversation_id, created_at);
 create index if not exists idx_benchmark_runs_case_created on benchmark_runs(case_id, created_at);
 create index if not exists idx_benchmark_labels_run on benchmark_manual_labels(benchmark_run_id);

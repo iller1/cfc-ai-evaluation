@@ -74,4 +74,6 @@ jobs:
           pro_beta.test_snapshot_identity_registry
           pro_beta.test_state_integrity_adapter
           pro_beta.test_state_integrity_acceptance
+          pro_beta.test_evidence_provenance_registry
+          pro_beta.test_evidence_provenance_adapter
           pro_beta.test_postgres_persistence
