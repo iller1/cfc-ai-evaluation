@@ -503,13 +503,19 @@ class PostgresPersistence:
     ) -> EvidenceSetRegistration:
         self._assert_conversation_owned(user_id, registration.conversation_id)
         row = self._one(
-            "select conversation_id from hawm_snapshots where snapshot_id = %s",
+            """
+            select conversation_id, state_id
+            from hawm_snapshot_identities
+            where snapshot_id = %s
+            """,
             (registration.snapshot_id,),
         )
         if row is None:
-            raise NotFoundError("HAWM_SNAPSHOT_NOT_FOUND")
+            raise NotFoundError("HAWM_SNAPSHOT_IDENTITY_NOT_FOUND")
         if row[0] != registration.conversation_id:
-            raise OwnershipError("HAWM_SNAPSHOT_CONVERSATION_MISMATCH")
+            raise OwnershipError("HAWM_SNAPSHOT_IDENTITY_CONVERSATION_MISMATCH")
+        if registration.state_id != row[1]:
+            raise ValueError("EVIDENCE_REGISTRATION_STATE_IDENTITY_MISMATCH")
         self._execute(
             """
             insert into evidence_set_registrations (
