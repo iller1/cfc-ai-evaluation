@@ -117,6 +117,7 @@ def assess_persisted_evidence_provenance(
     *,
     current: HAWMSnapshot,
     identity: HAWMSnapshotIdentity,
+    state_integrity_result: dict[str, Any],
     registration: EvidenceSetRegistration,
     provenance_receipts: list[EvidenceProvenanceReceipt],
     dependency_receipt: EvidenceDependencyReceipt | None,
@@ -127,6 +128,34 @@ def assess_persisted_evidence_provenance(
     This adapter accepts no client-supplied identity, provenance or dependency
     fields. Callers must resolve all records from owned server persistence.
     """
+
+    if state_integrity_result.get("status") != "STATE_VALID":
+        result = unresolved_evidence_provenance(
+            "STATE_INTEGRITY_NOT_VALID",
+            current_snapshot_id=current.snapshot_id,
+        )
+        result["state_integrity_status"] = state_integrity_result.get("status")
+        return result
+
+    if (
+        state_integrity_result.get("snapshot_id") != current.snapshot_id
+        or state_integrity_result.get("state_id") != current.snapshot_id
+    ):
+        return _adapter_invalid(
+            "STATE_INTEGRITY_RESULT_BINDING_MISMATCH",
+            current_snapshot_id=current.snapshot_id,
+            registration=registration,
+        )
+
+    if (
+        state_integrity_result.get("authorization_effect")
+        != "DOES_NOT_AUTHORIZE_CLOSURE"
+    ):
+        return _adapter_invalid(
+            "STATE_INTEGRITY_AUTHORIZATION_BOUNDARY_MISMATCH",
+            current_snapshot_id=current.snapshot_id,
+            registration=registration,
+        )
 
     if identity.adapter_version != HAWM_STATE_IDENTITY_ADAPTER_VERSION:
         return unresolved_evidence_provenance(
@@ -265,5 +294,6 @@ def assess_persisted_evidence_provenance(
     result["registry_source"] = PERSISTED_EVIDENCE_SOURCE
     result["drift_source"] = PERSISTED_DRIFT_SOURCE
     result["registration_id"] = registration.registration_id
+    result["state_integrity_status"] = state_integrity_result.get("status")
     result["read_only"] = True
     return result
