@@ -154,6 +154,72 @@ create table if not exists evidence_dependency_receipts (
     on delete cascade
 );
 
+create unique index if not exists uq_cfc_run_conversation
+  on cfc_runs(run_id, conversation_id);
+
+-- Execution Gate receipts are append-only action-boundary records.
+-- They bind both the controller-evaluated state and the pre-execution state
+-- to persisted State Integrity identity anchors.
+create table if not exists execution_receipts (
+  receipt_id text primary key,
+  conversation_id text not null,
+  action_id text not null,
+  controller_run_id text not null,
+  controller_decision text not null
+    check (controller_decision in ('NOT_RUN','CONTINUE','HOLD','STOP','ESCALATE')),
+  controller_state_id text not null,
+  controller_state_version text not null,
+  pre_execution_state_id text not null,
+  pre_execution_state_version text not null,
+  idempotency_key text not null,
+  cfc_authority_state text not null
+    check (cfc_authority_state in ('ESTABLISHED','NOT_ESTABLISHED','UNKNOWN','REVOKED','EXPIRED','NOT_ASSESSED')),
+  current_authority_state text not null
+    check (current_authority_state in ('ESTABLISHED','NOT_ESTABLISHED','UNKNOWN','REVOKED','EXPIRED','NOT_ASSESSED')),
+  human_review_required boolean not null,
+  human_review_approved boolean not null,
+  transaction_required boolean not null,
+  transaction_supported boolean not null,
+  attempted boolean not null,
+  executed boolean,
+  execution_status text not null
+    check (execution_status in (
+      'NOT_ATTEMPTED','BLOCKED','ATTEMPTED_NOT_EXECUTED',
+      'EXECUTED','FAILED','OUTCOME_UNKNOWN'
+    )),
+  effect_handle text,
+  blockers jsonb not null check (jsonb_typeof(blockers) = 'array'),
+  reason text not null,
+  adapter_version text not null,
+  created_at timestamptz not null default now(),
+  unique (conversation_id, idempotency_key),
+  constraint fk_execution_controller_run
+    foreign key (controller_run_id, conversation_id)
+    references cfc_runs(run_id, conversation_id),
+  constraint fk_execution_controller_state
+    foreign key (controller_state_id, conversation_id)
+    references hawm_snapshot_identities(snapshot_id, conversation_id),
+  constraint fk_execution_pre_state
+    foreign key (pre_execution_state_id, conversation_id)
+    references hawm_snapshot_identities(snapshot_id, conversation_id),
+  check (
+    (execution_status = 'NOT_ATTEMPTED' and attempted = false and executed = false)
+    or (execution_status = 'BLOCKED' and attempted = false and executed = false)
+    or (execution_status in ('ATTEMPTED_NOT_EXECUTED','FAILED') and attempted = true and executed = false)
+    or (execution_status = 'EXECUTED' and attempted = true and executed = true and effect_handle is not null and length(effect_handle) > 0)
+    or (execution_status = 'OUTCOME_UNKNOWN' and attempted = true and executed is null)
+  ),
+  check (
+    execution_status not in ('BLOCKED','ATTEMPTED_NOT_EXECUTED','FAILED')
+    or effect_handle is null
+  )
+);
+
+create index if not exists idx_execution_receipts_conversation_created
+  on execution_receipts(conversation_id, created_at);
+create index if not exists idx_execution_receipts_controller_run
+  on execution_receipts(controller_run_id, created_at);
+
 do $binding$
 begin
   if not exists (
