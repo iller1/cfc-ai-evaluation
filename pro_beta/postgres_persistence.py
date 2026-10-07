@@ -15,6 +15,8 @@ from pro_beta.contracts import (
     EvidenceSetRegistration,
     EvidenceProvenanceReceipt,
     EvidenceDependencyReceipt,
+    ExecutionIntentRegistration,
+    ExecutionReceiptRecord,
     Message,
     UserAccount,
     Workspace,
@@ -683,6 +685,228 @@ class PostgresPersistence:
             adapter_version=row[7],
             created_at=row[8],
         )
+
+    def add_execution_intent(
+        self, user_id: str, intent: ExecutionIntentRegistration
+    ) -> ExecutionIntentRegistration:
+        self._assert_conversation_owned(user_id, intent.conversation_id)
+
+        run = self._one(
+            """
+            select conversation_id, hawm_snapshot_id
+            from cfc_runs
+            where run_id = %s
+            """,
+            (intent.controller_run_id,),
+        )
+        if run is None:
+            raise NotFoundError("CFC_RUN_NOT_FOUND")
+        if run[0] != intent.conversation_id:
+            raise OwnershipError("CFC_RUN_CONVERSATION_MISMATCH")
+        if run[1] is None:
+            raise ValueError("EXECUTION_INTENT_REQUIRES_BOUND_CFC_RUN")
+        if run[1] != intent.state_id:
+            raise ValueError("EXECUTION_INTENT_STATE_RUN_MISMATCH")
+
+        identity = self._one(
+            """
+            select conversation_id, state_id, registered_snapshot_fingerprint
+            from hawm_snapshot_identities
+            where snapshot_id = %s
+            """,
+            (intent.state_id,),
+        )
+        if identity is None:
+            raise NotFoundError("HAWM_SNAPSHOT_IDENTITY_NOT_FOUND")
+        if identity[0] != intent.conversation_id:
+            raise OwnershipError("HAWM_SNAPSHOT_IDENTITY_CONVERSATION_MISMATCH")
+        if identity[1] != intent.state_id:
+            raise ValueError("EXECUTION_INTENT_STATE_IDENTITY_MISMATCH")
+        if identity[2] != intent.state_version:
+            raise ValueError("EXECUTION_INTENT_STATE_VERSION_MISMATCH")
+
+        self._execute(
+            """
+            insert into execution_intents (
+                intent_id, conversation_id, action_id, controller_run_id,
+                state_id, state_version, idempotency_key, receipt_id,
+                action_payload_fingerprint, human_review_required,
+                transaction_required, adapter_version, created_at
+            )
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                intent.intent_id,
+                intent.conversation_id,
+                intent.action_id,
+                intent.controller_run_id,
+                intent.state_id,
+                intent.state_version,
+                intent.idempotency_key,
+                intent.receipt_id,
+                intent.action_payload_fingerprint,
+                intent.human_review_required,
+                intent.transaction_required,
+                intent.adapter_version,
+                intent.created_at,
+            ),
+        )
+        return intent
+
+    def list_execution_intents(
+        self, user_id: str, conversation_id: str
+    ) -> list[ExecutionIntentRegistration]:
+        self._assert_conversation_owned(user_id, conversation_id)
+        rows = self._all(
+            """
+            select intent_id, conversation_id, action_id, controller_run_id,
+                   state_id, state_version, idempotency_key, receipt_id,
+                   action_payload_fingerprint, human_review_required,
+                   transaction_required, adapter_version, created_at::text
+            from execution_intents
+            where conversation_id = %s
+            order by created_at, intent_id
+            """,
+            (conversation_id,),
+        )
+        return [
+            ExecutionIntentRegistration(
+                intent_id=row[0],
+                conversation_id=row[1],
+                action_id=row[2],
+                controller_run_id=row[3],
+                state_id=row[4],
+                state_version=row[5],
+                idempotency_key=row[6],
+                receipt_id=row[7],
+                action_payload_fingerprint=row[8],
+                human_review_required=row[9],
+                transaction_required=row[10],
+                adapter_version=row[11],
+                created_at=row[12],
+            )
+            for row in rows
+        ]
+
+    def get_execution_intent(
+        self, user_id: str, conversation_id: str, intent_id: str
+    ) -> ExecutionIntentRegistration:
+        self._assert_conversation_owned(user_id, conversation_id)
+        row = self._one(
+            """
+            select intent_id, conversation_id, action_id, controller_run_id,
+                   state_id, state_version, idempotency_key, receipt_id,
+                   action_payload_fingerprint, human_review_required,
+                   transaction_required, adapter_version, created_at::text
+            from execution_intents
+            where intent_id = %s
+            """,
+            (intent_id,),
+        )
+        if row is None:
+            raise NotFoundError("EXECUTION_INTENT_NOT_FOUND")
+        if row[1] != conversation_id:
+            raise OwnershipError("EXECUTION_INTENT_CONVERSATION_MISMATCH")
+        return ExecutionIntentRegistration(
+            intent_id=row[0],
+            conversation_id=row[1],
+            action_id=row[2],
+            controller_run_id=row[3],
+            state_id=row[4],
+            state_version=row[5],
+            idempotency_key=row[6],
+            receipt_id=row[7],
+            action_payload_fingerprint=row[8],
+            human_review_required=row[9],
+            transaction_required=row[10],
+            adapter_version=row[11],
+            created_at=row[12],
+        )
+
+    def add_execution_receipt(
+        self, user_id: str, receipt: ExecutionReceiptRecord
+    ) -> ExecutionReceiptRecord:
+        self._assert_conversation_owned(user_id, receipt.conversation_id)
+        intent = self.get_execution_intent(
+            user_id, receipt.conversation_id, receipt.intent_id
+        )
+        exact = (
+            receipt.receipt_id == intent.receipt_id
+            and receipt.action_id == intent.action_id
+            and receipt.controller_run_id == intent.controller_run_id
+            and receipt.state_id == intent.state_id
+            and receipt.state_version == intent.state_version
+            and receipt.idempotency_key == intent.idempotency_key
+        )
+        if not exact:
+            raise ValueError("EXECUTION_RECEIPT_INTENT_BINDING_MISMATCH")
+        if not receipt.attempted:
+            raise ValueError("EXECUTION_RECEIPT_REQUIRES_ATTEMPT")
+
+        self._execute(
+            """
+            insert into execution_receipts (
+                receipt_id, intent_id, conversation_id, action_id,
+                controller_run_id, state_id, state_version, idempotency_key,
+                execution_status, attempted, executed, effect_handle,
+                adapter_version, created_at
+            )
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                receipt.receipt_id,
+                receipt.intent_id,
+                receipt.conversation_id,
+                receipt.action_id,
+                receipt.controller_run_id,
+                receipt.state_id,
+                receipt.state_version,
+                receipt.idempotency_key,
+                receipt.execution_status,
+                receipt.attempted,
+                receipt.executed,
+                receipt.effect_handle,
+                receipt.adapter_version,
+                receipt.created_at,
+            ),
+        )
+        return receipt
+
+    def list_execution_receipts(
+        self, user_id: str, conversation_id: str
+    ) -> list[ExecutionReceiptRecord]:
+        self._assert_conversation_owned(user_id, conversation_id)
+        rows = self._all(
+            """
+            select receipt_id, intent_id, conversation_id, action_id,
+                   controller_run_id, state_id, state_version,
+                   idempotency_key, execution_status, attempted, executed,
+                   effect_handle, adapter_version, created_at::text
+            from execution_receipts
+            where conversation_id = %s
+            order by created_at, receipt_id
+            """,
+            (conversation_id,),
+        )
+        return [
+            ExecutionReceiptRecord(
+                receipt_id=row[0],
+                intent_id=row[1],
+                conversation_id=row[2],
+                action_id=row[3],
+                controller_run_id=row[4],
+                state_id=row[5],
+                state_version=row[6],
+                idempotency_key=row[7],
+                execution_status=row[8],
+                attempted=row[9],
+                executed=row[10],
+                effect_handle=row[11],
+                adapter_version=row[12],
+                created_at=row[13],
+            )
+            for row in rows
+        ]
 
     def list_cfc_runs(
         self, user_id: str, conversation_id: str
