@@ -266,6 +266,9 @@
                     }
                   }
                 }
+              },
+              "drift_state": {
+                "const": "NO_DRIFT"
               }
             }
           }
