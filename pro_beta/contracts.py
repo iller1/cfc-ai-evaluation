@@ -143,6 +143,36 @@ class CFCRun:
 
 
 @dataclass(frozen=True)
+class ExecutionReceiptRecord:
+    """Append-only server-side receipt for one Execution Gate decision/attempt."""
+
+    receipt_id: str
+    conversation_id: str
+    action_id: str
+    controller_run_id: str
+    controller_decision: str
+    controller_state_id: str
+    controller_state_version: str
+    pre_execution_state_id: str
+    pre_execution_state_version: str
+    idempotency_key: str
+    cfc_authority_state: str
+    current_authority_state: str
+    human_review_required: bool
+    human_review_approved: bool
+    transaction_required: bool
+    transaction_supported: bool
+    attempted: bool
+    executed: bool | None
+    execution_status: str
+    effect_handle: str | None
+    blockers: list[str]
+    reason: str
+    adapter_version: str
+    created_at: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(frozen=True)
 class AuditReportRecord:
     report_id: str
     conversation_id: str
