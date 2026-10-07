@@ -647,6 +647,154 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
                 )
         self.connection.rollback()
 
+    def test_postgres_execution_intent_rejects_cross_snapshot_run_binding(self):
+        snap_a = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"value": "A"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        snap_b = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"value": "B"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, snap_a)
+        self.store.add_hawm_snapshot(self.user_a.user_id, snap_b)
+        for snap, fp in ((snap_a, "a" * 64), (snap_b, "b" * 64)):
+            self.store.add_hawm_snapshot_identity(
+                self.user_a.user_id,
+                HAWMSnapshotIdentity(
+                    snapshot_id=snap.snapshot_id,
+                    conversation_id=self.conversation_a.conversation_id,
+                    case_id="HAWM_PRO_BETA_STATE",
+                    arm_id="HAWM_WORKING_STATE",
+                    state_id=snap.snapshot_id,
+                    lineage_id=self.conversation_a.conversation_id,
+                    previous_state_id=None,
+                    registered_snapshot_fingerprint=fp,
+                    adapter_version="HAWM_STATE_IDENTITY_ADAPTER_V0_1",
+                ),
+            )
+
+        run = CFCRun(
+            run_id=new_id("cfc"),
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="EXECUTION_BINDING_ONLY",
+            controller_anchor="0.2.90rc1",
+            controller_result={},
+            presentation={"decision": "STOP"},
+            hawm_snapshot_id=snap_a.snapshot_id,
+        )
+        self.store.add_cfc_run(self.user_a.user_id, run)
+
+        from psycopg.errors import ForeignKeyViolation
+        with self.assertRaises(ForeignKeyViolation):
+            with self.connection.cursor() as cur:
+                cur.execute(
+                    """
+                    insert into execution_intents (
+                        intent_id, conversation_id, action_id,
+                        controller_run_id, state_id, state_version,
+                        idempotency_key, receipt_id,
+                        action_payload_fingerprint,
+                        human_review_required, transaction_required,
+                        adapter_version
+                    ) values (
+                        %s,%s,%s,%s,%s,%s,%s,%s,%s,false,false,%s
+                    )
+                    """,
+                    (
+                        new_id("exec_intent"),
+                        self.conversation_a.conversation_id,
+                        "cross-state-action",
+                        run.run_id,
+                        snap_b.snapshot_id,
+                        "b" * 64,
+                        "cross-state-idem",
+                        "cross-state-receipt",
+                        "c" * 64,
+                        "EXECUTION_GATE_REGISTRY_ADAPTER_V0_1",
+                    ),
+                )
+        self.connection.rollback()
+
+    def test_postgres_execution_receipt_requires_exact_intent_tuple(self):
+        snapshot = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "exact-receipt"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, snapshot)
+        identity = HAWMSnapshotIdentity(
+            snapshot_id=snapshot.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="HAWM_PRO_BETA_STATE",
+            arm_id="HAWM_WORKING_STATE",
+            state_id=snapshot.snapshot_id,
+            lineage_id=self.conversation_a.conversation_id,
+            previous_state_id=None,
+            registered_snapshot_fingerprint="d" * 64,
+            adapter_version="HAWM_STATE_IDENTITY_ADAPTER_V0_1",
+        )
+        self.store.add_hawm_snapshot_identity(self.user_a.user_id, identity)
+        run = CFCRun(
+            run_id=new_id("cfc"),
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="EXECUTION_BINDING_ONLY",
+            controller_anchor="0.2.90rc1",
+            controller_result={},
+            presentation={"decision": "STOP"},
+            hawm_snapshot_id=snapshot.snapshot_id,
+        )
+        self.store.add_cfc_run(self.user_a.user_id, run)
+        intent = ExecutionIntentRegistration(
+            intent_id=new_id("exec_intent"),
+            conversation_id=self.conversation_a.conversation_id,
+            action_id="exact-action",
+            controller_run_id=run.run_id,
+            state_id=snapshot.snapshot_id,
+            state_version="d" * 64,
+            idempotency_key="exact-idem",
+            receipt_id="exact-receipt",
+            action_payload_fingerprint="e" * 64,
+            human_review_required=False,
+            transaction_required=False,
+            adapter_version="EXECUTION_GATE_REGISTRY_ADAPTER_V0_1",
+        )
+        self.store.add_execution_intent(self.user_a.user_id, intent)
+
+        from psycopg.errors import ForeignKeyViolation
+        with self.assertRaises(ForeignKeyViolation):
+            with self.connection.cursor() as cur:
+                cur.execute(
+                    """
+                    insert into execution_receipts (
+                        receipt_id, intent_id, conversation_id, action_id,
+                        controller_run_id, state_id, state_version,
+                        idempotency_key, execution_status, attempted,
+                        executed, effect_handle, adapter_version
+                    ) values (
+                        %s,%s,%s,%s,%s,%s,%s,%s,
+                        'OUTCOME_UNKNOWN',true,null,null,%s
+                    )
+                    """,
+                    (
+                        intent.receipt_id,
+                        intent.intent_id,
+                        intent.conversation_id,
+                        "tampered-action",
+                        intent.controller_run_id,
+                        intent.state_id,
+                        intent.state_version,
+                        intent.idempotency_key,
+                        "EXECUTION_GATE_REGISTRY_ADAPTER_V0_1",
+                    ),
+                )
+        self.connection.rollback()
+
     def test_postgres_cfc_keeps_raw_result_separate_from_presentation(self):
         run = CFCRun(
             run_id=new_id("cfc"),
