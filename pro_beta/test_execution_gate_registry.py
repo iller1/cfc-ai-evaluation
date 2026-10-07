@@ -204,7 +204,41 @@ class ExecutionGateRegistryTests(unittest.TestCase):
         self.assertFalse(result["execution"]["attempted"])
         with self.assertRaisesRegex(
             ValueError,
-            "EXECUTION_RECEIPT_REQUIRES_ATTEMPT",
+            "EXECUTION_RECEIPT_REQUIRES_ALLOWED_GATE",
+        ):
+            self.service.record_execution_receipt(
+                self.auth_a,
+                self.conversation_a.conversation_id,
+                intent.intent_id,
+                gate_result=result,
+            )
+
+    def test_tampered_allowed_gate_result_cannot_be_persisted(self):
+        snapshot, _, intent = self._intent()
+        result = execute_with_gate(
+            executor=lambda payload: {
+                "outcome": "UNKNOWN",
+                "effect_handle": "provider-request-1",
+            },
+            action_id=intent.action_id,
+            controller_run_id=intent.controller_run_id,
+            controller_decision="CONTINUE",
+            controller_blockers=[],
+            controller_state_id=intent.state_id,
+            current_state_id=snapshot.snapshot_id,
+            controller_state_version=intent.state_version,
+            current_state_version=intent.state_version,
+            cfc_authority_state="ESTABLISHED",
+            current_authority_state="ESTABLISHED",
+            idempotency_key=intent.idempotency_key,
+            receipt_id=intent.receipt_id,
+            prior_execution_receipts=[],
+        )
+        result["current_state_version"] = "f" * 64
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "EXECUTION_GATE_RESULT_INTENT_BINDING_MISMATCH",
         ):
             self.service.record_execution_receipt(
                 self.auth_a,
