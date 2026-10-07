@@ -130,6 +130,44 @@ class EvidenceDependencyReceipt:
 
 
 @dataclass(frozen=True)
+class ExecutionIntentRegistration:
+    """Non-authorizing exact action/state registration for Execution Gate."""
+
+    intent_id: str
+    conversation_id: str
+    action_id: str
+    controller_run_id: str
+    state_id: str
+    state_version: str
+    idempotency_key: str
+    action_payload_fingerprint: str
+    human_review_required: bool
+    transaction_required: bool
+    adapter_version: str
+    created_at: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(frozen=True)
+class ExecutionReceiptRecord:
+    """Append-only record of one actual execution attempt outcome."""
+
+    receipt_id: str
+    intent_id: str
+    conversation_id: str
+    action_id: str
+    controller_run_id: str
+    state_id: str
+    state_version: str
+    idempotency_key: str
+    execution_status: str
+    attempted: bool
+    executed: bool | None
+    effect_handle: str | None
+    adapter_version: str
+    created_at: str = field(default_factory=utc_now_iso)
+
+
+@dataclass(frozen=True)
 class CFCRun:
     run_id: str
     conversation_id: str
