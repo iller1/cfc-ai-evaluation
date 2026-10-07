@@ -41,6 +41,8 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                 "evidence_set_registrations",
                 "evidence_provenance_receipts",
                 "evidence_dependency_receipts",
+                "execution_intents",
+                "execution_receipts",
                 "cfc_runs",
                 "audit_reports",
                 "benchmark_runs",
@@ -64,6 +66,8 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                            to_regclass('public.evidence_set_registrations'),
                            to_regclass('public.evidence_provenance_receipts'),
                            to_regclass('public.evidence_dependency_receipts'),
+                           to_regclass('public.execution_intents'),
+                           to_regclass('public.execution_receipts'),
                            to_regclass('public.cfc_runs')
                     """
                 )
@@ -81,6 +85,8 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                 "evidence_set_registrations",
                 "evidence_provenance_receipts",
                 "evidence_dependency_receipts",
+                "execution_intents",
+                "execution_receipts",
                 "cfc_runs",
             ),
         )

@@ -85,4 +85,7 @@ jobs:
           pro_beta.test_evidence_provenance_registry
           pro_beta.test_evidence_provenance_adapter
           pro_beta.test_evidence_provenance_api
+          pro_beta.test_execution_gate_registry
+          pro_beta.test_execution_gate_preflight
+          pro_beta.test_execution_gate_api
           pro_beta.test_postgres_persistence

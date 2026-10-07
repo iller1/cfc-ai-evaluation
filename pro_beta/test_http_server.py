@@ -89,6 +89,22 @@ class HTTPServerTests(unittest.TestCase):
         self.assertEqual(status, 401)
         self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
 
+    def test_execution_preflight_route_requires_bearer(self):
+        status, payload = self.request(
+            "/api/conversations/conv_private/execution-preflight",
+            method="GET",
+        )
+        self.assertEqual(status, 401)
+        self.assertEqual(payload["error"], "AUTH_CREDENTIAL_REQUIRED")
+
+    def test_execution_preflight_has_no_public_post_route(self):
+        status, payload = self.request(
+            "/api/conversations/conv_private/execution-preflight",
+            method="POST",
+        )
+        self.assertEqual(status, 404)
+        self.assertEqual(payload["error"], "NOT_FOUND")
+
     def test_state_monitor_route_requires_bearer(self):
         status, payload = self.request(
             "/api/conversations/conv_private/state-monitor",
