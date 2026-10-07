@@ -176,6 +176,69 @@ class ControlStackSchemaTests(unittest.TestCase):
         ):
             validate_envelope(value)
 
+    def test_applicable_evidence_cannot_claim_unknown_provenance(self):
+        value = valid_envelope()
+        value["evidence"]["provenance_state"] = "UNKNOWN"
+        with self.assertRaisesRegex(
+            ContractError,
+            "APPLICABLE_REQUIRES_ESTABLISHED_PROVENANCE",
+        ):
+            validate_envelope(value)
+
+    def test_applicable_evidence_cannot_claim_unknown_dependencies(self):
+        value = valid_envelope()
+        value["evidence"]["dependency_state"] = "UNKNOWN"
+        with self.assertRaisesRegex(
+            ContractError,
+            "APPLICABLE_REQUIRES_RESOLVED_DEPENDENCIES",
+        ):
+            validate_envelope(value)
+
+    def test_applicable_evidence_cannot_hide_missing_evidence(self):
+        value = valid_envelope()
+        value["evidence"]["missing_evidence"] = ["SOURCE_PROVENANCE"]
+        with self.assertRaisesRegex(
+            ContractError,
+            "APPLICABLE_REQUIRES_NO_MISSING_EVIDENCE",
+        ):
+            validate_envelope(value)
+
+    def test_applicable_evidence_requires_nonempty_evidence_set(self):
+        value = valid_envelope()
+        value["evidence"]["evidence_set"] = []
+        with self.assertRaisesRegex(
+            ContractError,
+            "APPLICABLE_REQUIRES_EVIDENCE_RECORD",
+        ):
+            validate_envelope(value)
+
+    def test_applicable_evidence_requires_current_records(self):
+        value = valid_envelope()
+        value["evidence"]["evidence_set"][0]["validity"] = "STALE"
+        with self.assertRaisesRegex(
+            ContractError,
+            "APPLICABLE_REQUIRES_CURRENT_RECORDS",
+        ):
+            validate_envelope(value)
+
+    def test_applicable_evidence_requires_matching_scope(self):
+        value = valid_envelope()
+        value["evidence"]["evidence_set"][0]["scope_status"] = "UNKNOWN"
+        with self.assertRaisesRegex(
+            ContractError,
+            "APPLICABLE_REQUIRES_SCOPE_MATCH",
+        ):
+            validate_envelope(value)
+
+    def test_applicable_evidence_requires_failure_domain_resolution(self):
+        value = valid_envelope()
+        value["evidence"]["evidence_set"][0]["failure_domain_id"] = None
+        with self.assertRaisesRegex(
+            ContractError,
+            "APPLICABLE_REQUIRES_FAILURE_DOMAIN",
+        ):
+            validate_envelope(value)
+
     def test_evidence_unknown_cannot_continue(self):
         value = valid_envelope()
         value["evidence"]["status"] = "EVIDENCE_UNKNOWN"
