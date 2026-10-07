@@ -589,6 +589,57 @@ class ProBetaService:
         if not isinstance(execution, dict):
             raise ValueError("EXECUTION_GATE_EXECUTION_RECEIPT_REQUIRED")
 
+        from control_stack.schema_contract import (
+            ContractError,
+            validate_execution_record,
+        )
+        try:
+            execution = validate_execution_record(execution)
+        except ContractError as exc:
+            raise ValueError(
+                "EXECUTION_GATE_EXECUTION_RECEIPT_INVALID:" + str(exc)
+            ) from exc
+
+        if gate_result.get("gate_status") not in {
+            "EXECUTION_ALLOWED",
+            "EXECUTION_BLOCKED",
+            "EXECUTION_INVALID",
+        }:
+            raise ValueError("EXECUTION_GATE_STATUS_INVALID")
+        if gate_result.get("controller_decision") not in {
+            "NOT_RUN",
+            "CONTINUE",
+            "HOLD",
+            "STOP",
+            "ESCALATE",
+        }:
+            raise ValueError("EXECUTION_GATE_CONTROLLER_DECISION_INVALID")
+        valid_authority = {
+            "ESTABLISHED",
+            "NOT_ESTABLISHED",
+            "UNKNOWN",
+            "REVOKED",
+            "EXPIRED",
+            "NOT_ASSESSED",
+        }
+        if gate_result.get("cfc_authority_state") not in valid_authority:
+            raise ValueError("EXECUTION_GATE_CFC_AUTHORITY_INVALID")
+        if gate_result.get("current_authority_state") not in valid_authority:
+            raise ValueError("EXECUTION_GATE_CURRENT_AUTHORITY_INVALID")
+        if not isinstance(gate_result.get("blockers"), list) or any(
+            not isinstance(item, str) or not item
+            for item in gate_result.get("blockers", [])
+        ):
+            raise ValueError("EXECUTION_GATE_BLOCKERS_INVALID")
+        for flag in (
+            "human_review_required",
+            "human_review_approved",
+            "transaction_required",
+            "transaction_supported",
+        ):
+            if not isinstance(gate_result.get(flag), bool):
+                raise ValueError("EXECUTION_GATE_BOOLEAN_FLAG_INVALID")
+
         required_outer = (
             "action_id",
             "controller_run_id",
