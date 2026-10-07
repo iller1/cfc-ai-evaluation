@@ -16,6 +16,7 @@ from pro_beta.contracts import (
     EvidenceSetRegistration,
     EvidenceProvenanceReceipt,
     EvidenceDependencyReceipt,
+    ExecutionReceiptRecord,
     Message,
     UserAccount,
     Workspace,
@@ -53,7 +54,7 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
                 """
                 truncate table
                     usage_events, founding_beta_measurements, benchmark_runs,
-                    audit_reports, cfc_runs, hawm_snapshots, messages,
+                    audit_reports, execution_receipts, cfc_runs, hawm_snapshots, messages,
                     conversations, workspaces, users
                 restart identity cascade
                 """
@@ -462,6 +463,242 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
             self.store.add_evidence_set_registration(
                 self.user_a.user_id, registration
             )
+
+    def _execution_fixture(self):
+        snap = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "execution"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, snap)
+        identity = HAWMSnapshotIdentity(
+            snapshot_id=snap.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="HAWM_PRO_BETA_STATE",
+            arm_id="HAWM_WORKING_STATE",
+            state_id=snap.snapshot_id,
+            lineage_id=self.conversation_a.conversation_id,
+            previous_state_id=None,
+            registered_snapshot_fingerprint="d" * 64,
+            adapter_version="HAWM_STATE_IDENTITY_ADAPTER_V0_1",
+        )
+        self.store.add_hawm_snapshot_identity(self.user_a.user_id, identity)
+        run = CFCRun(
+            run_id=new_id("cfc"),
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="HAWM_STRUCTURED_CUSTOM",
+            controller_anchor="0.2.90rc1",
+            controller_result={"control_closure": False},
+            presentation={"decision": "STOP"},
+            hawm_snapshot_id=snap.snapshot_id,
+        )
+        self.store.add_cfc_run(self.user_a.user_id, run)
+        receipt = ExecutionReceiptRecord(
+            receipt_id=new_id("exec"),
+            conversation_id=self.conversation_a.conversation_id,
+            action_id="PRO_BETA_EXECUTION_PREFLIGHT",
+            controller_run_id=run.run_id,
+            controller_decision="HOLD",
+            controller_state_id=snap.snapshot_id,
+            controller_state_version=identity.registered_snapshot_fingerprint,
+            pre_execution_state_id=snap.snapshot_id,
+            pre_execution_state_version=identity.registered_snapshot_fingerprint,
+            idempotency_key=new_id("idem"),
+            cfc_authority_state="NOT_ESTABLISHED",
+            current_authority_state="NOT_ESTABLISHED",
+            human_review_required=False,
+            human_review_approved=False,
+            transaction_required=False,
+            transaction_supported=False,
+            attempted=False,
+            executed=False,
+            execution_status="BLOCKED",
+            effect_handle=None,
+            blockers=["SYNTHETIC_CFC_NOT_REAL_ACTION_AUTHORITY"],
+            reason="SYNTHETIC_CFC_NOT_REAL_ACTION_AUTHORITY",
+            adapter_version="EXECUTION_GATE_RECEIPT_ADAPTER_V0_1",
+        )
+        return snap, identity, run, receipt
+
+    def test_postgres_execution_receipt_round_trip(self):
+        snap, identity, run, receipt = self._execution_fixture()
+
+        self.store.add_execution_receipt(self.user_a.user_id, receipt)
+        rows = self.store.list_execution_receipts(
+            self.user_a.user_id,
+            self.conversation_a.conversation_id,
+        )
+
+        self.assertEqual(len(rows), 1)
+        loaded = rows[0]
+        self.assertEqual(loaded.receipt_id, receipt.receipt_id)
+        self.assertEqual(loaded.controller_run_id, run.run_id)
+        self.assertEqual(loaded.controller_state_id, snap.snapshot_id)
+        self.assertEqual(
+            loaded.controller_state_version,
+            identity.registered_snapshot_fingerprint,
+        )
+        self.assertFalse(loaded.attempted)
+        self.assertFalse(loaded.executed)
+        self.assertEqual(loaded.execution_status, "BLOCKED")
+
+        with self.assertRaises(OwnershipError):
+            self.store.list_execution_receipts(
+                self.user_b.user_id,
+                self.conversation_a.conversation_id,
+            )
+
+    def test_postgres_execution_receipt_rejects_wrong_run_state(self):
+        snap, identity, run, receipt = self._execution_fixture()
+
+        other = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "other-state"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, other)
+        other_identity = HAWMSnapshotIdentity(
+            snapshot_id=other.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="HAWM_PRO_BETA_STATE",
+            arm_id="HAWM_WORKING_STATE",
+            state_id=other.snapshot_id,
+            lineage_id=self.conversation_a.conversation_id,
+            previous_state_id=snap.snapshot_id,
+            registered_snapshot_fingerprint="e" * 64,
+            adapter_version="HAWM_STATE_IDENTITY_ADAPTER_V0_1",
+        )
+        self.store.add_hawm_snapshot_identity(
+            self.user_a.user_id, other_identity
+        )
+        wrong = ExecutionReceiptRecord(
+            **{
+                **receipt.__dict__,
+                "receipt_id": new_id("exec"),
+                "controller_state_id": other.snapshot_id,
+                "controller_state_version": (
+                    other_identity.registered_snapshot_fingerprint
+                ),
+                "pre_execution_state_id": other.snapshot_id,
+                "pre_execution_state_version": (
+                    other_identity.registered_snapshot_fingerprint
+                ),
+                "idempotency_key": new_id("idem"),
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "EXECUTION_CONTROLLER_RUN_STATE_MISMATCH",
+        ):
+            self.store.add_execution_receipt(
+                self.user_a.user_id, wrong
+            )
+
+    def test_postgres_direct_insert_rejects_wrong_state_version(self):
+        snap, identity, run, receipt = self._execution_fixture()
+        from psycopg.errors import ForeignKeyViolation
+
+        with self.assertRaises(ForeignKeyViolation):
+            with self.connection.cursor() as cur:
+                cur.execute(
+                    """
+                    insert into execution_receipts (
+                      receipt_id, conversation_id, action_id, controller_run_id,
+                      controller_decision, controller_state_id,
+                      controller_state_version, pre_execution_state_id,
+                      pre_execution_state_version, idempotency_key,
+                      cfc_authority_state, current_authority_state,
+                      human_review_required, human_review_approved,
+                      transaction_required, transaction_supported,
+                      attempted, executed, execution_status, effect_handle,
+                      blockers, reason, adapter_version
+                    ) values (
+                      %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                      false,false,false,false,false,false,'BLOCKED',null,
+                      '[]'::jsonb,%s,%s
+                    )
+                    """,
+                    (
+                        new_id("exec"),
+                        self.conversation_a.conversation_id,
+                        "PRO_BETA_EXECUTION_PREFLIGHT",
+                        run.run_id,
+                        "HOLD",
+                        snap.snapshot_id,
+                        "f" * 64,
+                        snap.snapshot_id,
+                        identity.registered_snapshot_fingerprint,
+                        new_id("idem"),
+                        "NOT_ESTABLISHED",
+                        "NOT_ESTABLISHED",
+                        "WRONG_VERSION",
+                        "EXECUTION_GATE_RECEIPT_ADAPTER_V0_1",
+                    ),
+                )
+        self.connection.rollback()
+
+    def test_postgres_direct_insert_rejects_execution_flag_laundering(self):
+        snap, identity, run, receipt = self._execution_fixture()
+        from psycopg.errors import CheckViolation
+
+        with self.assertRaises(CheckViolation):
+            with self.connection.cursor() as cur:
+                cur.execute(
+                    """
+                    insert into execution_receipts (
+                      receipt_id, conversation_id, action_id, controller_run_id,
+                      controller_decision, controller_state_id,
+                      controller_state_version, pre_execution_state_id,
+                      pre_execution_state_version, idempotency_key,
+                      cfc_authority_state, current_authority_state,
+                      human_review_required, human_review_approved,
+                      transaction_required, transaction_supported,
+                      attempted, executed, execution_status, effect_handle,
+                      blockers, reason, adapter_version
+                    ) values (
+                      %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                      false,false,false,false,true,false,'BLOCKED',null,
+                      '[]'::jsonb,%s,%s
+                    )
+                    """,
+                    (
+                        new_id("exec"),
+                        self.conversation_a.conversation_id,
+                        "PRO_BETA_EXECUTION_PREFLIGHT",
+                        run.run_id,
+                        "HOLD",
+                        snap.snapshot_id,
+                        identity.registered_snapshot_fingerprint,
+                        snap.snapshot_id,
+                        identity.registered_snapshot_fingerprint,
+                        new_id("idem"),
+                        "NOT_ESTABLISHED",
+                        "NOT_ESTABLISHED",
+                        "FLAG_LAUNDERING",
+                        "EXECUTION_GATE_RECEIPT_ADAPTER_V0_1",
+                    ),
+                )
+        self.connection.rollback()
+
+    def test_postgres_execution_idempotency_key_is_unique_per_conversation(self):
+        snap, identity, run, receipt = self._execution_fixture()
+        self.store.add_execution_receipt(self.user_a.user_id, receipt)
+        second = ExecutionReceiptRecord(
+            **{
+                **receipt.__dict__,
+                "receipt_id": new_id("exec"),
+            }
+        )
+
+        from psycopg.errors import UniqueViolation
+        with self.assertRaises(UniqueViolation):
+            self.store.add_execution_receipt(
+                self.user_a.user_id, second
+            )
+        self.connection.rollback()
 
     def test_postgres_cfc_keeps_raw_result_separate_from_presentation(self):
         run = CFCRun(
