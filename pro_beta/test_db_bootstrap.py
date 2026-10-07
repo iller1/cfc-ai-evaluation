@@ -42,6 +42,7 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                 "evidence_provenance_receipts",
                 "evidence_dependency_receipts",
                 "cfc_runs",
+                "execution_receipts",
                 "audit_reports",
                 "benchmark_runs",
                 "benchmark_manual_labels",
@@ -64,7 +65,8 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                            to_regclass('public.evidence_set_registrations'),
                            to_regclass('public.evidence_provenance_receipts'),
                            to_regclass('public.evidence_dependency_receipts'),
-                           to_regclass('public.cfc_runs')
+                           to_regclass('public.cfc_runs'),
+                           to_regclass('public.execution_receipts')
                     """
                 )
                 row = cur.fetchone()
@@ -82,6 +84,7 @@ class DatabaseBootstrapIntegrationTests(unittest.TestCase):
                 "evidence_provenance_receipts",
                 "evidence_dependency_receipts",
                 "cfc_runs",
+                "execution_receipts",
             ),
         )
 
