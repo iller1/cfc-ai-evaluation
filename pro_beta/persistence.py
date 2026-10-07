@@ -15,6 +15,7 @@ from pro_beta.contracts import (
     EvidenceSetRegistration,
     EvidenceProvenanceReceipt,
     EvidenceDependencyReceipt,
+    ExecutionReceiptRecord,
     Message,
     UsageEvent,
     UserAccount,
@@ -49,6 +50,7 @@ class InMemoryPersistence:
         self.evidence_provenance_receipts: Dict[str, EvidenceProvenanceReceipt] = {}
         self.evidence_dependency_receipts: Dict[str, EvidenceDependencyReceipt] = {}
         self.cfc_runs: Dict[str, CFCRun] = {}
+        self.execution_receipts: Dict[str, ExecutionReceiptRecord] = {}
         self.founding_beta_measurements: Dict[str, FoundingBetaMeasurement] = {}
         self.audit_reports: Dict[str, AuditReportRecord] = {}
         self.benchmark_runs: Dict[str, BenchmarkRun] = {}
@@ -331,6 +333,54 @@ class InMemoryPersistence:
             r
             for r in self.cfc_runs.values()
             if r.conversation_id == conversation_id
+        ]
+
+    def add_execution_receipt(
+        self, user_id: str, receipt: ExecutionReceiptRecord
+    ) -> ExecutionReceiptRecord:
+        self._owned_conversation(user_id, receipt.conversation_id)
+        run = self.cfc_runs.get(receipt.controller_run_id)
+        if run is None:
+            raise NotFoundError("CFC_RUN_NOT_FOUND")
+        if run.conversation_id != receipt.conversation_id:
+            raise OwnershipError("CFC_RUN_CONVERSATION_MISMATCH")
+
+        controller_identity = self.hawm_snapshot_identities.get(
+            receipt.controller_state_id
+        )
+        if controller_identity is None:
+            raise NotFoundError("CONTROLLER_STATE_IDENTITY_NOT_FOUND")
+        if controller_identity.conversation_id != receipt.conversation_id:
+            raise OwnershipError("CONTROLLER_STATE_CONVERSATION_MISMATCH")
+
+        pre_identity = self.hawm_snapshot_identities.get(
+            receipt.pre_execution_state_id
+        )
+        if pre_identity is None:
+            raise NotFoundError("PRE_EXECUTION_STATE_IDENTITY_NOT_FOUND")
+        if pre_identity.conversation_id != receipt.conversation_id:
+            raise OwnershipError("PRE_EXECUTION_STATE_CONVERSATION_MISMATCH")
+
+        if receipt.receipt_id in self.execution_receipts:
+            raise ValueError("EXECUTION_RECEIPT_ALREADY_EXISTS")
+        if any(
+            current.conversation_id == receipt.conversation_id
+            and current.idempotency_key == receipt.idempotency_key
+            for current in self.execution_receipts.values()
+        ):
+            raise ValueError("EXECUTION_IDEMPOTENCY_KEY_ALREADY_USED")
+
+        self.execution_receipts[receipt.receipt_id] = receipt
+        return receipt
+
+    def list_execution_receipts(
+        self, user_id: str, conversation_id: str
+    ) -> List[ExecutionReceiptRecord]:
+        self._owned_conversation(user_id, conversation_id)
+        return [
+            receipt
+            for receipt in self.execution_receipts.values()
+            if receipt.conversation_id == conversation_id
         ]
 
     def add_audit_report(
