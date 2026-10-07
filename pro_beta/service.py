@@ -599,6 +599,8 @@ class ProBetaService:
             raise ValueError("EXECUTION_ACTION_ID_REQUIRED")
         if not str(idempotency_key).strip():
             raise ValueError("EXECUTION_IDEMPOTENCY_KEY_REQUIRED")
+        if receipt_id is not None and not str(receipt_id).strip():
+            raise ValueError("EXECUTION_RECEIPT_ID_REQUIRED")
         if not isinstance(human_review_required, bool):
             raise ValueError("EXECUTION_HUMAN_REVIEW_REQUIRED_INVALID")
         if not isinstance(transaction_required, bool):
