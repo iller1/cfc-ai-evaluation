@@ -775,6 +775,9 @@ window.addEventListener("load", async function () {
     const blockers = Array.isArray(result.blockers) ? result.blockers : [];
     const persistenceActions = Array.isArray(result.persistence_actions) ?
       result.persistence_actions : [];
+    const authorityStatus = result.authority_status || "UNKNOWN";
+    const authorityHold = authorityStatus ===
+      "HOLD_REAL_EXECUTION_AUTHORITY_UNAVAILABLE";
 
     let heading = "Execution Preflight: " + preflightStatus;
     if (preflightStatus === "PREFLIGHT_BLOCKED") {
@@ -795,7 +798,8 @@ window.addEventListener("load", async function () {
       "Current state: " + (result.current_state_id || "NONE"),
       "Current state version: " + (result.current_state_version || "NONE"),
       "State Integrity: " + (result.state_integrity_status || "UNKNOWN"),
-      "Authority status: " + (result.authority_status || "UNKNOWN"),
+      "Authority status: " + authorityStatus +
+        (authorityHold ? " — real execution authority unavailable" : ""),
       "Authority source: " + (result.authority_source || "NONE"),
       "Prior execution receipts: " + String(result.prior_execution_receipt_count || 0),
       "Attempted: " + String(execution.attempted),
