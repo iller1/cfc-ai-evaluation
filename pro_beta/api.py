@@ -728,6 +728,20 @@ class ProBetaAPI:
             result["state_integrity_status"] = state_integrity.get("status")
             return result
 
+        if (
+            state_integrity.get("snapshot_id") != current.snapshot_id
+            or state_integrity.get("state_id") != current.snapshot_id
+        ):
+            result = unresolved_evidence_provenance(
+                "CURRENT_SNAPSHOT_CHANGED_DURING_ASSESSMENT",
+                current_snapshot_id=current.snapshot_id,
+            )
+            result["state_integrity_status"] = state_integrity.get("status")
+            result["state_integrity_snapshot_id"] = state_integrity.get(
+                "snapshot_id"
+            )
+            return result
+
         try:
             identity = self.service.get_hawm_snapshot_identity(
                 auth, conversation_id, current.snapshot_id
