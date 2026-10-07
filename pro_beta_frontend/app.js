@@ -1794,6 +1794,16 @@ window.addEventListener("load", async function () {
         }
       });
 
+      document.getElementById("check-execution-preflight").addEventListener("click", async () => {
+        const target = document.getElementById("execution-preflight-result");
+        try {
+          target.textContent = "Checking Execution Gate preflight…";
+          await checkExecutionPreflight();
+        } catch (error) {
+          target.textContent = "Execution Gate preflight error: " + error.message;
+        }
+      });
+
       document.getElementById("export-report").addEventListener("click", async () => {
         const reportStatus = document.getElementById("report-status");
         try {
