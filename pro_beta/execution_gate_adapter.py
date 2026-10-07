@@ -168,6 +168,17 @@ def assess_persisted_execution_preflight(
         )
 
     if (
+        state_integrity_result.get("authorization_effect")
+        != "DOES_NOT_AUTHORIZE_CLOSURE"
+    ):
+        return _blocked_without_gate(
+            "STATE_INTEGRITY_AUTHORIZATION_BOUNDARY_MISMATCH",
+            current_snapshot_id=current.snapshot_id,
+            controller_run_id=(cfc_run.run_id if cfc_run else None),
+            state_integrity_status=state_integrity_result.get("status"),
+        )
+
+    if (
         current_identity.adapter_version
         != HAWM_STATE_IDENTITY_ADAPTER_VERSION
     ):
@@ -194,6 +205,14 @@ def assess_persisted_execution_preflight(
         return _blocked_without_gate(
             "BOUND_CFC_RUN_NOT_FOUND",
             current_snapshot_id=current.snapshot_id,
+            state_integrity_status=state_integrity_result.get("status"),
+        )
+
+    if cfc_run.case_id != "HAWM_STRUCTURED_CUSTOM":
+        return _blocked_without_gate(
+            "CFC_RUN_CASE_NOT_SUPPORTED_FOR_EXECUTION_PREFLIGHT",
+            current_snapshot_id=current.snapshot_id,
+            controller_run_id=cfc_run.run_id,
             state_integrity_status=state_integrity_result.get("status"),
         )
 
