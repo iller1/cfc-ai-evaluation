@@ -222,6 +222,13 @@ class InMemoryPersistence:
             raise NotFoundError("HAWM_SNAPSHOT_NOT_FOUND")
         if snapshot.conversation_id != registration.conversation_id:
             raise OwnershipError("HAWM_SNAPSHOT_CONVERSATION_MISMATCH")
+        identity = self.hawm_snapshot_identities.get(registration.snapshot_id)
+        if identity is None:
+            raise NotFoundError("HAWM_SNAPSHOT_IDENTITY_NOT_FOUND")
+        if identity.conversation_id != registration.conversation_id:
+            raise OwnershipError("HAWM_SNAPSHOT_IDENTITY_CONVERSATION_MISMATCH")
+        if registration.state_id != identity.state_id:
+            raise ValueError("EVIDENCE_REGISTRATION_STATE_IDENTITY_MISMATCH")
         if registration.state_id != registration.snapshot_id:
             raise ValueError("EVIDENCE_REGISTRATION_STATE_ID_MISMATCH")
         if registration.snapshot_id in self.evidence_set_registrations:
