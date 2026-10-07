@@ -389,7 +389,9 @@ def _validate_execution(value: Any) -> dict[str, Any]:
     _require_keys(obj, allowed, "execution")
     _reject_extra(obj, allowed, "execution")
     attempted = _bool(obj["attempted"], "execution.attempted")
-    executed = _bool(obj["executed"], "execution.executed")
+    executed = obj["executed"]
+    if executed is not None and not isinstance(executed, bool):
+        raise ContractError("execution.executed:BOOLEAN_OR_NULL_REQUIRED")
     status = _enum(
         obj["execution_status"],
         {
@@ -398,6 +400,7 @@ def _validate_execution(value: Any) -> dict[str, Any]:
             "ATTEMPTED_NOT_EXECUTED",
             "EXECUTED",
             "FAILED",
+            "OUTCOME_UNKNOWN",
         },
         "execution.execution_status",
     )
@@ -409,14 +412,39 @@ def _validate_execution(value: Any) -> dict[str, Any]:
     ):
         _nullable_string(obj[key], f"execution.{key}")
 
-    if executed and not attempted:
-        raise ContractError("execution:EXECUTED_REQUIRES_ATTEMPTED")
-    if status == "NOT_ATTEMPTED" and (attempted or executed):
-        raise ContractError("execution:NOT_ATTEMPTED_FLAG_MISMATCH")
-    if status == "EXECUTED" and not (attempted and executed):
-        raise ContractError("execution:EXECUTED_STATUS_FLAG_MISMATCH")
-    if status in {"BLOCKED", "ATTEMPTED_NOT_EXECUTED", "FAILED"} and executed:
-        raise ContractError("execution:NONEXECUTED_STATUS_CANNOT_BE_EXECUTED")
+    if status == "NOT_ATTEMPTED":
+        if attempted or executed is not False:
+            raise ContractError("execution:NOT_ATTEMPTED_FLAG_MISMATCH")
+    elif status == "BLOCKED":
+        if attempted or executed is not False:
+            raise ContractError("execution:BLOCKED_FLAG_MISMATCH")
+    elif status in {"ATTEMPTED_NOT_EXECUTED", "FAILED"}:
+        if not attempted or executed is not False:
+            raise ContractError("execution:KNOWN_NO_EFFECT_FLAG_MISMATCH")
+    elif status == "OUTCOME_UNKNOWN":
+        if not attempted or executed is not None:
+            raise ContractError("execution:OUTCOME_UNKNOWN_FLAG_MISMATCH")
+    elif status == "EXECUTED":
+        if not attempted or executed is not True:
+            raise ContractError("execution:EXECUTED_STATUS_FLAG_MISMATCH")
+
+    if status != "NOT_ATTEMPTED":
+        for key in (
+            "idempotency_key",
+            "pre_execution_state_id",
+            "receipt_id",
+        ):
+            if not isinstance(obj[key], str) or not obj[key]:
+                raise ContractError(
+                    f"execution:{key.upper()}_REQUIRED_FOR_GATE_RECEIPT"
+                )
+
+    if status == "EXECUTED":
+        if not isinstance(obj["effect_handle"], str) or not obj["effect_handle"]:
+            raise ContractError("execution:EXECUTED_REQUIRES_EFFECT_HANDLE")
+    if status in {"BLOCKED", "ATTEMPTED_NOT_EXECUTED", "FAILED"}:
+        if obj["effect_handle"] is not None:
+            raise ContractError("execution:KNOWN_NO_EFFECT_MUST_NOT_HAVE_HANDLE")
     return obj
 
 
