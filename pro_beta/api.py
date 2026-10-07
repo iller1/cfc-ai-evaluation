@@ -690,6 +690,99 @@ class ProBetaAPI:
         result["baseline_source"] = "PERSISTED_CFC_RUN_BINDING"
         return result
 
+    def assess_evidence_provenance(
+        self,
+        credential: str,
+        conversation_id: str,
+    ) -> dict:
+        auth = self._auth(credential)
+        try:
+            self.service.get_conversation(auth, conversation_id)
+            snapshots = self.service.list_hawm_snapshots(
+                auth, conversation_id
+            )
+        except NotFoundError as exc:
+            raise APIError(404, str(exc)) from exc
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        from pro_beta.evidence_provenance_adapter import (
+            assess_persisted_evidence_provenance,
+            unresolved_evidence_provenance,
+        )
+
+        if not snapshots:
+            return unresolved_evidence_provenance(
+                "NO_HAWM_SNAPSHOTS"
+            )
+
+        current = snapshots[-1]
+        state_integrity = self.assess_state_integrity(
+            credential, conversation_id
+        )
+        if state_integrity.get("status") != "STATE_VALID":
+            result = unresolved_evidence_provenance(
+                "STATE_INTEGRITY_NOT_VALID",
+                current_snapshot_id=current.snapshot_id,
+            )
+            result["state_integrity_status"] = state_integrity.get("status")
+            return result
+
+        try:
+            identity = self.service.get_hawm_snapshot_identity(
+                auth, conversation_id, current.snapshot_id
+            )
+            registration = self.service.get_evidence_set_registration(
+                auth, conversation_id, current.snapshot_id
+            )
+            provenance_receipts = (
+                self.service.list_evidence_provenance_receipts(
+                    auth, conversation_id, current.snapshot_id
+                )
+            )
+        except NotFoundError as exc:
+            code = str(exc).strip("'")
+            if code == "EVIDENCE_SET_REGISTRATION_NOT_FOUND":
+                result = unresolved_evidence_provenance(
+                    "EVIDENCE_SET_REGISTRATION_NOT_FOUND",
+                    current_snapshot_id=current.snapshot_id,
+                )
+                result["state_integrity_status"] = state_integrity.get("status")
+                return result
+            result = unresolved_evidence_provenance(
+                code or "EVIDENCE_PROVENANCE_REGISTRY_NOT_FOUND",
+                current_snapshot_id=current.snapshot_id,
+            )
+            result["state_integrity_status"] = state_integrity.get("status")
+            return result
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        try:
+            dependency_receipt = (
+                self.service.get_evidence_dependency_receipt(
+                    auth, conversation_id, current.snapshot_id
+                )
+            )
+        except NotFoundError:
+            dependency_receipt = None
+        except OwnershipError as exc:
+            raise APIError(403, str(exc)) from exc
+
+        drift_result = self.assess_evidence_drift(
+            credential, conversation_id
+        )
+
+        return assess_persisted_evidence_provenance(
+            current=current,
+            identity=identity,
+            state_integrity_result=state_integrity,
+            registration=registration,
+            provenance_receipts=provenance_receipts,
+            dependency_receipt=dependency_receipt,
+            drift_result=drift_result,
+        )
+
     def assess_state_monitor(
         self,
         credential: str,
