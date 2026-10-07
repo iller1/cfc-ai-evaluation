@@ -89,6 +89,9 @@ create table if not exists hawm_snapshot_identities (
     references hawm_snapshots(snapshot_id, conversation_id)
 );
 
+create unique index if not exists uq_hawm_identity_snapshot_conversation
+  on hawm_snapshot_identities(snapshot_id, conversation_id);
+
 -- Evidence/Provenance Layer B registrations are explicit and state-bound.
 -- Historical snapshots are intentionally not backfilled.
 create table if not exists evidence_set_registrations (
@@ -103,9 +106,9 @@ create table if not exists evidence_set_registrations (
   adapter_version text not null,
   created_at timestamptz not null default now(),
   check (state_id = snapshot_id),
-  constraint fk_evidence_registration_snapshot
+  constraint fk_evidence_registration_identity
     foreign key (snapshot_id, conversation_id)
-    references hawm_snapshots(snapshot_id, conversation_id)
+    references hawm_snapshot_identities(snapshot_id, conversation_id)
     on delete cascade
 );
 
