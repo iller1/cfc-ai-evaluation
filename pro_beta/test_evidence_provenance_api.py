@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 import copy
 import unittest
+from unittest.mock import patch
 
 from pro_beta.api import APIError, ProBetaAPI
 from pro_beta.auth_boundary import AuthBoundary, VerifiedExternalIdentity
@@ -193,6 +194,35 @@ class EvidenceProvenanceAPITests(unittest.TestCase):
         self.assertEqual(result["status"], "EVIDENCE_UNKNOWN")
         self.assertEqual(result["reason"], "STATE_INTEGRITY_NOT_VALID")
         self.assertEqual(result["state_integrity_status"], "STATE_INVALID")
+
+    def test_current_snapshot_change_during_assessment_fails_closed(self):
+        snap = self._save_snapshot()
+
+        with patch.object(
+            self.api,
+            "assess_state_integrity",
+            return_value={
+                "status": "STATE_VALID",
+                "snapshot_id": "hawm-newer",
+                "state_id": "hawm-newer",
+                "authorization_effect": "DOES_NOT_AUTHORIZE_CLOSURE",
+            },
+        ):
+            result = self.api.assess_evidence_provenance(
+                "token-a", self.conversation_a["conversation_id"]
+            )
+
+        self.assertEqual(result["status"], "EVIDENCE_UNKNOWN")
+        self.assertEqual(
+            result["reason"],
+            "CURRENT_SNAPSHOT_CHANGED_DURING_ASSESSMENT",
+        )
+        self.assertEqual(result["state_id"], snap["snapshot_id"])
+        self.assertEqual(result["state_integrity_status"], "STATE_VALID")
+        self.assertEqual(
+            result["state_integrity_snapshot_id"],
+            "hawm-newer",
+        )
 
     def test_missing_dependency_receipt_remains_unknown(self):
         snap = self._save_snapshot()
