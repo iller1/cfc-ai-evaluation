@@ -226,7 +226,51 @@
             "NOT_ASSESSED"
           ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "EVIDENCE_APPLICABLE"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "provenance_state": {
+                "const": "ESTABLISHED"
+              },
+              "applicability_state": {
+                "const": "APPLICABLE"
+              },
+              "dependency_state": {
+                "const": "RESOLVED"
+              },
+              "missing_evidence": {
+                "maxItems": 0
+              },
+              "evidence_set": {
+                "minItems": 1,
+                "items": {
+                  "properties": {
+                    "validity": {
+                      "const": "CURRENT"
+                    },
+                    "scope_status": {
+                      "const": "MATCH"
+                    },
+                    "failure_domain_id": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "continuity": {
       "type": "object",
