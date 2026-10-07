@@ -448,6 +448,11 @@ def _validate_execution(value: Any) -> dict[str, Any]:
     return obj
 
 
+def validate_execution_record(value: Any) -> dict[str, Any]:
+    """Validate one shared-schema execution object without a full envelope."""
+    return copy.deepcopy(_validate_execution(value))
+
+
 def _validate_audit(value: Any) -> dict[str, Any]:
     obj = _require_object(value, "audit")
     allowed = {
