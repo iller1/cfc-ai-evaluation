@@ -213,6 +213,15 @@ class ControlStackSchemaTests(unittest.TestCase):
         ):
             validate_envelope(value)
 
+    def test_applicable_evidence_cannot_hide_material_drift(self):
+        value = valid_envelope()
+        value["evidence"]["drift_state"] = "MATERIAL_DRIFT"
+        with self.assertRaisesRegex(
+            ContractError,
+            "APPLICABLE_REQUIRES_NO_DRIFT",
+        ):
+            validate_envelope(value)
+
     def test_applicable_evidence_requires_nonempty_evidence_set(self):
         value = valid_envelope()
         value["evidence"]["evidence_set"] = []
