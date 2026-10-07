@@ -92,6 +92,9 @@ create table if not exists hawm_snapshot_identities (
 create unique index if not exists uq_hawm_identity_snapshot_conversation
   on hawm_snapshot_identities(snapshot_id, conversation_id);
 
+create unique index if not exists uq_cfc_run_conversation
+  on cfc_runs(run_id, conversation_id);
+
 -- Evidence/Provenance Layer B registrations are explicit and state-bound.
 -- Historical snapshots are intentionally not backfilled.
 create table if not exists evidence_set_registrations (
@@ -153,6 +156,87 @@ create table if not exists evidence_dependency_receipts (
     references evidence_set_registrations(snapshot_id, conversation_id)
     on delete cascade
 );
+
+-- Execution Gate host integration. Intent records identify one exact
+-- action/run/state/version tuple but do not establish execution authority.
+create table if not exists execution_intents (
+  intent_id text primary key,
+  conversation_id text not null,
+  action_id text not null,
+  controller_run_id text not null,
+  state_id text not null,
+  state_version text not null
+    check (state_version ~ '^[0-9a-f]{64}$'),
+  idempotency_key text not null,
+  receipt_id text not null unique,
+  action_payload_fingerprint text not null
+    check (action_payload_fingerprint ~ '^[0-9a-f]{64}$'),
+  human_review_required boolean not null,
+  transaction_required boolean not null,
+  adapter_version text not null,
+  created_at timestamptz not null default now(),
+  constraint fk_execution_intent_run
+    foreign key (controller_run_id, conversation_id)
+    references cfc_runs(run_id, conversation_id)
+    on delete cascade,
+  constraint fk_execution_intent_state
+    foreign key (state_id, conversation_id)
+    references hawm_snapshot_identities(snapshot_id, conversation_id)
+    on delete cascade,
+  unique (conversation_id, idempotency_key)
+);
+
+create unique index if not exists uq_execution_intent_conversation
+  on execution_intents(intent_id, conversation_id);
+
+-- Append-only final records for attempts that actually reached an executor.
+-- Preflight-only BLOCKED / NOT_ATTEMPTED states are intentionally not stored
+-- here as execution receipts.
+create table if not exists execution_receipts (
+  receipt_id text primary key,
+  intent_id text not null unique,
+  conversation_id text not null,
+  action_id text not null,
+  controller_run_id text not null,
+  state_id text not null,
+  state_version text not null
+    check (state_version ~ '^[0-9a-f]{64}$'),
+  idempotency_key text not null,
+  execution_status text not null
+    check (execution_status in (
+      'ATTEMPTED_NOT_EXECUTED',
+      'EXECUTED',
+      'OUTCOME_UNKNOWN',
+      'FAILED'
+    )),
+  attempted boolean not null check (attempted = true),
+  executed boolean,
+  effect_handle text,
+  adapter_version text not null,
+  created_at timestamptz not null default now(),
+  constraint fk_execution_receipt_intent
+    foreign key (intent_id, conversation_id)
+    references execution_intents(intent_id, conversation_id)
+    on delete cascade,
+  check (
+    (execution_status = 'EXECUTED'
+      and executed = true
+      and effect_handle is not null
+      and length(effect_handle) > 0)
+    or
+    (execution_status in ('ATTEMPTED_NOT_EXECUTED','FAILED')
+      and executed = false
+      and effect_handle is null)
+    or
+    (execution_status = 'OUTCOME_UNKNOWN'
+      and executed is null)
+  )
+);
+
+create index if not exists idx_execution_intents_conversation_created
+  on execution_intents(conversation_id, created_at);
+create index if not exists idx_execution_receipts_conversation_created
+  on execution_receipts(conversation_id, created_at);
 
 do $binding$
 begin
