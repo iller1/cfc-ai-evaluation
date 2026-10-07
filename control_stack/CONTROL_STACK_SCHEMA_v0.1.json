@@ -441,7 +441,10 @@
           "type": "boolean"
         },
         "executed": {
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "execution_status": {
           "enum": [
@@ -449,7 +452,8 @@
             "BLOCKED",
             "ATTEMPTED_NOT_EXECUTED",
             "EXECUTED",
-            "FAILED"
+            "FAILED",
+            "OUTCOME_UNKNOWN"
           ]
         },
         "effect_handle": {
@@ -476,7 +480,196 @@
             "null"
           ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "execution_status": {
+                "const": "NOT_ATTEMPTED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "attempted": {
+                "const": false
+              },
+              "executed": {
+                "const": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "execution_status": {
+                "const": "BLOCKED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "attempted": {
+                "const": false
+              },
+              "executed": {
+                "const": false
+              },
+              "effect_handle": {
+                "type": "null"
+              },
+              "idempotency_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pre_execution_state_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "receipt_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "execution_status": {
+                "const": "ATTEMPTED_NOT_EXECUTED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "attempted": {
+                "const": true
+              },
+              "executed": {
+                "const": false
+              },
+              "effect_handle": {
+                "type": "null"
+              },
+              "idempotency_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pre_execution_state_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "receipt_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "execution_status": {
+                "const": "FAILED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "attempted": {
+                "const": true
+              },
+              "executed": {
+                "const": false
+              },
+              "effect_handle": {
+                "type": "null"
+              },
+              "idempotency_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pre_execution_state_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "receipt_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "execution_status": {
+                "const": "OUTCOME_UNKNOWN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "attempted": {
+                "const": true
+              },
+              "executed": {
+                "type": "null"
+              },
+              "idempotency_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pre_execution_state_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "receipt_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "execution_status": {
+                "const": "EXECUTED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "attempted": {
+                "const": true
+              },
+              "executed": {
+                "const": true
+              },
+              "effect_handle": {
+                "type": "string",
+                "minLength": 1
+              },
+              "idempotency_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pre_execution_state_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "receipt_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "audit": {
       "type": "object",
