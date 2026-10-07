@@ -21,7 +21,7 @@ from pro_beta.contracts import (
     Workspace,
     new_id,
 )
-from pro_beta.persistence import OwnershipError
+from pro_beta.persistence import NotFoundError, OwnershipError
 from pro_beta.postgres_persistence import PostgresPersistence
 
 try:
@@ -292,6 +292,18 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
             last_verified_state="USER_WORKING_STATE",
         )
         self.store.add_hawm_snapshot(self.user_a.user_id, snap)
+        identity = HAWMSnapshotIdentity(
+            snapshot_id=snap.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            case_id="HAWM_PRO_BETA_STATE",
+            arm_id="HAWM_WORKING_STATE",
+            state_id=snap.snapshot_id,
+            lineage_id=self.conversation_a.conversation_id,
+            previous_state_id=None,
+            registered_snapshot_fingerprint="b" * 64,
+            adapter_version="HAWM_STATE_IDENTITY_ADAPTER_V0_1",
+        )
+        self.store.add_hawm_snapshot_identity(self.user_a.user_id, identity)
 
         registration = EvidenceSetRegistration(
             registration_id=new_id("evidence_set"),
@@ -369,6 +381,52 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
                 snap.snapshot_id,
             )
 
+    def test_postgres_evidence_registration_requires_identity_anchor(self):
+        snap = HAWMSnapshot(
+            snapshot_id=new_id("hawm"),
+            conversation_id=self.conversation_a.conversation_id,
+            state={"goal": "snapshot-without-identity"},
+            last_verified_state="USER_WORKING_STATE",
+        )
+        self.store.add_hawm_snapshot(self.user_a.user_id, snap)
+        registration = EvidenceSetRegistration(
+            registration_id=new_id("evidence_set"),
+            snapshot_id=snap.snapshot_id,
+            conversation_id=self.conversation_a.conversation_id,
+            state_id=snap.snapshot_id,
+            evidence_set=[],
+            missing_evidence=[],
+            adapter_version="EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1",
+        )
+
+        with self.assertRaisesRegex(
+            NotFoundError,
+            "HAWM_SNAPSHOT_IDENTITY_NOT_FOUND",
+        ):
+            self.store.add_evidence_set_registration(
+                self.user_a.user_id, registration
+            )
+
+        from psycopg.errors import ForeignKeyViolation
+        with self.assertRaises(ForeignKeyViolation):
+            with self.connection.cursor() as cur:
+                cur.execute(
+                    """
+                    insert into evidence_set_registrations (
+                        registration_id, snapshot_id, conversation_id, state_id,
+                        evidence_set, missing_evidence, adapter_version
+                    ) values (%s,%s,%s,%s,'[]'::jsonb,'[]'::jsonb,%s)
+                    """,
+                    (
+                        new_id("evidence_set"),
+                        snap.snapshot_id,
+                        self.conversation_a.conversation_id,
+                        snap.snapshot_id,
+                        "EVIDENCE_PROVENANCE_REGISTRY_ADAPTER_V0_1",
+                    ),
+                )
+        self.connection.rollback()
+
     def test_postgres_evidence_registry_rejects_cross_conversation_snapshot(self):
         snap_b = HAWMSnapshot(
             snapshot_id=new_id("hawm"),
@@ -377,6 +435,18 @@ class PostgresPersistenceIntegrationTests(unittest.TestCase):
             last_verified_state="USER_WORKING_STATE",
         )
         self.store.add_hawm_snapshot(self.user_b.user_id, snap_b)
+        identity_b = HAWMSnapshotIdentity(
+            snapshot_id=snap_b.snapshot_id,
+            conversation_id=self.conversation_b.conversation_id,
+            case_id="HAWM_PRO_BETA_STATE",
+            arm_id="HAWM_WORKING_STATE",
+            state_id=snap_b.snapshot_id,
+            lineage_id=self.conversation_b.conversation_id,
+            previous_state_id=None,
+            registered_snapshot_fingerprint="c" * 64,
+            adapter_version="HAWM_STATE_IDENTITY_ADAPTER_V0_1",
+        )
+        self.store.add_hawm_snapshot_identity(self.user_b.user_id, identity_b)
 
         registration = EvidenceSetRegistration(
             registration_id=new_id("evidence_set"),
