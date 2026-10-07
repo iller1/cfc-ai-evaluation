@@ -698,6 +698,69 @@ window.addEventListener("load", async function () {
     renderStateIntegrityAcceptance(result);
   }
 
+  function renderEvidenceProvenance(result) {
+    const target = document.getElementById("evidence-provenance-result");
+    if (!result) {
+      target.textContent = "Evidence Provenance not checked yet.";
+      return;
+    }
+
+    const status = result.status || "EVIDENCE_UNKNOWN";
+    let heading = "Evidence Provenance: " + status;
+    if (status === "EVIDENCE_APPLICABLE") {
+      heading = "Evidence Provenance: EVIDENCE_APPLICABLE — Layer B spójny w zadeklarowanej granicy";
+    } else if (status === "EVIDENCE_PARTIAL") {
+      heading = "Evidence Provenance: EVIDENCE_PARTIAL — wymagany przegląd";
+    } else if (status === "EVIDENCE_INVALID") {
+      heading = "Evidence Provenance: EVIDENCE_INVALID — niespójność reprezentacji";
+    } else if (status === "EVIDENCE_UNKNOWN") {
+      heading = "Evidence Provenance: EVIDENCE_UNKNOWN — brak podstaw do przeniesienia";
+    }
+
+    const evidence = result.evidence || {};
+    const evidenceSet = Array.isArray(evidence.evidence_set) ?
+      evidence.evidence_set : [];
+    const missing = Array.isArray(evidence.missing_evidence) ?
+      evidence.missing_evidence : [];
+    const provenanceReceipts = Array.isArray(result.provenance_receipt_ids) ?
+      result.provenance_receipt_ids : [];
+
+    target.textContent = [
+      heading,
+      "Reason: " + (result.reason || ""),
+      "State ID: " + (result.state_id || "NONE"),
+      "State Integrity: " + (result.state_integrity_status || "UNKNOWN"),
+      "Provenance state: " + (evidence.provenance_state || "UNKNOWN"),
+      "Applicability state: " + (evidence.applicability_state || "UNKNOWN"),
+      "Dependency state: " + (evidence.dependency_state || "UNKNOWN"),
+      "Drift state: " + (evidence.drift_state || "UNRESOLVED"),
+      "Evidence records: " + String(evidenceSet.length),
+      "Missing evidence: " + (missing.length ? missing.join(", ") : "none"),
+      "Registry source: " + (result.registry_source || "NONE"),
+      "Drift source: " + (result.drift_source || "NONE"),
+      "Registration: " + (result.registration_id || "NONE"),
+      "Provenance receipts: " +
+        (provenanceReceipts.length ? provenanceReceipts.join(", ") : "none"),
+      "Dependency receipt: " + (result.dependency_receipt_id || "NONE"),
+      "Requires review: " + String(result.requires_review),
+      "Read only: " + String(result.read_only),
+      "Propagation effect: " + (result.propagation_effect || ""),
+      "Authorization effect: " + (result.authorization_effect || ""),
+      "Boundary: " + (result.boundary || ""),
+      "Adapter boundary: " + (result.adapter_boundary || "")
+    ].join("\n");
+  }
+
+  async function checkEvidenceProvenance() {
+    const conversationId = conversationSelect.value;
+    if (!conversationId) throw new Error("CREATE_CONVERSATION_FIRST");
+    const result = await api(
+      "/api/conversations/" + conversationId + "/evidence-provenance"
+    );
+    if (conversationSelect.value !== conversationId) return;
+    renderEvidenceProvenance(result);
+  }
+
   async function loadMessages() {
     messages.innerHTML = "";
     const conversationId = conversationSelect.value;
