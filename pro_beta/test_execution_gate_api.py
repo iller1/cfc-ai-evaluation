@@ -137,6 +137,39 @@ class ExecutionGateAPITests(unittest.TestCase):
             result["authority_effect"],
             "DOES_NOT_CREATE_AUTHORITY",
         )
+        self.assertEqual(result["prior_execution_receipt_count"], 0)
+
+    def test_no_intent_reports_existing_receipt_count(self):
+        from pro_beta.contracts import ExecutionReceiptRecord
+
+        self._save_snapshot()
+        orphan = ExecutionReceiptRecord(
+            receipt_id="orphan-receipt",
+            intent_id="missing-intent",
+            conversation_id=self.conversation_a["conversation_id"],
+            action_id="orphan-action",
+            controller_run_id="orphan-run",
+            state_id="orphan-state",
+            state_version="f" * 64,
+            idempotency_key="orphan-idem",
+            execution_status="OUTCOME_UNKNOWN",
+            attempted=True,
+            executed=None,
+            effect_handle=None,
+            adapter_version="EXECUTION_GATE_REGISTRY_ADAPTER_V0_1",
+        )
+        # Synthetic invalid state; not a permitted production database state.
+        self.store.execution_receipts[orphan.receipt_id] = orphan
+        before = copy.deepcopy(self.store.execution_receipts)
+        result = self.api.assess_execution_preflight(
+            "token-a", self.conversation_a["conversation_id"]
+        )
+        self.assertEqual(result["reason"], "EXECUTION_INTENT_NOT_REGISTERED")
+        self.assertEqual(result["prior_execution_receipt_count"], 1)
+        self.assertEqual(result["gate_status"], "EXECUTION_BLOCKED")
+        self.assertFalse(result["execution"]["attempted"])
+        self.assertFalse(result["execution"]["executed"])
+        self.assertEqual(self.store.execution_receipts, before)
 
     def test_exact_intent_is_blocked_by_real_authority_hold(self):
         snap = self._save_snapshot()

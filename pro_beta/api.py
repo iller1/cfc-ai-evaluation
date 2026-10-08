@@ -871,6 +871,7 @@ class ProBetaAPI:
                 "EXECUTION_INTENT_NOT_REGISTERED",
                 current_state_id=current.snapshot_id,
                 state_integrity_status="STATE_VALID",
+                prior_execution_receipt_count=len(receipts),
             )
 
         intent = intents[-1]

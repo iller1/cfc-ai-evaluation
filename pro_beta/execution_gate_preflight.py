@@ -22,6 +22,7 @@ def unresolved_execution_preflight(
     *,
     current_state_id: str | None = None,
     state_integrity_status: str = "UNKNOWN",
+    prior_execution_receipt_count: int | None = None,
 ) -> dict[str, Any]:
     return {
         "version": PRO_BETA_EXECUTION_PREFLIGHT_VERSION,
@@ -38,7 +39,7 @@ def unresolved_execution_preflight(
         "state_integrity_status": state_integrity_status,
         "authority_status": REAL_EXECUTION_AUTHORITY_STATUS,
         "authority_source": "NONE",
-        "prior_execution_receipt_count": 0,
+        "prior_execution_receipt_count": prior_execution_receipt_count,
         "execution": {
             "attempted": False,
             "executed": False,
