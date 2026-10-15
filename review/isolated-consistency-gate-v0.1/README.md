@@ -46,6 +46,10 @@ Only one **authored** record value changes: E3.value. Derived content-bound test
 
 The operator independently repeated the local execution on Windows on 2026-10-15: 16/16 PASS. This is **not** independent external attestation. Test role issuers and certificates are developer fixtures, not real trusted credentials. Positive internal `control_closure` is not permission to act in the real world.
 
+## Start here: skeptical review
+
+Before treating any PASS as a general claim, read **[REVIEWER_CHALLENGES.md](./REVIEWER_CHALLENGES.md)**. It records the fixture dependency, selection and source-independence assumptions, the limits of the 16/16 tests, and an additional exploratory unmodelled-relation probe (`calm`, not part of the original 16 tests).
+
 ## What a reviewer should challenge
 
 Focus on support-set selection and the semantics of independence, the `r23_case` internal test helper, content-bound derived role records, completeness of the support universe, and whether generalization beyond synthetic fixtures is justified. The runner checks exact wheel and engine hashes and stops on mismatch.
