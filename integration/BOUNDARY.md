@@ -49,6 +49,39 @@ The current integration example may use an orchestration policy such as:
 
 That is integration-layer orchestration logic. It must not be described as a frozen Anchor invariant unless separately established.
 
+## Same-process runtime isolation boundary
+
+Research against frozen CFC-next `0.3.0a2` found a bounded same-interpreter
+cross-context interaction when independently created contexts register the same
+canonical entity/event/version identity.
+
+The observed transition was fail-closed:
+
+`VERIFIED -> UNRESOLVED`
+
+No unauthorized control closure was observed, and the diagnostic did not install
+decision-accounting authorization.
+
+Separating Controller objects is therefore **not** sufficient evidence that their
+runtime registry state is independent.
+
+For independent request/session semantics, integration code should use one of
+these boundaries unless a different design is separately validated:
+
+1. process isolation between independent CFC runs; or
+2. explicit registry-level canonical identity coordination that prevents
+   competing independent registrations of the same canonical identity.
+
+Tenant-namespaced canonical identity removed the tested interference across all
+14 blocker families in the bounded diagnostic.
+
+This finding does not modify or rescore frozen CFC Anchor `0.2.90rc1`,
+CFC-next `0.3.0a2`, or Integration Layer `v0.4 RC`. It is a deployment
+constraint derived from separate research evidence.
+
+See:
+[peer-context isolation review](../docs/CFC_NEXT_0_3_0A2_PEER_CONTROLLER_ISOLATION.md).
+
 ## Evidence classes
 
 Local RC validation is internal engineering evidence only.
