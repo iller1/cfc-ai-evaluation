@@ -1,0 +1,17 @@
+{
+  "conclusion": "POSITIVE",
+  "required_independent_supports": 2,
+  "provenance_shape": "DISTINCT",
+  "independence_authority": "NONE",
+  "scope": "EXPECTED",
+  "evidence": [
+    {
+      "polarity": "POSITIVE",
+      "validity": "CURRENT"
+    },
+    {
+      "polarity": "POSITIVE",
+      "validity": "CURRENT"
+    }
+  ]
+}
