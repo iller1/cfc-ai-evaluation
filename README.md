@@ -120,6 +120,14 @@ This integration layer is **not part of the frozen CFC Anchor**. External usabil
 
 See [integration/](integration/) for the RC status and claim boundary.
 
+## CFC × HAWM — local reproducer and stale-state HTTP test (November 2026)
+
+A bounded synthetic scenario was replayed through frozen CFC Anchor `0.2.90rc1` with an exact local raw-output match. A separate sequential HTTP test rejected a stale operator-confirmed mapping with status `409`. The operator prepared a private 23-file SHA-256 manifest and a draft independent-review protocol.
+
+**Evidence class:** local, operator-reported; **not yet independently reproduced**. Executable/private materials are not included, and distribution terms remain unresolved. No claim of real-world authority, production readiness or downstream action authorization is made.
+
+- [Read the public technical report and proposed independent review protocol](replication/cfc-hawm-281aa-local-replay/README.md)
+
 ## HAWM + CFC Chat Prototype v0.4.2 — external reviewer package
 
 A separate experimental HAWM + CFC chat prototype is available for a bounded independent replay. It is a state-aware conversation shell around an unchanged frozen CFC Anchor checkpoint.
