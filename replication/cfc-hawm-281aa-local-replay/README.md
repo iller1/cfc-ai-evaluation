@@ -3,7 +3,7 @@
 **Status:** Local, operator-reported technical evidence; **not independently reproduced**  
 **Report date:** 2026-11-15  
 **Scope:** One synthetic HAWM → frozen CFC Anchor scenario, with a sequential stale-state HTTP rejection test  
-**Release status:** Public report/protocol only; **private executable materials not distributed**
+**Release status:** Public report, bounded operator-captured synthetic input/output, console text and protocol-review draft; **private executable materials not distributed**
 
 ## The question
 
@@ -34,6 +34,18 @@ These hashes are *identity/integrity references*, not external custody attestati
 The bounded replay initially exercised a synthetic claim (`DemoSubject is safe.`) with two current positive records and **no attested source independence**. The initial controller result had `control_closure=false`; four mandatory gate checks were false. The `EPISTEMIC_STOP` code in the paired positive case denotes *controller closure readiness* under this frozen controller's semantics, **not permission to execute any downstream action**.
 
 The current bridge's presentation label `ALLOW` for `control_closure=true` must not be interpreted as real-world authorization. That terminology remains a presentation-layer limitation; the frozen controller was not changed.
+
+## Public inspectable artifacts — operator-supplied, not independently verified
+
+The following are now published for **inspection of recorded data**. These improve transparency but **do not** independently verify execution or permit reproduction without the frozen runtime.
+
+- [Bounded synthetic fixture (JSON)](operator_capture_fixture_281J.json)
+- [Complete recorded raw frozen-CFC controller output (JSON)](operator_capture_raw_output_281J.json)
+- [Operator-reported 281AA console transcript](operator_reported_console_281AA.txt)
+- [Provenance, extraction checks and limitations](EVIDENCE_PROVENANCE.md)
+- [Public review-protocol draft](PUBLIC_REVIEW_PROTOCOL.md) — a Markdown adaptation, **not byte-identical** to private 281AC TXT
+
+The JSON artifacts were extracted from the **operator-provided** synthetic native trace and are not signed by an independent custodian. The input equals the recorded `custom_input`; the complete raw result is available for inspection. The original private trace is not attached. A complete HTTP request/response recording for 281T is **not yet published**, so HTTP 409 remains operator-reported.
 
 ## Private reproducibility artifacts (not attached)
 
