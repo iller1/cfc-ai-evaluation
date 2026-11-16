@@ -142,6 +142,73 @@ The SHA-256 strings are **operator-reported identifiers**, not evidence that a G
 
 Related: [Earlier bounded CFC × HAWM replay and stale-state HTTP report](../cfc-hawm-281aa-local-replay/README.md).
 
+## Red-team follow-up — M21–M23 (2026-11-16)
+
+**Status:** Additional **operator-reported** tests on the same isolated local HTTP candidate, not an independent external exploit validation. No controller source files were changed.
+
+### Hypothesis and observed result
+
+A source row can be **correctly parsed** as `NEGATIVE / CURRENT` while the overall fixture `conclusion` is `POSITIVE`. Mapping Guard v0 validates the source-text/row-label relationship, but **does not compare candidate `conclusion` with evidence polarity**. This is a **confirmed scope gap** in the mapping check. Whether a contradiction should be rejected at handoff, or deliberately handed to CFC for evaluation, remains a separate contract/design question.
+
+| Step | Reported observation | Boundary |
+| --- | --- | --- |
+| **281BR-M21** | One synthetic `NEGATIVE / CURRENT` source row, submitted with candidate `conclusion=POSITIVE` and matching row polarity `NEGATIVE`, was confirmed through `POST /api/handoff/confirm`: **HTTP 200**, `mapping_draft.status=CONFIRMED`, contradiction stored, no CFC run | Shows a conclusion/evidence mismatch can be **confirmed**; not an unsafe CFC closure |
+| **281BR-M22** | Exactly one `POST /api/handoff/run` against that confirmed case returned **HTTP 200** and an executed fixture containing `conclusion=POSITIVE` plus `evidence[0].polarity=NEGATIVE`, `validity=CURRENT` | Shows the mismatch traversed the guarded handoff and reached the frozen controller; HTTP 200 signals request success, not an authorized decision |
+| **281BR-M22** | Frozen engine identity reference matched; CFC claim status **`QUARANTINED`**, `control_closure=false`, `stop_type=NONE`, HAWM projection **`UNRESOLVED`**, **9 false gate fields** | No unjustified closure was observed in this one case. The nine failed gates cannot all be causally attributed to the mismatch because this fixture also differs from M17 in evidence count and other conditions |
+| **281BR-M23** | Before/after state and ledger, guarded API candidate and guard core were copied locally; six copied files matched operator-computed source SHA-256 digests; local receipt recorded | **Local preservation only**, not independent custody, third-party attestation or a published executable reproducer |
+
+Selected operator console observations:
+
+```text
+STEP_281BR-M21: CONCLUSION_GAP_OBSERVED
+CONFIRM_HTTP: 200
+MAPPING_STATUS: CONFIRMED
+CONTRADICTORY_MAPPING_CONFIRMED: True
+CONTRADICTION_STORED: True
+NO_CFC_RESULT: True
+
+STEP_281BR-M22: OBSERVATION_CAPTURED
+RUN_HTTP_STATUS: 200
+ENGINE_IDENTITY_MATCH: True
+CLAIM_STATUS: QUARANTINED
+CONTROL_CLOSURE: False
+STOP_TYPE: NONE
+HAWM_DECISION: UNRESOLVED
+FAILED_GATES_COUNT: 9
+ACTUAL_FIXTURE: {"conclusion":"POSITIVE","required_independent_supports":1,"provenance_shape":"DISTINCT","independence_authority":"NONE","scope":"EXPECTED","evidence":[{"polarity":"NEGATIVE","validity":"CURRENT"}]}
+LAST_LEDGER_EVENT: cfc_confirmed_handoff_run
+STATE_CHANGED: True
+LEDGER_CHANGED: True
+
+STEP_281BR-M23: REDTEAM_EVIDENCE_PRESERVED_PASS
+```
+
+The nine reported false gate names in M22:
+
+- `claim_specific_support_policy_valid`
+- `claim_support_universe_common_mode_coverage_valid`
+- `decision_relevant_relation_discovery_complete_valid`
+- `decision_support_closure_valid`
+- `no_critical_unresolved`
+- `source_independence_semantics_valid`
+- `support_relation_instance_resolution_coverage_valid`
+- `support_selection_justification_valid`
+- `support_set_common_mode_coverage_valid`
+
+**Local M23 receipt SHA-256 (operator-reported):**
+`F6BCF03B88BD02F9335C9FB58FDA64D3960A623EBB2D3255CDAB6EC09188C965`.
+
+### Bounded red-team verdict
+
+- **`CONCLUSION_EVIDENCE_GAP_OBSERVED`** — supported by operator-reported HTTP confirmation and subsequent stored executed fixture.
+- **`UNJUSTIFIED_CFC_CLOSURE_NOT_OBSERVED`** — the controller reported `QUARANTINED` with `control_closure=false` in this case.
+- **`SECURITY_BYPASS_OF_REQUIRED_EVIDENCE_MAPPING_NOT_ESTABLISHED`** — the guard's specified row-label checks still matched the source; whether candidate-level conclusion alignment belongs in this guard's contract is unresolved.
+- **`INDEPENDENT_REPRODUCTION_NOT_DONE`** — the private source, state, ledger and receipt are not published here.
+
+This does **not** justify claims that CFC is immune to adversarial input, that the guarded API is unbypassable, or that real business documents can be validated. It does provide a concrete next contract question: **should HAWM block contradictory overall conclusions before evaluation, or retain them as inputs for CFC to quarantine?**
+
 ### Po polsku — najważniejsze
 
 W izolowanym teście lokalnym **błędne mapowanie zostało odrzucone przez HAWM (HTTP 409)**, a poprawne syntetyczne mapowanie zatwierdzono i przekazano do **niezmienionego CFC**. Dwie znalezione boczne ścieżki API zostały zablokowane (HTTP 403). Zamrożony CFC zwrócił `SUPPORTED`, ale **bez zamknięcia** (`control_closure=false`, `UNRESOLVED`). Wynik zachowano lokalnie. **Nie jest to jeszcze niezależny audyt, dowód poprawnego rozumienia dowolnych dokumentów ani uprawnienie do realnego działania.**
+
+**Uzupełnienie red-team M21–M23:** HAWM zatwierdził przypadek z wnioskiem `POSITIVE` i syntetycznym dowodem `NEGATIVE / CURRENT` (HTTP 200), a sprzeczność przeszła do zamrożonego CFC. Kontroler zwrócił `QUARANTINED`, `control_closure=false` i `UNRESOLVED` (9 niezaliczonych pól bramek). **Potwierdzono lukę zakresu weryfikacji wniosku względem etykiet dowodu, nie potwierdzono nieuzasadnionego domknięcia CFC.** Pliki stanu sprzed/po, ledger i kod skopiowano lokalnie i porównano hashe — bez niezależnego poświadczenia.
