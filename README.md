@@ -134,6 +134,9 @@ An isolated guarded HAWM candidate rejected a deliberately mislabeled synthetic 
 
 **Evidence class:** operator-reported, same-host local tests; no independent reproduction. The guard checks an **exact synthetic text format** rather than arbitrary business-document semantics. The private source, ledger and runtime are not distributed; the reported difference between 49 mandatory gates and 50 raw gate fields remains not yet classified.
 
+**Red-team follow-up (M21–M23):** A contradictory fixture (`conclusion=POSITIVE`, evidence `NEGATIVE / CURRENT`) passed HAWM confirmation and reached frozen CFC, which reported `QUARANTINED`, `control_closure=false`, and `UNRESOLVED` (9 false gate fields). This establishes a **candidate-conclusion/evidence alignment gap** in the bounded guard, **not** an observed unjustified CFC closure. A hash-checked operator-only before/after evidence copy was preserved locally; no independent reproduction or code release.
+
+
 - [Read Mapping Guard v0 technical report, local outputs and non-claims](replication/cfc-hawm-281br-mapping-guard/README.md)
 
 ## HAWM + CFC Chat Prototype v0.4.2 — external reviewer package
