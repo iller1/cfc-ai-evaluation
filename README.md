@@ -128,6 +128,14 @@ A bounded synthetic scenario was replayed through frozen CFC Anchor `0.2.90rc1` 
 
 - [Read the public technical report and proposed independent review protocol](replication/cfc-hawm-281aa-local-replay/README.md)
 
+## CFC × HAWM — Mapping Guard v0 (local synthetic API integration, November 2026)
+
+An isolated guarded HAWM candidate rejected a deliberately mislabeled synthetic evidence record with HTTP `409`, accepted an aligned mapping, and then executed one confirmed handoff against the **unchanged frozen CFC Anchor**. Two identified direct CFC API routes returned HTTP `403`. The resulting claim was `SUPPORTED` but `control_closure=false` and the presentation remained `UNRESOLVED`.
+
+**Evidence class:** operator-reported, same-host local tests; no independent reproduction. The guard checks an **exact synthetic text format** rather than arbitrary business-document semantics. The private source, ledger and runtime are not distributed; the reported difference between 49 mandatory gates and 50 raw gate fields remains not yet classified.
+
+- [Read Mapping Guard v0 technical report, local outputs and non-claims](replication/cfc-hawm-281br-mapping-guard/README.md)
+
 ## HAWM + CFC Chat Prototype v0.4.2 — external reviewer package
 
 A separate experimental HAWM + CFC chat prototype is available for a bounded independent replay. It is a state-aware conversation shell around an unchanged frozen CFC Anchor checkpoint.
