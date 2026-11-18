@@ -1,5 +1,10 @@
 # CFC — AI Evaluation & Control Framework
 
+> **Quick navigation (November 2026):** [Demonstrator](demonstrator/README.md) · [Frozen/project status](PROJECT_STATUS.md) · [Integration Layer](integration/README.md) · [Reference shelf: preserved older work](REFERENCE_INDEX.md) · [AI evaluation portfolio](https://github.com/iller1/ai-evaluation-portfolio)
+>
+> **Evidence boundary:** CFC Anchor and Operator Wrapper remain frozen. Experimental integrations are not production authorization systems. Archived materials stay at their existing paths; none were deleted or moved.
+
+
 CFC is an experimental framework focused on one narrow reliability question:
 
 > Does the available evidence and current system state actually justify a definitive conclusion?
