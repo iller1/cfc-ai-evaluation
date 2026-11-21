@@ -32,3 +32,11 @@
 **Status:** P77-A local isolated test reported by assistant-side execution. Full P77 candidate NOT PROMOTED. P74 original remains review evidence. No claim of pilot readiness.
 
 **Unchanged project controls:** CFC FROZEN; M6 HOLD; E2E 0/6; CP-15 NOT CONNECTED.
+
+## P77-B isolated candidate — 21 Nov 2026
+
+- Candidate archive: `EVIDENCE_COPILOT_P77B_CONTEXT_CANDIDATE.zip`; SHA-256 `730eb51df75119bddaa32407e6967b74c1dfded16a6dee331f3bfe0aaa7d078a` (created locally, **not yet uploaded to GitHub**).
+- Changes: explicit Ollama `num_ctx=8192`, `num_predict=512`; require `prompt_eval_count` and refuse near the configured budget; mark `model_context_coverage_verified=False` and document that the request sent all extracted text **without claiming** the model necessarily processed all of it; revise GUI wording accordingly.
+- Results from isolated assistant-side runs: P77-A importer 7/7 PASS; P77-B mocked bridge 6/6 PASS; Node syntax PASS. No actual Ollama, no Chrome runtime, no independent-machine reproduction.
+- `full_extracted_text_sent=True` in compatibility schema means the full extracted text was **submitted in the HTTP request**, not verified model context coverage or source grounding. This is a known provenance limitation.
+- HOLD: model context fidelity needs real Ollama and adversarial long-document tests; grounding, the GUI Unicode bug, and missing endpoints remain open. No promotion or merging until explicit test evidence.
