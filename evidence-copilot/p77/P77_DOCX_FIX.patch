@@ -1,0 +1,63 @@
+--- a/document_intake.py
++++ b/document_intake.py
+@@ -1,9 +1,7 @@
+-"""Bounded, local-only document extraction and exact excerpt link for CFC x HAWM.
+-
+-No automated evidence admission, no CFC execution, no publication authorization.
+-Files are not written to disk. Extracted text remains in process RAM until expiry.
+-An explicit operator action may append a provenance-only digest link to the
+-existing local document journal, after an exact excerpt was saved in native HAWM.
++"""Isolated local document extraction for Evidence Copilot P77 candidate.
++
++No HAWM/CFC integration, approval, source attestation or disk persistence.
++Extracted text remains in process RAM until cache expiry.
+ """
+ from __future__ import annotations
+ import base64
+@@ -16,8 +14,8 @@
+ import time
+ import xml.etree.ElementTree as ET
+ import zipfile
++from xml.parsers import expat
+ from pathlib import Path
+-from typing import Callable
+ 
+ 
+ 
+@@ -79,12 +77,33 @@
+             if any('vbaProject' in n or n.endswith('.bin') for n in names):
+                 raise IntakeRefused('ACTIVE_CONTENT_DOCX_REFUSED')
+             xml = z.read('word/document.xml')
+-            if b'<!DOCTYPE' in xml.upper() or b'<!ENTITY' in xml.upper():
++            # Expat recognises XML encodings and declarations regardless of
++            # byte order, whitespace or prefix. Reject DTD/entities before
++            # giving the document to ElementTree; it cannot be bypassed with
++            # a UTF-16 encoded OOXML part.
++            probe = expat.ParserCreate()
++            def reject_dtd(*_args):
+                 raise IntakeRefused('DOCX_XML_ENTITIES_REFUSED')
+-            if b'<w:ins' in xml or b'<w:del' in xml or b'<w:moveFrom' in xml:
+-                raise IntakeRefused('TRACKED_CHANGES_DOCX_REFUSED')
++            probe.StartDoctypeDeclHandler = reject_dtd
++            probe.EntityDeclHandler = reject_dtd
++            probe.ExternalEntityRefHandler = reject_dtd
++            try:
++                probe.Parse(xml, True)
++            except expat.ExpatError as exc:
++                raise IntakeRefused('DOCX_PARSE_FAILED') from exc
+             root = ET.fromstring(xml)
+             ns = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
++            # Inspect expanded namespace names, not serialized prefixes:
++            # q:ins and w:ins refer to the same WordprocessingML element.
++            forbidden_changes = {'ins', 'del', 'moveFrom', 'moveTo',
++                                 'moveFromRangeStart', 'moveToRangeStart',
++                                 'moveFromRangeEnd', 'moveToRangeEnd'}
++            for node in root.iter():
++                if node.tag in {'{%s}%s' % (ns, name) for name in forbidden_changes}:
++                    raise IntakeRefused('TRACKED_CHANGES_DOCX_REFUSED')
++                # Hidden text cannot be silently treated as visible evidence.
++                if node.tag in ('{%s}vanish' % ns, '{%s}webHidden' % ns):
++                    raise IntakeRefused('HIDDEN_TEXT_DOCX_REFUSED')
+             paragraphs = []
+             for paragraph in root.iter('{%s}p' % ns):
+                 fragments = []
