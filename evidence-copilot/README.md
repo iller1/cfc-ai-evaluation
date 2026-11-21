@@ -1,6 +1,6 @@
 # Evidence Copilot — External Review Candidate (P74)
 
-> **Status: DRAFT / CANDIDATE_NOT_PROMOTED.** The executable P74 ZIP is **not yet uploaded to this branch**. Do not treat this page as a runnable release or independent validation.
+> **Status: DRAFT / CANDIDATE_NOT_PROMOTED.** The exact P74 ZIP is **available in this review branch** and its Git object identity has been matched against the locally inspected archive. This remains a review candidate, not an independently replicated or production-validated system.
 
 Evidence Copilot is a **local document-analysis demonstrator** associated with the CFC × HAWM research programme. It uses a local Ollama model to produce document-specific answers while explicitly marking them **unverified** and requiring **human review**. It is **not** the frozen CFC Anchor, does **not** execute the CFC controller or native HAWM, and does **not** authorize downstream actions.
 
@@ -30,7 +30,7 @@ Evidence Copilot is a **local document-analysis demonstrator** associated with t
 - Manifest SHA-256: `7fda8b1739a6dc3fcb24ac132e97b3d39269a7d21b96357e452de51d663cbf7e`
 - Contents: `portable_server.py`, `document_intake.py`, `document_ai_bridge.py`, `workspace.html`, `workspace.js`, `workspace.css`, `verify_package.py`, `README_REPLICATION.txt`, `P74_MANIFEST.json`
 
-**Artifact publication pending.** The SHA-256 values above are useful for comparison once the actual archive is provided; they do not independently authenticate its origin.
+**Artifact uploaded:** [Download P74 review ZIP](EVIDENCE_COPILOT_P74_REPLICATION_PACKAGE.zip). Its Git blob SHA-1 is `2718702b51785c4df45c37fd5124ed362b4af133`, equal to the Git blob SHA-1 independently computed from the inspected 79,128-byte ZIP. The SHA-256 above matches the local archive. These checks establish byte identity; they do not prove independent provenance or operational security.
 
 ## Reproduction protocol (once the ZIP is available)
 
@@ -58,10 +58,10 @@ A useful review identifies **one reproducible defect or one clearly bounded pilo
 
 ---
 
-**Review provenance:** prepared from operator-reported P70–P76 terminal/browser results. The actual P74 source/ZIP must be uploaded and checked before calling this a replication-ready public package.
+**Review provenance:** P70–P76 runtime claims are operator-reported. The P74 ZIP has now been uploaded and its identity cross-checked. Independent reproduction on another machine remains NOT DONE.
 
 ## Uploaded archive verification — 21 November 2026
 
 The operator subsequently provided the actual P74 ZIP for independent *file inspection in the review chat* (not an independent machine/runtime replication). Its SHA-256 was recalculated from the uploaded bytes and matched `05afb0e930b7a2fa3f96125873c94426ba42968c2e4d37d1e2fd18308116eb99`. The manifest SHA-256 matched `7fda8b1739a6dc3fcb24ac132e97b3d39269a7d21b96357e452de51d663cbf7e`; all eight manifest-listed content hashes matched the actual archive entries. Source files were inspected; there has been **no external execution, independent replication, or production security audit**.
 
-**Next publication gate:** add that exact ZIP to `evidence-copilot/EVIDENCE_COPILOT_P74_REPLICATION_PACKAGE.zip` on branch `review/evidence-copilot-p74`, then re-download it from GitHub and independently compare the published bytes to the pinned SHA-256. Do not merge or promote this candidate until that check passes.
+**Publication gate completed for this review branch:** the ZIP exists at `evidence-copilot/EVIDENCE_COPILOT_P74_REPLICATION_PACKAGE.zip`; GitHub's file blob SHA-1 matches the exact ZIP inspected locally. **Next evaluation gate:** external reviewer runs the package on a separate environment and returns independently captured evidence. Do not promote to a production or independently validated claim.
