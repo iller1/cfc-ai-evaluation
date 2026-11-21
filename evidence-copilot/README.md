@@ -59,3 +59,9 @@ A useful review identifies **one reproducible defect or one clearly bounded pilo
 ---
 
 **Review provenance:** prepared from operator-reported P70–P76 terminal/browser results. The actual P74 source/ZIP must be uploaded and checked before calling this a replication-ready public package.
+
+## Uploaded archive verification — 21 November 2026
+
+The operator subsequently provided the actual P74 ZIP for independent *file inspection in the review chat* (not an independent machine/runtime replication). Its SHA-256 was recalculated from the uploaded bytes and matched `05afb0e930b7a2fa3f96125873c94426ba42968c2e4d37d1e2fd18308116eb99`. The manifest SHA-256 matched `7fda8b1739a6dc3fcb24ac132e97b3d39269a7d21b96357e452de51d663cbf7e`; all eight manifest-listed content hashes matched the actual archive entries. Source files were inspected; there has been **no external execution, independent replication, or production security audit**.
+
+**Next publication gate:** add that exact ZIP to `evidence-copilot/EVIDENCE_COPILOT_P74_REPLICATION_PACKAGE.zip` on branch `review/evidence-copilot-p74`, then re-download it from GitHub and independently compare the published bytes to the pinned SHA-256. Do not merge or promote this candidate until that check passes.
