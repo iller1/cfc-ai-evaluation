@@ -40,3 +40,11 @@
 - Results from isolated assistant-side runs: P77-A importer 7/7 PASS; P77-B mocked bridge 6/6 PASS; Node syntax PASS. No actual Ollama, no Chrome runtime, no independent-machine reproduction.
 - `full_extracted_text_sent=True` in compatibility schema means the full extracted text was **submitted in the HTTP request**, not verified model context coverage or source grounding. This is a known provenance limitation.
 - HOLD: model context fidelity needs real Ollama and adversarial long-document tests; grounding, the GUI Unicode bug, and missing endpoints remain open. No promotion or merging until explicit test evidence.
+
+## P79 — literal-quote check candidate (21 Nov 2026)
+
+- New isolated candidate ZIP: `EVIDENCE_COPILOT_P79_QUOTE_CHECK_CANDIDATE.zip`, SHA-256 `2dabb855a23efa3b2b0b37da2b6656eaad0f8e63c4537c3647ff4587a157a7a1`. The archive was constructed in the assistant environment but **has not been uploaded to GitHub**.
+- Added a source-hash-bound literal quote check (`QUOTE_EXACT_MATCH`, `QUOTE_NOT_FOUND`, `QUOTE_CHECK_INCONCLUSIVE`) and displayed its result alongside `ANSWER UNVERIFIED`. It does not establish factual correctness, entailment or source authenticity.
+- Assistant-local tests: P77-A 7/7, P77-B mocked bridge 6/6, P79 quote-unit 9/9, P79 HTTP mocked-model 3/3, JS syntax PASS; packaged 17 entries, offline hashes 16/16. **P79 real Qwen and Chrome NOT TESTED**; external replication NOT DONE.
+- P78 real Qwen previous version P77-B reported working locally by operator; that result does not validate new P79 functionality.
+- Next gate: user runs P79 tests on Windows and real Ollama against synthetic P31; preserve P74 as immutable checkpoint.
