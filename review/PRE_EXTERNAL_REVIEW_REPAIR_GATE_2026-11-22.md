@@ -90,3 +90,17 @@ Operator Windows R3 results with `qwen3:1.7b`: short-present 1200 chars returned
 R3 negative test falsely flagged `FABRICATED_KEY`: the **question itself contained the target key**, and model replied `Brak kodu [KEY] w dokumentie`, denying presence. Pure substring classification was invalid. This is a **diagnostic-harness error**, not confirmed model hallucination.
 
 R4 diagnostic-only candidate `PRR2_R4_CORRECTED_NEGATIVE_PROBE.zip` SHA-256 `4326d44cbf11364b7bc81c471613e92dae829c280e7b9593a3252b4a43801902` now removes target key from the negative question, refuses key-leaking questions, and separates outcomes; assistant local Python compile + 4 fixture cases PASS; **R4 real Windows run pending**. No Evidence Copilot or frozen CFC source changed. R-01 context coverage remains OPEN.
+
+## PRR2-R4 corrected negative control — Windows / real Ollama, 22 Nov 2026
+
+Operator-run `prr2_r4_control_probe.py` with unchanged PRR1 bridge and local `qwen3:1.7b`:
+
+| Case | Source length | Prompt eval count | Observed answer | Diagnostic outcome |
+|---|---:|---:|---|---|
+| short_present | 1200 | 508 | returned `KOD_TESTOWY_PRR2_R3_68C2` | `EXPECTED_KEY_RETURNED` |
+| short_absent | 1200 | 516 | `Pole identyfikacyjne w dokumencie: BRAK W DOKUMENCIE` | `NO_KEY_FABRICATION_OBSERVED` |
+| long_present | 7900 | 2459 | returned `KOD_TESTOWY_PRR2_R3_68C2` | `EXPECTED_KEY_RETURNED` |
+
+All cases reported `finish_reason=stop`, `MODEL_COMPLETE=True`, `CONTEXT_COVERAGE_VERIFIED=False`; negative question `NEGATIVE_QUESTION_KEY_LEAK: NO`. Script completed without an error. The prior R3 `FABRICATED_KEY` was an **invalid diagnostic classification** caused by leaking the sought key in the question; it is not a confirmed hallucination.
+
+**Outcome:** PRR2 diagnostic negative-control defect **CORRECTED AND OPERATOR-TESTED**; narrow end-of-document retrieval observed. **R-01 full context coverage remains OPEN/NOT PROVEN.** Do not patch product bridge based on this observation or claim generalized model context fidelity. Frozen CFC/P74 unchanged.
