@@ -229,3 +229,21 @@ MODEL COMPLETE: YES | CONFLICT: SOURCE DECISION VS AI ANSWER | RESPONSE SUPPRESS
 The identical source SHA-256 was observed in original PRR5-R4 failed real-model run, where UI displayed wrong `Decyzja została zatwierdzona` despite document `Decyzja: WSTRZYMANO`. **In PRR6B the UI now suppressed the contradictory model prose and displayed a human-review conflict instead; local real-model/Chrome targeted guard PASS.** Distinguish completed model generation (`MODEL COMPLETE: YES`) from product-level suppressed/incomplete answer (`INCOMPLETE ANSWER`). No CFC execution. Do not infer internal model raw answer beyond guard conflict indicator or generalized injection immunity from this UI alone.
 
 Prior PRR6B Windows full regression PASS and overload 13/13 + 5/5 PASS support narrow **LOCAL REPAIR VERIFIED** status. **External independent replication, P81 oracle review, whole-context coverage, wider injection attack coverage and production readiness remain OPEN.** Frozen CFC Anchor 0.2.90rc1, Operator Wrapper v1.23 and P74 unchanged; M6 HOLD.
+
+## External review received — verified PRR6B defects (22 Nov 2026)
+
+Three external-review responses received. First two reviewers could not access the attached PRR6B ZIP, hence their conclusions were largely access/process-limited. Third reviewer reported inspection of exact ZIP SHA-256 `e8f4694164bbb9317404074ffcba197d62bcb6f51b44e02ec50b9824008b7efc`, all 44 manifest entries, and source-based findings.
+
+**Assistant independently reproduced exact-archive conflict-guard code results** with `Decyzja: WSTRZYMANO.` in source and original decision question:
+- `Decyzja została zatwierdzona.` -> conflict=True (expected);
+- `Decyzja: ZATWIERDZONO.` -> conflict=False (**confirmed false negative**, ordinary space after colon);
+- `Decyzja:ZATWIERDZONO.` -> conflict=True;
+- `Decyzja została zatwierdzona? Nie.` -> conflict=True (**confirmed false positive**, interrogative/denial);
+- `Decyzja: WSTRZYMANO.` -> conflict=False (expected).
+Underlying `document_ai_bridge.py` regex at lines 85–113: `(?::|została\\s+|jest\\s+)` consumes colon but no following whitespace.
+
+**Assistant inspected `portable_server.py:39–65`**: overload header `recv` loop executes in `process_request` on accept thread with `settimeout(0.2)` per operation; no absolute monotonic elapsed deadline. Hence a documented **total** 0.2-second cap is unsupported; bounded 8192 bytes remains true. No live slow-drip DoS was executed.
+
+Third reviewer further noted (not yet independently checked in this turn): missing exact `PRR5_INJECTION_TEST.txt` source bytes (reported real SHA differs from bundled synthetic ATTACK fixture), swallowed background-thread test assertions, duplicate inherited methods, and output leakage for incomplete API responses. Review recommends conditional archive freeze *for continued review only*, HOLD acceptance as corrected baseline.
+
+**Decision: PRR6B preserved with known defects / NO PROMOTION to repaired baseline.** Next isolated repair candidate must add paired red/green HTTP regression for normal colon spacing and interrogative/negative answer; constrain overload with a real monotonic deadline and parent-observed worker test failures; supply exact attack-byte fixture or mark exact replay UNRESOLVED. CFC/Wrapper/P74 frozen; M6 HOLD.
