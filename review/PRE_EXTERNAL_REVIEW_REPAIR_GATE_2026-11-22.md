@@ -138,3 +138,15 @@ All cases reported `finish_reason=stop`, `MODEL_COMPLETE=True`, `CONTEXT_COVERAG
 - Inherited regressions: `test_p77_intake.py` 7/7; `test_p77b_context.py` 6/6; `test_p79_quotes.py` 9/9; `test_p79_http_mock.py` 3/3; `test_p80_semantic_boundary.py` 4/4 — **29/29 PASS**.
 - **Windows total 44/44 automated tests PASS.** Two non-fatal `ResourceWarning` entries indicate HTTPError object cleanup in PRR3 test code; not evidence of production server failure. `PRR4_WINDOWS_REGRESSION: PASS` and `M6: HOLD` printed.
 - **Status:** PRR4 `LOCAL_REGRESSION_VERIFIED`. Not an independent security audit, end-to-end GUI verification, general resilience certification or external replication. Continue with mapping / prompt-injection defect triage without promoting CFC, Wrapper, P74 or M6.
+
+## PRR5 — source/response mapping and hostile-document boundary candidate — 22 Nov 2026
+
+Inspected exact PRR4 baseline `workspace.js`, `workspace.html`, `document_ai_bridge.py`, `quote_verifier.py`, `document_intake.py`, `portable_server.py`.
+
+**Confirmed bug:** Python `len(text)` counts Unicode code points; browser JS `.length` and `.slice()` use UTF-16 units. PRR4 source-bound AI response acceptance in two routes, paired-review state, quickcheck quote offsets, and fallback metadata can therefore falsely reject correct Unicode documents (e.g. `A😀Z`: Python 3 / JS 4). Browser native `maxlength=100000` in two paste controls also limits UTF-16 units despite code point-aware JS import and Python backend.
+
+**Isolated PRR5 candidate (not promoted):** `EVIDENCE_COPILOT_PRR5_MAPPING_INJECTION_REPAIR_CANDIDATE.zip`, SHA-256 `e93e13ea9846dcecd4061485b385372fecaa6797139aa12a853cf4d3e604e785`. Only `workspace.js` and `workspace.html` product files changed; codepoint-aware comparison/slicing and explicit 100k JS/backend limit retained. New node mapping test **16 checks PASS**, `node --check` PASS. New synthetic malicious-document boundary suite **7/7 PASS** (1 new attack case plus six inherited/duplicate test methods). In malicious mocked-provider response, prose can claim CFC/source VERIFIED, yet immutable server-result fields remain `cfc_run=false`, `source_verified=false`, `semantic_support_verified=false` even when quote-state is `QUOTE_EXACT_MATCH`. **This does not prove the model resists prompt injection**; it tests status isolation with a mocked provider.
+ 
+- Existing PRR4 suite **5/5** and PRR3 **10/10**, inherited P77–P80 **29/29** PASS on rerun in assistant environment. One earlier PRR4 capacity-test invocation failed, then immediately passed and passed again in full rerun; transient test instability warrants follow-up, not concealment. **44/44 regression cases on full rerun** (not added to the seven isolated malicious-suite cases).
+- PRR5 archive manifest `PRR5_OFFLINE_HASHES: PASS_36`.
+- **Next:** operator Windows validation and optional browser paste/AI Unicode flow; real-model prompt injection attempt and independent external reviewer remain pending. **Do not claim injection-proof, semantic correctness, production readiness or full context coverage.** CFC Anchor, Operator Wrapper, P74 frozen; M6 HOLD.
