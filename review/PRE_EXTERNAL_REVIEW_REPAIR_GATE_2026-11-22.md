@@ -112,3 +112,11 @@ All cases reported `finish_reason=stop`, `MODEL_COMPLETE=True`, `CONTEXT_COVERAG
 - Assistant-local tests: new isolated HTTP positive/negative suite **10/10 PASS**; inherited P77-A 7/7, P77-B mock 6/6, P79 quotes 9/9 + HTTP mocks 3/3, P80 synthetic boundary 4/4 (**29/29 PASS**); archive file hashes **27/27 PASS**. No real Windows/Chrome execution for PRR3 and no independent audit.
 - **Open controls:** `ThreadingHTTPServer` concurrency is not bounded; Ollama upstream may take 120 seconds and socket timeout is not an end-to-end execution budget. Additional CORS/Origin/security review and stress tests remain pending. Localhost-only, do not expose on LAN.
 - **Next gate:** Windows operator verify archive + run `test_prr3_http.py`, inherited tests and real GUI startup. PRR3 remains `REPAIR_CANDIDATE_NOT_PROMOTED`; CFC/Wrapper/P74 unchanged.
+
+## PRR3-R1 Windows operator validation — 22 Nov 2026
+
+- `python -B verify_prr3.py` reported `PRR3_OFFLINE_HASHES: PASS_27`, `FROZEN_CFC_MODIFIED: NO`, `EXTERNAL_REPLICATION: NOT_DONE`.
+- `python -B test_prr3_http.py`: **10/10 PASS** for content type, duplicate Content-Length, duplicate/foreign Host, foreign Host even with Origin, configured idle timeout, missing Origin, Transfer-Encoding rejection, blocked native POST route, and valid GUI GET.
+- Inherited regression suites: DOCX P77-A 7/7, mocked context P77-B 6/6, quote checking P79 9/9, mocked HTTP P79 3/3, semantic boundary P80 4/4 — **29/29 PASS**.
+- Windows script printed `PRR3_WINDOWS_TESTS: PASS`; total **39/39 automated cases**. Two Python `ResourceWarning` lines from implicitly closing HTTPError objects are test cleanup warnings, not case failures; cleanup can be fixed separately.
+- **Evidence boundary:** local operator run; does not prove full server security, idle timeout effectiveness under network attack, bounded concurrency, independent replication or production readiness. R-03 is **PARTIALLY REPAIRED / CONCURRENCY AND STRESS OPEN**. No change to frozen CFC, P74 or M6.
