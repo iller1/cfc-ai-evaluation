@@ -76,3 +76,9 @@ A professor may receive a **research introduction** now with this issue register
 Operator reports `qwen3:1.7b` via unchanged PRR1 bridge: source 8001 code points refused pre-model; short 1200 and near-limit 7900 sources accepted, prompt_eval_count 376 and 1533, respectively; finish_reason `stop`, model_complete True for both. **Trailing unique marker absent from answer in both cases.** Both runs still `model_context_coverage_verified=False`; diagnostic correctly reported `REVIEW_REQUIRED` with successful script process exit (not promotion PASS).
 
 **Evidence boundary:** absent marker in short and long cases cannot by itself diagnose Ollama context truncation. Diagnostic did not log model answer text. Next: capture bounded raw answer text and recheck marker check / prompt following in a separate diagnostic copy; leave product unchanged. R-01 remains OPEN / ROOT CAUSE NOT DETERMINED.
+
+## PRR2-R2 short model answer — 22 Nov 2026
+
+- Operator R2 answer inspection (1200-character fixture): provider `qwen3:1.7b`, `prompt_eval_count=377`, `finish_reason=stop`, `MODEL_COMPLETE=True`, answer exactly `UNRESOLVED` instead of trailing marker `PRR2_END_3704A0C98C37369A`. This is **not proof** of prompt truncation; model abstained despite a marker present in synthetic source.
+- Separate **diagnostic-only** PRR2-R3 control probe created (not a product code change), ZIP `PRR2_R3_CONTROL_PROBE.zip` SHA-256 `8e3166d93fc74fb417e68b5f189f52c36ee81e780dcb8c71aafa398d4e50f809`; not uploaded to GitHub. Uses explicit key-value field at tail, positive/absent negative controls, 1200 / 7900-char fixtures. Assistant-local static syntax and 4 fixture shape checks PASS; **real Windows/Ollama execution pending**.
+- R-01 continues OPEN; avoid labeling complete model generation as validated context coverage. No code modifications to frozen CFC or Evidence Copilot source.
