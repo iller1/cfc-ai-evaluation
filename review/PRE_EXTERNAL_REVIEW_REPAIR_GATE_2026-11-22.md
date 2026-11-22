@@ -375,3 +375,17 @@ Changes relative to PRR9:
 - Assistant-local Python inherited targeted suites **135 test executions, 134 PASS and 1 explicitly SKIPPED optional old deadline parent comparison** (tests contain duplicated inherited methods); Node PRR10, PRR9, PRR8 language, PRR1, PRR5 checks and JS syntax all PASS. Full scope recorded in PRR10_LOCAL_TEST_RECEIPT.json.
 
 **Gate:** PRR10 assistant-local PASS / NOT PROMOTED. Windows targeted + full regression, real Chrome technical preview after HTTP409 and new import, independent adversarial ZIP review **PENDING**. PRR9 unchanged, original PRR5 historical attack bytes UNRESOLVED. CFC Anchor 0.2.90rc1, Operator Wrapper v1.23, P74 immutable; M6 DESIGN HOLD; no CFC authorization, semantic verification, external production readiness claims.
+
+## PRR10 operator Windows targeted execution — 22 Nov 2026
+
+Operator-provided PowerShell 5.1 log from `EVIDENCE_COPILOT_PRR10_SOURCE_STATE_AND_TEST_REPAIR_CANDIDATE`:
+- `verify_prr10.py`: `PRR10_OFFLINE_HASHES: PASS_67`, `FROZEN_CFC_SOURCE_IN_PACKAGE: NONE`, `EXACT_PRR5_ATTACK_BYTES: UNRESOLVED`, `INDEPENDENT_EXTERNAL_REPLICATION: NOT_DONE`, `PRR10_STATE: CANDIDATE_NOT_PROMOTED`.
+- `test_prr9_rejected_docx_http.py`: **1/1 PASS**; valid A parse HTTP 200 followed by malformed replacement DOCX HTTP 409 `INVALID_DOCX_ARCHIVE`.
+- `test_prr9_deadline.py`: **1 PASS, 1 SKIP**; old PRR6B parent negative-control was **not provided**, so Windows historical comparison is not claimed.
+- `test_prr4_capacity.py`: **5/5 PASS**, including the corrected post-handler slot recovery observation (one run, not a flake-rate proof).
+- `test_prr8_guard.py`: **20/20 PASS**, includes inherited tests and reason-negation opposite/matching HTTP pairs.
+- Node `test_prr10_import.js`: `PRR10_TECHNICAL_VIEW_MUTATION: REJECTED`, `PRR10_IMPORT_GENERATION_MUTATION: REJECTED`, `PRR10_SOURCE_STATE: PASS_6` (rejected import, overlapping outcomes, slow file read, stale rejection, removal during pending import).
+- `test_prr9_state.js`: `PRR9_IMPORT_REPAINT_MUTATION: REJECTED`, `PRR9_SOURCE_LIFECYCLE: PASS_2`, `PRR9_PRODUCTION_LANGUAGE_WRITE_MUTATION: REJECTED`. `test_prr8_language.js`: `PRR8_LANGUAGE_RERENDER: PASS_3`. JS syntax `node --check workspace.js` exited 0.
+- End marker `PRR10_WINDOWS_TARGETED: PASS`, `FULL_REGRESSION: PENDING`, `REAL_CHROME_RETEST: PENDING`, `EXTERNAL_REVIEW: PENDING`, `CFC: FROZEN`, `M6: HOLD`.
+
+**Disposition:** narrow PRR10 operator Windows gate PASS; candidate NOT PROMOTED and exact historical PRR5 attack bytes UNRESOLVED. Next: remaining Windows inherited suites, real Chrome technical preview / status clearing after invalid DOCX HTTP 409, then independent review of exact PRR10 archive.
