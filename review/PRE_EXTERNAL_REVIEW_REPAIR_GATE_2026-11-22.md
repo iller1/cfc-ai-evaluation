@@ -39,3 +39,13 @@
 A professor may receive a **research introduction** now with this issue register. Do not send the latest Evidence Copilot as a clean executable review package until its archive is actually available and an unfamiliar operator can reproduce the published instructions. Do not advertise production safety, generalized semantic understanding, downstream execution prevention or commercial readiness.
 
 **Decision:** KNOWN-DEFECT REPAIR IN PROGRESS | CFC FROZEN | M6 HOLD | P81 REFERENCE FREEZE HOLD.
+
+## PRR1 isolated repair candidate — Unicode character limits
+
+- Original P80-derived `workspace.js` SHA-256: `6f3e6f525518f4a33813d7ac2ff350e9931b29dc7e7aa920ceef8d8adf95b0a9`.
+- Reproduced static discrepancy: JS `.length` counts UTF-16 code units; Python `len(str)` counts Unicode code points for non-BMP characters.
+- **Minimal repair:** use code-point length for GUI paste 100,000-character limit and document excerpt 420-character limit/preview. This is not a comprehensive Unicode or browser security audit.
+- Isolated candidate artifact: `EVIDENCE_COPILOT_PRR1_UNICODE_REPAIR_CANDIDATE.zip`; SHA-256 `d942eae3d8744ae6f569688fb7341552adc94786a2e8f3c63d5a12a47575e790`. **Not uploaded to GitHub.**
+- Assistant-local verification: Node syntax PASS; code-point unit test 11 assertions PASS; inherited Python regressions 29/29 PASS (P77-A 7, P77-B 6, P79 quote 9 + HTTP mock 3, P80 4); new archive file hashes 23/23 PASS.
+- **Next gate:** Windows operator clean extraction / full test commands and GUI HTTP non-BMP boundary test. The code fix is **CANDIDATE**, not independently validated; do not mark R-02 resolved before that test.
+- Frozen P74, frozen CFC and M6 were not changed.
