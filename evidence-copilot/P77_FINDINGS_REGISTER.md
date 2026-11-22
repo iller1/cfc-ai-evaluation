@@ -48,3 +48,21 @@
 - Assistant-local tests: P77-A 7/7, P77-B mocked bridge 6/6, P79 quote-unit 9/9, P79 HTTP mocked-model 3/3, JS syntax PASS; packaged 17 entries, offline hashes 16/16. **P79 real Qwen and Chrome NOT TESTED**; external replication NOT DONE.
 - P78 real Qwen previous version P77-B reported working locally by operator; that result does not validate new P79 functionality.
 - Next gate: user runs P79 tests on Windows and real Ollama against synthetic P31; preserve P74 as immutable checkpoint.
+
+## Operator follow-up evidence — 22 Nov 2026 (P79–P81-R2-A)
+
+This addendum supersedes **earlier pending-status statements for these specific gates only**. It does not revise historical logs.
+
+| Gate | Operator-reported evidence | Narrow outcome |
+|---|---|---|
+| P79 Windows automated tests | P77-A importer 7/7, P77-B mocked context 6/6, P79 quote unit 9/9, HTTP mocked integration 3/3; offline hashes 16/16 | Local automated checks PASS 25/25; structural/byte checks only |
+| P79 real Qwen3:1.7b + Chrome | Initially served stale `workspace.js` (local hash `6f3e6f525518f4a33813d7ac2ff350e9931b29dc7e7aa920ceef8d8adf95b0a9`; server hash `2520c2b830a058d2bb587dde17016cde3300e41d2a7c874b97ca1e735a759277`). After restart `P79_GUI_BYTE_MATCH: True`; real run reported `P79_QUOTE_STATE: QUOTE_EXACT_MATCH` and Chrome `QUOTE CHECK: QUOTE_EXACT_MATCH (1/1 exact) | SEMANTIC SUPPORT: NOT VERIFIED` | **LOCAL RUNTIME PASS for this one quote case**, not independent replication, not semantic entailment |
+| P80 Windows synthetic boundary | Offline hashes 11/11; P80 unit tests 4/4, including correct quote paired with unsupported/irrelevant claim; packaged predecessor unchanged relative to manifest | **LOCAL SYNTHETIC PASS**; semantic correctness NOT PROVEN; no independent review |
+| P81-R1 Windows matrix | 12 synthetic cases spanning SUPPORTED, CONTRADICTED, IRRELEVANT, FABRICATED_QUOTE, CONFLICT, UNRESOLVED; 7/7 matrix structural tests | **LOCAL STRUCTURE PASS**; labels are author-generated, not reviewed oracle |
+| P81-R2-A Windows blind-review packaging | Offline hashes 6/6; blind coverage/form/label-hide/provenance tests 4/4 | **LOCAL PACKAGE PASS**; independent reviewer has not yet assessed cases |
+
+**Current hard boundary:** `P81-R2-B EXTERNAL BLIND REVIEW PENDING`, `REFERENCE_FREEZE HOLD`. P81-07 and P81-09 especially need separate consideration of citation validity, claim support, and conflicting-rule evidence. No Qwen benchmark should be scored against P81 labels until reference review/adjudication is complete.
+
+**Candidate distribution:** P80, P81 and P81-R2 packages were tested in isolated user Windows folders, but this GitHub change records **status only**. It does **not** claim these ZIP contents or raw receipts are included in the repo. Check hash/manifests on any separately submitted artifacts. P74 ZIP and historical evidence must remain immutable.
+
+**Other unresolved controls:** long-document model context coverage, native CFC/HAWM integration, end-to-end execution prevention, model provenance, external clean-room replication. `CFC FROZEN | M6 HOLD | E2E 0/6 | CP-15 NOT CONNECTED`.
