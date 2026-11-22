@@ -334,3 +334,16 @@ All assistant-local inherited Python suites through PRR8 PASS (131 executed test
 **New ZIP:** `EVIDENCE_COPILOT_PRR9_SOURCE_LIFECYCLE_CANDIDATE.zip` SHA-256 **`198c62d4bcb42e5de536a42fa250fe3ee9b82714cdb7e806787910cdcf3e43f2`**; ZIP CRC PASS, 64 entries, `PRR9_MANIFEST.json` **62/62 SHA-256 PASS**, exact parent SHA recorded. ZIP not yet published as repository source artifact; GitHub record alone does not give reviewers source access.
 
 **Decision:** `PRR8 HOLD`; `PRR9 ASSISTANT-LOCAL PASS / CANDIDATE_NOT_PROMOTED`; Windows-specific targeted/full regression, real Chrome malformed-document replacement UI, independent PRR9 review PENDING. Exact historical PRR5 attack bytes remain UNRESOLVED; no claims of generalized injection or production robustness. CFC Anchor/Wrapper/P74 frozen; M6 DESIGN HOLD.
+
+## PRR9 operator Windows targeted execution — 22 Nov 2026
+
+Operator-supplied PowerShell 5.1 transcript from `EVIDENCE_COPILOT_PRR9_SOURCE_LIFECYCLE_CANDIDATE`:
+- `verify_prr9.py`: `PRR9_OFFLINE_HASHES: PASS_62`; `FROZEN_CFC_SOURCE_IN_PACKAGE: NONE`; `EXACT_PRR5_ATTACK_BYTES: UNRESOLVED`; `INDEPENDENT_EXTERNAL_REPLICATION: NOT_DONE`; `PRR9_STATE: CANDIDATE_NOT_PROMOTED`.
+- `test_prr9_rejected_docx_http.py`: 1/1 PASS. Valid document A `/api/document-intake/parse` returned HTTP 200; malformed replacement DOCX refused `IntakeRefused INVALID_DOCX_ARCHIVE` / HTTP 409.
+- `test_prr9_deadline.py`: 2/2 PASS, including `test_parent_if_supplied_is_rejected`. Note: name alone does not confirm parent was actually supplied in operator environment; check environment/run record before treating as proven parent comparison.
+- `test_prr8_guard.py`: 20/20 PASS (includes inherited tests).
+- `test_prr6b_overload.py`: 13/13 PASS (includes inherited tests).
+- Node `test_prr9_state.js`: `PRR9_IMPORT_REPAINT_MUTATION: REJECTED`, `PRR9_SOURCE_LIFECYCLE: PASS_2 (benign + conflict)`, `PRR9_PRODUCTION_LANGUAGE_WRITE_MUTATION: REJECTED`; `test_prr8_language.js` `PRR8_LANGUAGE_RERENDER: PASS_3`. `node --check workspace.js` returned 0.
+- Terminal `PRR9_WINDOWS_TARGETED: PASS`, `FULL_REGRESSION: PENDING`, `REAL_CHROME_RETEST: PENDING`, `CFC: FROZEN`, `M6: HOLD`.
+
+**Decision:** targeted local Windows PRR9 gate PASS, **NOT PROMOTED**; next full inherited Windows regression and live Chrome A→rejected invalid DOCX B with immediate clearing of latest-answer panel; independent PRR9 source review pending, original PRR5 attack bytes unresolved. No authorization or CFC execution claims.
