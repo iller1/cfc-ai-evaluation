@@ -55,3 +55,11 @@ A professor may receive a **research introduction** now with this issue register
 - User-run Windows PowerShell 5.1 log: `verify_prr1.py` returned `PRR1_OFFLINE_HASHES: PASS_23`; `node --check workspace.js` exit 0; `node test_prr1_unicode.js` returned `PASS_11`.
 - Inherited regression suite: P77-A 7/7, P77-B mocked context 6/6, P79 unit 9/9, P79 mocked HTTP 3/3, P80 synthetic boundary 4/4; `PRR1_WINDOWS_REGRESSION: PASS`.
 - **Gate remains open:** actual Chrome paste-path Unicode boundary test not yet shown. This confirms local unit/regression checks, not independent external replication, browser correctness or all input safety.
+
+## PRR1 real local HTTP/GUI follow-up — 22 Nov 2026
+
+- Operator selected a generated UTF-8 TXT containing 50,001 U+1F600 code points in the Chrome file picker; the UI displayed an unverified attachment (source trust status, not parse error). Browser import byte identity was **not** independently captured.
+- First direct PowerShell POST returned `P71_ORIGIN_REFUSED` because the required localhost Origin header was absent. The helper mistakenly printed a PASS after the failure; **this line is invalid and excluded from evidence**. The server's origin guard was behaving as designed.
+- Corrected PowerShell HTTP POST supplied `Origin: http://127.0.0.1:8780` and returned `extracted_length=50001`, `source_sha256=21e406b4c606239aa7e87147d096fb666f187786a2ec17978cb2ba6ea3ee895d`, `cfc_evaluated_document=false`; `PRR1_UNICODE_REAL_HTTP: PASS`.
+- **R-02 state: LOCAL REPAIR VERIFIED for tested Unicode file-import boundary.** This does not prove all Unicode behavior, comprehensive browser-flow reexecution or independent replication. No change to frozen CFC/P74.
+- **Next repair area:** R-01 Ollama context coverage; exact candidate telemetry and long-document negative tests still needed, no new features.
