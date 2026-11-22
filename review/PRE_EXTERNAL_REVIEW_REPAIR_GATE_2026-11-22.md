@@ -267,3 +267,17 @@ Operator-provided PowerShell 5.1 transcript from exact PRR7 candidate:
 - `test_prr6b_overload.py`: **13/13 PASS** (includes inherited capacity tests).
 - Terminal `PRR7_WINDOWS_TARGETED: PASS` with `FULL_REGRESSION: PENDING`, `REAL_MODEL_RETEST: PENDING`, `EXACT_ATTACK_BYTES: UNRESOLVED`, `CFC: FROZEN`, `M6: HOLD`.
 - **Status:** PRR7 targeted local Windows gate PASS; neither independent validation nor candidate freeze. Do not sum 23+10+15+13 as independent distinct test coverage. Next: full inherited regression and real model GUI retest of decision variants; preserve original PRR6B archive.
+
+## PRR7 full Windows inherited regression — 22 Nov 2026
+
+Operator PowerShell 5.1 transcript from `EVIDENCE_COPILOT_PRR7_EXTERNAL_REVIEW_CORRECTIONS_CANDIDATE`:
+- `test_prr5_injection.py` 7/7 PASS
+- `test_prr3_http.py` 10/10 PASS (two nonfatal `ResourceWarning` cleanup warnings on HTTPError 415 and 403)
+- `test_p77_intake.py` 7/7 PASS
+- `test_p77b_context.py` 6/6 PASS
+- `test_p79_quotes.py` 9/9 PASS
+- `test_p79_http_mock.py` 3/3 PASS
+- `test_p80_semantic_boundary.py` 4/4 PASS
+- `node --check workspace.js` exit 0, `node test_prr5_mapping.js` `PRR5_UNICODE_MAPPING: PASS_16`
+- Final `PRR7_FULL_WINDOWS_REGRESSION: PASS`, `REAL_MODEL_RETEST: PENDING`, `CFC: FROZEN`, `M6: HOLD`.
+These are 46 executed Python test invocations across seven suites plus 16 JS checks; inherited cases overlap previous targeted suites, not distinct proofs. PRR7 targeted Windows previously PASS. **PRR7 still candidate_not_promoted** until real Qwen/Chrome test and review handoff; exact historical injection-file bytes remain UNRESOLVED.
