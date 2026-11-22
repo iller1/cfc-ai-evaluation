@@ -70,3 +70,9 @@ A professor may receive a **research introduction** now with this issue register
 - Separate diagnostic-only package: `PRR2_CONTEXT_DIAGNOSTIC_CANDIDATE.zip`, SHA-256 `0f4b2adaa0c77cd5f26083639421c31ff63c0151edcb3412663ae53395521862`. **Not yet in GitHub; not a repaired or promoted product version**.
 - Probe: negative 8,001-character refusal before model execution; real Ollama short (1,200) and near-limit (7,900) synthetic docs with unique trailing marker. Collect prompt tokens, finish, quote marker presence. The marker is merely a narrow functional observation, **not proof of all-context fidelity**. Source module is unmodified. Static script compile and synthetic lengths 3/3 pass in assistant environment.
 - **PENDING:** operator Windows/Ollama runtime diagnostic; no claim of context coverage, semantic correctness, independent replication, or R-01 resolution.
+
+## PRR2-R1 Windows real-Ollama diagnostic — 22 Nov 2026
+
+Operator reports `qwen3:1.7b` via unchanged PRR1 bridge: source 8001 code points refused pre-model; short 1200 and near-limit 7900 sources accepted, prompt_eval_count 376 and 1533, respectively; finish_reason `stop`, model_complete True for both. **Trailing unique marker absent from answer in both cases.** Both runs still `model_context_coverage_verified=False`; diagnostic correctly reported `REVIEW_REQUIRED` with successful script process exit (not promotion PASS).
+
+**Evidence boundary:** absent marker in short and long cases cannot by itself diagnose Ollama context truncation. Diagnostic did not log model answer text. Next: capture bounded raw answer text and recheck marker check / prompt following in a separate diagnostic copy; leave product unchanged. R-01 remains OPEN / ROOT CAUSE NOT DETERMINED.
