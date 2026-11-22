@@ -256,3 +256,14 @@ Third reviewer further noted (not yet independently checked in this turn): missi
 - Added `test_prr7_review_corrections.py` (12 new explicit guard pairs and one slow-drip test, plus inherited PRR4 cases), `test_prr7_http_pairs.py` (4 new paired HTTP responses, plus inherited mocks). Both assistant local PASS. Inherited PRR6, PRR5, PRR6B, PRR3, P77/P79/P80 suites and Node Unicode mapping all PASS in assistant environment; tests within inherited suites overlap and must not be inflated as independent coverage.
 - Exact original `PRR5_INJECTION_TEST.txt` source file, displayed SHA `4c52e5103ef925d46ffd67f94a918501140d481676049938a10605c866d1a930`, not present in inspected accessible archives. **EXACT BYTE REPLAY UNRESOLVED**; bundled `ATTACK` test source has different bytes.
 - **Status: PRR7 CANDIDATE_NOT_PROMOTED, Windows specific capacity retest and real Qwen3/Chrome red-green PENDING**, independent replication and full model context coverage OPEN. The overload read still sits in accept loop; absolute cap addresses documented overclaim but does not establish DoS immunity.
+
+## PRR7 Windows operator targeted validation — 22 November 2026
+
+Operator-provided PowerShell 5.1 transcript from exact PRR7 candidate:
+- `verify_prr7.py`: `PRR7_OFFLINE_HASHES: PASS_49`, `CFC_FILES_IN_THIS_PACKAGE: NONE`, `EXACT_ATTACK_FILE: NOT_INCLUDED_UNRESOLVED`, `EXTERNAL_REPLICATION: NOT_DONE`.
+- `test_prr7_review_corrections.py`: **23/23 PASS**, including source `WSTRZYMANO` vs response `Decyzja: ZATWIERDZONO.` suppression; interrogative denial not falsely flagged; forward/reverse pairs, unknown suffix, and slow-drip budget case. This suite includes inherited PRR4 capacity tests.
+- `test_prr7_http_pairs.py`: **10/10 PASS**, including four new paired HTTP cases; inherited P79 HTTP mocks duplicated.
+- `test_prr6_conflict.py`: **15/15 PASS** (includes inherited integration cases).
+- `test_prr6b_overload.py`: **13/13 PASS** (includes inherited capacity tests).
+- Terminal `PRR7_WINDOWS_TARGETED: PASS` with `FULL_REGRESSION: PENDING`, `REAL_MODEL_RETEST: PENDING`, `EXACT_ATTACK_BYTES: UNRESOLVED`, `CFC: FROZEN`, `M6: HOLD`.
+- **Status:** PRR7 targeted local Windows gate PASS; neither independent validation nor candidate freeze. Do not sum 23+10+15+13 as independent distinct test coverage. Next: full inherited regression and real model GUI retest of decision variants; preserve original PRR6B archive.
