@@ -82,3 +82,11 @@ Operator reports `qwen3:1.7b` via unchanged PRR1 bridge: source 8001 code points
 - Operator R2 answer inspection (1200-character fixture): provider `qwen3:1.7b`, `prompt_eval_count=377`, `finish_reason=stop`, `MODEL_COMPLETE=True`, answer exactly `UNRESOLVED` instead of trailing marker `PRR2_END_3704A0C98C37369A`. This is **not proof** of prompt truncation; model abstained despite a marker present in synthetic source.
 - Separate **diagnostic-only** PRR2-R3 control probe created (not a product code change), ZIP `PRR2_R3_CONTROL_PROBE.zip` SHA-256 `8e3166d93fc74fb417e68b5f189f52c36ee81e780dcb8c71aafa398d4e50f809`; not uploaded to GitHub. Uses explicit key-value field at tail, positive/absent negative controls, 1200 / 7900-char fixtures. Assistant-local static syntax and 4 fixture shape checks PASS; **real Windows/Ollama execution pending**.
 - R-01 continues OPEN; avoid labeling complete model generation as validated context coverage. No code modifications to frozen CFC or Evidence Copilot source.
+
+## PRR2-R3 finding and R4 diagnostic correction — 22 Nov 2026
+
+Operator Windows R3 results with `qwen3:1.7b`: short-present 1200 chars returned the expected key (`prompt_eval_count=508`); long-present 7900 returned expected key (`prompt_eval_count=2459`); both `finish_reason=stop` and `model_context_coverage_verified=False`. **These are narrow field-retrieval observations, not full context-coverage proof.**
+
+R3 negative test falsely flagged `FABRICATED_KEY`: the **question itself contained the target key**, and model replied `Brak kodu [KEY] w dokumentie`, denying presence. Pure substring classification was invalid. This is a **diagnostic-harness error**, not confirmed model hallucination.
+
+R4 diagnostic-only candidate `PRR2_R4_CORRECTED_NEGATIVE_PROBE.zip` SHA-256 `4326d44cbf11364b7bc81c471613e92dae829c280e7b9593a3252b4a43801902` now removes target key from the negative question, refuses key-leaking questions, and separates outcomes; assistant local Python compile + 4 fixture cases PASS; **R4 real Windows run pending**. No Evidence Copilot or frozen CFC source changed. R-01 context coverage remains OPEN.
