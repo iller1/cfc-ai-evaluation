@@ -1,0 +1,41 @@
+# CFC / Evidence Copilot — Pre-external-review repair gate
+
+**Date:** 2026-11-22  
+**Purpose:** fix reproducible defects before inviting outsiders to review the *latest* candidate; do not add features or broaden claims.  
+**Status:** OPEN — NOT A RELEASE APPROVAL.
+
+## Immutable boundaries
+
+- CFC Anchor 0.2.90rc1 and Operator Wrapper v1.23 are frozen; historical baselines and P74 ZIP remain unchanged.
+- M6 DESIGN HOLD; end-to-end execution tests 0/6; CP-15 NOT CONNECTED.
+- Evidence Copilot is **not integrated** with frozen CFC/HAWM and does not authorize actions.
+- Latest P79–P81 packages have been tested in isolated local environments, but **not all candidate ZIPs are checked into this repository**. A reviewer cannot reproduce an unpublished package from status notes alone.
+
+## Defect triage (no unsupported claims of resolution)
+
+| ID | Observed or reviewer-reported problem | Evidence so far | Required before marking fixed |
+|---|---|---|---|
+| R-01 Context | Ollama input submission does not prove all document tokens were processed; `prompt_eval_count` not established in real-run logs | P77-B mock checks 6/6; local real Qwen runs; context coverage still NOT VERIFIED | Deterministic long-input and near-limit tests; capture model version/config, token telemetry, refusal and honest GUI wording |
+| R-02 Unicode | JavaScript UTF-16 length may disagree with Python Unicode code-point length at 8k/100k bounds | P74 external review reported discrepancy; latest candidate status not retested | Reproduce on non-BMP and boundary-sized text through actual GUI/HTTP; patch only if confirmed; regression tests |
+| R-03 HTTP | Local service host/origin restrictions, timeouts, concurrency and limits require checking | P73 limited route tests, not full security assessment | Explicit localhost-only bind, Host checks, bounded request handling, negative tests and clear local-only non-claims |
+| R-04 Document injection | Untrusted document instructions may influence model answers or impersonate system boundaries | External reviewer concern, not resolved by P79 | Predeclared adversarial synthetic fixtures; refuse or disclose unsupported assertions; no assertion of general injection immunity |
+| R-05 Duplicate execution | External reviewer reports mock executor invoked twice when repeated operation supplied with an empty execution history | Report requires original reproducer/logs; **not confirmed defect of frozen CFC** | Pin exact module/version, attempt ID and state; reproduce; specify mandatory durable ledger/idempotency responsibility; do not modify frozen Anchor |
+| R-06 Mapping | A synthetic contradiction passed a limited upstream mapping guard before frozen CFC marked closure false and output unresolved | Operator-reported M21–M23 reproduction | Recheck upstream candidate/evidence alignment using negative fixtures; do not claim CFC unjustified closure |
+| R-07 DOCX | Tracked changes / DTD / hidden text defects in P74 | P77-A isolated candidate 7/7 tests; Windows operator PASS | Confirm patch is present in reviewable distributed candidate and rerun hostile DOCX regressions |
+| R-08 Quotes | P74 fabricated quote could be treated as a complete response | P79 local Windows 25/25 and one real Qwen quote PASS; quote matching is **not** semantic truth | Distribute exact candidate and tests; independent clean extraction/replay; keep semantic status unverified |
+| R-09 Oracle | P81 has 12 author-labelled synthetic semantic cases | P81-R1 7/7 structural tests; P81-R2-A 4/4 blind package tests | External blind evaluation and adjudication; reference freeze remains HOLD |
+
+## Repair protocol
+
+1. Establish source identity and exact candidate hash for each reproduced defect.
+2. Write a failing **negative** regression test for confirmed defects; keep original logs and original package.
+3. Patch **only the unfrozen candidate**, smallest possible change; no feature expansion.
+4. Rerun focused positives, negatives, previous regressions and package-manifest verification.
+5. Log `CONFIRMED_FIXED`, `NOT_REPRODUCED`, `OPEN_LIMITATION`, or `REVIEW_REQUIRED` with exact commands, environment and output. Never write PASS just because an issue was described.
+6. Package the exact source + tests + fixture inputs + checksums + reproduction instructions; distinguish operator reports from independent replication.
+
+## External-review gate
+
+A professor may receive a **research introduction** now with this issue register. Do not send the latest Evidence Copilot as a clean executable review package until its archive is actually available and an unfamiliar operator can reproduce the published instructions. Do not advertise production safety, generalized semantic understanding, downstream execution prevention or commercial readiness.
+
+**Decision:** KNOWN-DEFECT REPAIR IN PROGRESS | CFC FROZEN | M6 HOLD | P81 REFERENCE FREEZE HOLD.
