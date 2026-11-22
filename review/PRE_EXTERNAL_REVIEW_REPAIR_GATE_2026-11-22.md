@@ -104,3 +104,11 @@ Operator-run `prr2_r4_control_probe.py` with unchanged PRR1 bridge and local `qw
 All cases reported `finish_reason=stop`, `MODEL_COMPLETE=True`, `CONTEXT_COVERAGE_VERIFIED=False`; negative question `NEGATIVE_QUESTION_KEY_LEAK: NO`. Script completed without an error. The prior R3 `FABRICATED_KEY` was an **invalid diagnostic classification** caused by leaking the sought key in the question; it is not a confirmed hallucination.
 
 **Outcome:** PRR2 diagnostic negative-control defect **CORRECTED AND OPERATOR-TESTED**; narrow end-of-document retrieval observed. **R-01 full context coverage remains OPEN/NOT PROVEN.** Do not patch product bridge based on this observation or claim generalized model context fidelity. Frozen CFC/P74 unchanged.
+
+## PRR3 — isolated HTTP boundaries repair candidate (22 Nov 2026)
+
+- Audited exact PRR1 `portable_server.py`: bound to `127.0.0.1:8780`, strict POST `Origin`, content-type and body-size checks, route allowlist. **Confirmed gaps:** no `Host` header validation (GET/POST) and no socket inactivity timeout; ambiguous duplicate `Content-Length` / `Transfer-Encoding` POST framing not rejected explicitly.
+- Minimal, unfrozen repair candidate: `EVIDENCE_COPILOT_PRR3_HTTP_REPAIR_CANDIDATE.zip`, SHA-256 `ac4d76255e90ca3adac70e076c833027ad93603cb28e03e1563028f5fdefb6cb`; **not uploaded to GitHub**. Only `portable_server.py` modified. Adds single exact loopback `Host` check (actual bound port, including test ephemeral listener), rejects ambiguous POST framing, and configures a 15-second socket inactivity timeout.
+- Assistant-local tests: new isolated HTTP positive/negative suite **10/10 PASS**; inherited P77-A 7/7, P77-B mock 6/6, P79 quotes 9/9 + HTTP mocks 3/3, P80 synthetic boundary 4/4 (**29/29 PASS**); archive file hashes **27/27 PASS**. No real Windows/Chrome execution for PRR3 and no independent audit.
+- **Open controls:** `ThreadingHTTPServer` concurrency is not bounded; Ollama upstream may take 120 seconds and socket timeout is not an end-to-end execution budget. Additional CORS/Origin/security review and stress tests remain pending. Localhost-only, do not expose on LAN.
+- **Next gate:** Windows operator verify archive + run `test_prr3_http.py`, inherited tests and real GUI startup. PRR3 remains `REPAIR_CANDIDATE_NOT_PROMOTED`; CFC/Wrapper/P74 unchanged.
