@@ -161,3 +161,11 @@ Operator-supplied full PowerShell 5.1 output:
 - Inherited PRR4 capacity 5/5, PRR3 HTTP 10/10, P77 7/7, P77-B 6/6, P79 quotes 9/9, P79 HTTP 3/3, P80 boundary 4/4: **44/44 PASS**.
 - Total **67 functional test cases/checks** (16 JS + 7 injection + 44 regression), plus 36 hash checks. 2 non-failing `ResourceWarning` lines in PRR3 negative HTTP tests. `PRR5_WINDOWS_REGRESSION: PASS`, `CFC: FROZEN`, `M6: HOLD`.
 - **Status: PRR5 LOCAL_REGRESSION_VERIFIED.** Still pending real Chrome GUI Unicode paste/AI mapping smoke, real Ollama hostile-document scenario, external oracle/replication and full context coverage. None of the synthetic injection results proves prompt-injection immunity.
+
+## PRR5-R2/R3 Chrome file-import and real-Ollama Unicode answer — 22 Nov 2026
+
+Operator attached `PRR5_GUI_TEST.txt` via Chrome GUI, which showed `NIEZWERYFIKOWANY` and preserved CFC-not-run boundary. User asked: `Jaki identyfikator znajduje się w załączonym dokumencie? Przytocz go dokładnie, zachowując emoji. Nie wymyślaj dodatkowych informacji.` Real local AI replied exactly `A😀Z`.
+
+UI metadata: `DOCUMENT AI | CFC NOT RUN`; `MODEL COMPLETE: YES`; `ANSWER UNVERIFIED`; `HUMAN REVIEW REQUIRED`; `SOURCE: PRR5_GUI_TEST.txt`; `SHA-256: 5dba9fa0551a25fbc221d0cc93749c1bf75cf6b8e82e37431ffc5074c40d366e`; `QUOTE_CHECK_INCONCLUSIVE (0/0 exact)`; `SEMANTIC SUPPORT: NOT VERIFIED`.
+
+**Status:** exact Unicode identifier retrieval and trust-boundary presentation **LOCAL GUI PASS** for one TXT attachment and one real-model reply. The UI output alone does not prove source SHA correctness against independently hashed input bytes, browser paste path, whole-document context coverage, semantic correctness or prompt-injection immunity. Next: one real-model hostile-document test, keeping trust metadata separate from any model prose. Frozen CFC/Wrapper/P74 unchanged; M6 HOLD.
