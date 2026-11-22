@@ -63,3 +63,10 @@ A professor may receive a **research introduction** now with this issue register
 - Corrected PowerShell HTTP POST supplied `Origin: http://127.0.0.1:8780` and returned `extracted_length=50001`, `source_sha256=21e406b4c606239aa7e87147d096fb666f187786a2ec17978cb2ba6ea3ee895d`, `cfc_evaluated_document=false`; `PRR1_UNICODE_REAL_HTTP: PASS`.
 - **R-02 state: LOCAL REPAIR VERIFIED for tested Unicode file-import boundary.** This does not prove all Unicode behavior, comprehensive browser-flow reexecution or independent replication. No change to frozen CFC/P74.
 - **Next repair area:** R-01 Ollama context coverage; exact candidate telemetry and long-document negative tests still needed, no new features.
+
+## PRR2 Ollama context diagnostics prepared — 22 Nov 2026
+
+- Inspected current extracted PRR1 `document_ai_bridge.py` and `document_intake.py`. Existing controls: 8,000-codepoint AI bridge limit, `num_ctx=8192`, `num_predict=512`, `prompt_eval_count` required, refusal at configured pressure threshold, `model_context_coverage_verified=False` even for completed answers.
+- Separate diagnostic-only package: `PRR2_CONTEXT_DIAGNOSTIC_CANDIDATE.zip`, SHA-256 `0f4b2adaa0c77cd5f26083639421c31ff63c0151edcb3412663ae53395521862`. **Not yet in GitHub; not a repaired or promoted product version**.
+- Probe: negative 8,001-character refusal before model execution; real Ollama short (1,200) and near-limit (7,900) synthetic docs with unique trailing marker. Collect prompt tokens, finish, quote marker presence. The marker is merely a narrow functional observation, **not proof of all-context fidelity**. Source module is unmodified. Static script compile and synthetic lengths 3/3 pass in assistant environment.
+- **PENDING:** operator Windows/Ollama runtime diagnostic; no claim of context coverage, semantic correctness, independent replication, or R-01 resolution.
