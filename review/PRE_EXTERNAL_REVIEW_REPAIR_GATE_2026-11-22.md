@@ -120,3 +120,12 @@ All cases reported `finish_reason=stop`, `MODEL_COMPLETE=True`, `CONTEXT_COVERAG
 - Inherited regression suites: DOCX P77-A 7/7, mocked context P77-B 6/6, quote checking P79 9/9, mocked HTTP P79 3/3, semantic boundary P80 4/4 — **29/29 PASS**.
 - Windows script printed `PRR3_WINDOWS_TESTS: PASS`; total **39/39 automated cases**. Two Python `ResourceWarning` lines from implicitly closing HTTPError objects are test cleanup warnings, not case failures; cleanup can be fixed separately.
 - **Evidence boundary:** local operator run; does not prove full server security, idle timeout effectiveness under network attack, bounded concurrency, independent replication or production readiness. R-03 is **PARTIALLY REPAIRED / CONCURRENCY AND STRESS OPEN**. No change to frozen CFC, P74 or M6.
+
+## PRR4 — bounded concurrency repair candidate — 22 November 2026
+
+- Reproduced missing concurrency bound in PRR3: plain `ThreadingHTTPServer` creates handler threads without a configured fixed active-request limit.
+- Isolated PRR4 candidate `EVIDENCE_COPILOT_PRR4_CONCURRENCY_REPAIR_CANDIDATE.zip`, SHA-256 `50f1d36a157df3dbdc18a103de09e59325c20be036c091ba9be5c70ebcd69460` (not uploaded to repository).
+- Minimal `portable_server.py` change: `BoundedLoopbackHTTPServer` with **four** simultaneous connection slots acquired before starting a handler thread; fifth active request is answered `503` / `P71_CAPACITY_REFUSED` and closed; slots released in `finally`. This is a capacity safety control, not a total runtime or production resource bound.
+- New deterministic controlled-hold capacity tests **5/5 PASS** in assistant environment: fixed limit, normal GUI, fifth connection refused, recovery after release, eight further attempts refused. Initial socket-incomplete diagnostic emitted expected BrokenPipe noise and was **replaced**, not counted as final evidence.
+- Inherited HTTP PRR3 suite 10/10 PASS; P77-A 7/7, P77-B 6/6, P79 quotes 9/9, P79 HTTP mocks 3/3, P80 synthetic 4/4 PASS. **44/44 automated test cases total** in assistant environment. PRR4 archive manifest verification **31/31 PASS**.
+- **Next gate:** Windows operator validation of exact ZIP and regression suites, then browser local GUI with no second listener on port 8780. **Status: CANDIDATE_NOT_PROMOTED / WINDOWS PENDING**. Ollama/context coverage, semantic reliability, full load testing and independent replication remain unresolved; CFC, Wrapper and P74 frozen.
