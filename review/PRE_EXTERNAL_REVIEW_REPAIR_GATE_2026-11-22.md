@@ -129,3 +129,12 @@ All cases reported `finish_reason=stop`, `MODEL_COMPLETE=True`, `CONTEXT_COVERAG
 - New deterministic controlled-hold capacity tests **5/5 PASS** in assistant environment: fixed limit, normal GUI, fifth connection refused, recovery after release, eight further attempts refused. Initial socket-incomplete diagnostic emitted expected BrokenPipe noise and was **replaced**, not counted as final evidence.
 - Inherited HTTP PRR3 suite 10/10 PASS; P77-A 7/7, P77-B 6/6, P79 quotes 9/9, P79 HTTP mocks 3/3, P80 synthetic 4/4 PASS. **44/44 automated test cases total** in assistant environment. PRR4 archive manifest verification **31/31 PASS**.
 - **Next gate:** Windows operator validation of exact ZIP and regression suites, then browser local GUI with no second listener on port 8780. **Status: CANDIDATE_NOT_PROMOTED / WINDOWS PENDING**. Ollama/context coverage, semantic reliability, full load testing and independent replication remain unresolved; CFC, Wrapper and P74 frozen.
+
+## PRR4-R1 Windows validation — 22 November 2026
+
+- Operator PowerShell 5.1, Python 3.14: `verify_prr4.py` reported `PRR4_OFFLINE_HASHES: PASS_31`, `FROZEN_CFC_MODIFIED: NO`, `EXTERNAL_REPLICATION: NOT_DONE`.
+- `test_prr4_capacity.py`: **5/5 PASS** — configured bound four, recovery after release, eight excess connections refused, fifth connection refused without new handler, normal GUI GET. These tests run in a controlled local test server, not a production stress environment.
+- `test_prr3_http.py`: **10/10 PASS**, including Host/Origin/framing and idle-timeout setup.
+- Inherited regressions: `test_p77_intake.py` 7/7; `test_p77b_context.py` 6/6; `test_p79_quotes.py` 9/9; `test_p79_http_mock.py` 3/3; `test_p80_semantic_boundary.py` 4/4 — **29/29 PASS**.
+- **Windows total 44/44 automated tests PASS.** Two non-fatal `ResourceWarning` entries indicate HTTPError object cleanup in PRR3 test code; not evidence of production server failure. `PRR4_WINDOWS_REGRESSION: PASS` and `M6: HOLD` printed.
+- **Status:** PRR4 `LOCAL_REGRESSION_VERIFIED`. Not an independent security audit, end-to-end GUI verification, general resilience certification or external replication. Continue with mapping / prompt-injection defect triage without promoting CFC, Wrapper, P74 or M6.
