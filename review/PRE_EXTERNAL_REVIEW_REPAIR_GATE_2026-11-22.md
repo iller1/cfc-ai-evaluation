@@ -49,3 +49,9 @@ A professor may receive a **research introduction** now with this issue register
 - Assistant-local verification: Node syntax PASS; code-point unit test 11 assertions PASS; inherited Python regressions 29/29 PASS (P77-A 7, P77-B 6, P79 quote 9 + HTTP mock 3, P80 4); new archive file hashes 23/23 PASS.
 - **Next gate:** Windows operator clean extraction / full test commands and GUI HTTP non-BMP boundary test. The code fix is **CANDIDATE**, not independently validated; do not mark R-02 resolved before that test.
 - Frozen P74, frozen CFC and M6 were not changed.
+
+## PRR1 Windows operator test — 22 Nov 2026
+
+- User-run Windows PowerShell 5.1 log: `verify_prr1.py` returned `PRR1_OFFLINE_HASHES: PASS_23`; `node --check workspace.js` exit 0; `node test_prr1_unicode.js` returned `PASS_11`.
+- Inherited regression suite: P77-A 7/7, P77-B mocked context 6/6, P79 unit 9/9, P79 mocked HTTP 3/3, P80 synthetic boundary 4/4; `PRR1_WINDOWS_REGRESSION: PASS`.
+- **Gate remains open:** actual Chrome paste-path Unicode boundary test not yet shown. This confirms local unit/regression checks, not independent external replication, browser correctness or all input safety.
