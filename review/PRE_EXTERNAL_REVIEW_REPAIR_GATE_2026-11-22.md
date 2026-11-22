@@ -150,3 +150,14 @@ Inspected exact PRR4 baseline `workspace.js`, `workspace.html`, `document_ai_bri
 - Existing PRR4 suite **5/5** and PRR3 **10/10**, inherited P77–P80 **29/29** PASS on rerun in assistant environment. One earlier PRR4 capacity-test invocation failed, then immediately passed and passed again in full rerun; transient test instability warrants follow-up, not concealment. **44/44 regression cases on full rerun** (not added to the seven isolated malicious-suite cases).
 - PRR5 archive manifest `PRR5_OFFLINE_HASHES: PASS_36`.
 - **Next:** operator Windows validation and optional browser paste/AI Unicode flow; real-model prompt injection attempt and independent external reviewer remain pending. **Do not claim injection-proof, semantic correctness, production readiness or full context coverage.** CFC Anchor, Operator Wrapper, P74 frozen; M6 HOLD.
+
+## PRR5 Windows validation — 22 Nov 2026
+
+Operator-supplied full PowerShell 5.1 output:
+- `verify_prr5.py`: `PRR5_OFFLINE_HASHES: PASS_36`; `FROZEN_CFC_MODIFIED: NO`; `EXTERNAL_REPLICATION: NOT_DONE`.
+- `node --check workspace.js`: exit 0.
+- `node test_prr5_mapping.js`: `PRR5_UNICODE_MAPPING: PASS_16`.
+- `test_prr5_injection.py`: **7/7 PASS**, including synthetic hostile-document/status-metadata isolation.
+- Inherited PRR4 capacity 5/5, PRR3 HTTP 10/10, P77 7/7, P77-B 6/6, P79 quotes 9/9, P79 HTTP 3/3, P80 boundary 4/4: **44/44 PASS**.
+- Total **67 functional test cases/checks** (16 JS + 7 injection + 44 regression), plus 36 hash checks. 2 non-failing `ResourceWarning` lines in PRR3 negative HTTP tests. `PRR5_WINDOWS_REGRESSION: PASS`, `CFC: FROZEN`, `M6: HOLD`.
+- **Status: PRR5 LOCAL_REGRESSION_VERIFIED.** Still pending real Chrome GUI Unicode paste/AI mapping smoke, real Ollama hostile-document scenario, external oracle/replication and full context coverage. None of the synthetic injection results proves prompt-injection immunity.
