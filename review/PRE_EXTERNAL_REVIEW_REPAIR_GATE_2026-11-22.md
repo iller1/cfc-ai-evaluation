@@ -389,3 +389,20 @@ Operator-provided PowerShell 5.1 log from `EVIDENCE_COPILOT_PRR10_SOURCE_STATE_A
 - End marker `PRR10_WINDOWS_TARGETED: PASS`, `FULL_REGRESSION: PENDING`, `REAL_CHROME_RETEST: PENDING`, `EXTERNAL_REVIEW: PENDING`, `CFC: FROZEN`, `M6: HOLD`.
 
 **Disposition:** narrow PRR10 operator Windows gate PASS; candidate NOT PROMOTED and exact historical PRR5 attack bytes UNRESOLVED. Next: remaining Windows inherited suites, real Chrome technical preview / status clearing after invalid DOCX HTTP 409, then independent review of exact PRR10 archive.
+
+## PRR10 operator full inherited Windows regression — 22 Nov 2026
+
+Operator-provided PowerShell 5.1 log for `EVIDENCE_COPILOT_PRR10_SOURCE_STATE_AND_TEST_REPAIR_CANDIDATE`:
+- `test_prr7_review_corrections.py` 23/23 PASS;
+- `test_prr7_http_pairs.py` 10/10 PASS;
+- `test_prr6_conflict.py` 15/15 PASS;
+- `test_prr6b_overload.py` 13/13 PASS;
+- `test_prr5_injection.py` 7/7 PASS;
+- `test_prr3_http.py` 10/10 PASS (two nonfatal ResourceWarning messages from cleanup of HTTPError 415 and HTTPError 403 objects);
+- `test_p77_intake.py` 7/7, `test_p77b_context.py` 6/6, `test_p79_quotes.py` 9/9, `test_p79_http_mock.py` 3/3, `test_p80_semantic_boundary.py` 4/4;
+- `test_prr8_deadline.py` 1/1 PASS;
+- `test_prr1_unicode.js` PASS_11; `test_prr5_mapping.js` PASS_16.
+
+Total **108 executed Python tests** (some overlapping/inherited, not unique scenarios) and 27 JavaScript checks. Final output `PRR10_FULL_WINDOWS_REGRESSION: PASS`, `REAL_CHROME_RETEST: PENDING`, `EXTERNAL_REVIEW: PENDING`, `CFC: FROZEN`, `M6: HOLD`.
+
+Prior PRR10 targeted Windows PASS (manifest 67/67 and mutated JS source-state tests). **Status:** PRR10 local Windows gate PASS; candidate not promoted. Next test exact PRR10 browser import A valid → B malformed DOCX 409: both current AI answer panel and technical `intakePreview` / `intakeStatus` must clear old A text and digest; subsequently new valid document C should get own digest. Independent external review and exact PRR5 replay remain pending. Frozen CFC/Wrapper/P74 untouched; M6 HOLD.
