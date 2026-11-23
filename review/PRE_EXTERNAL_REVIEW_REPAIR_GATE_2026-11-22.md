@@ -453,3 +453,12 @@ Operator reported copying the page **after clicking ×** on completed `PRR7_TEST
 Reference source `workspace.js` SHA-256: **PRR11 `4ec3272066bd8cd72b243023be3dc41dd89418b51c19a8c5ee01b26d00a332fe`**, PRR10 `01b55929c91f9474883aaa78432e71f443543edf1c7a2d472b9b75766590ba86`. **Next required step:** from operator Windows PowerShell fetch `http://127.0.0.1:8780/workspace.js` with a cache-busting query to temp file, SHA-256 compare with extracted PRR11 `workspace.js` and the fixed PRR11 reference. Do not modify/promote package, do not create PRR12 without attribution. If bytes match and old UI visibly persists, capture minimal DOM state/handler details as confirmed PRR11 browser defect; otherwise repair environment (correct server + CtrlShiftR) and rerun one focused test.
 
 Gate: `PRR11_CHROME_REMOVAL: OBSERVED FAIL, SERVED_ARTIFACT_IDENTITY PENDING`; `PRR11_FREEZE: HOLD`; Windows targeted/full PASS unchanged, CFC/Wrapper/P74 frozen, M6 DESIGN HOLD.
+
+## PRR11 Chrome discrepancy root cause: server was PRR10, not PRR11 — 23 Nov 2026
+
+Operator ran cache-busted HTTP GET `http://127.0.0.1:8780/workspace.js?probe=<randomGUID>` to a temporary file and SHA-256 compared with extracted PRR11 local `workspace.js`. Results:
+- `LOCAL_SHA256: 4ec3272066bd8cd72b243023be3dc41dd89418b51c19a8c5ee01b26d00a332fe` — exact PRR11 production JS reference.
+- `SERVED_SHA256: 01b55929c91f9474883aaa78432e71f443543edf1c7a2d472b9b75766590ba86` — exact PRR10 production JS reference.
+- `RESULT: OLD_PRR10_SERVER`.
+
+**Correction to prior Chrome observation:** after successful A import and × removal, visible stale content was served by **PRR10**, the version with already confirmed completed-removal bug, **not PRR11**. Browser testing of exact PRR11 JS **not yet performed**. Retract attribution `PRR11_CHROME_REMOVAL_FAIL`; set `PRR11_CHROME_REMOVAL: NOT_TESTED_ON_CORRECT_BUILD`, `PRR11_WINDOWS_TARGETED: PASS`, `PRR11_WINDOWS_FULL: PASS`, `PRR11_FREEZE: HOLD`. Next action: shut down existing listener on port 8780, launch from exact PRR11 directory, repeat cache-busted served JavaScript SHA check; only then do A imported→× removal→C reimport in actual Chrome. This also rules out ordinary browser caching as explanation of the specific HTTP fetch because cache-busted GET returned exact PRR10 bytes. No PRR12 correction warranted from this observation. Frozen boundaries unchanged.
