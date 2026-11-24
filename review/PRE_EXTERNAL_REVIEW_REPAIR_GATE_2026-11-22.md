@@ -663,3 +663,13 @@ Operator supplied Windows PowerShell output from the unpacked `EVIDENCE_COPILOT_
 - Terminal `PRR14_WINDOWS_TARGETED: PASS`; `FREEZE: HOLD`.
 
 Evidence classification **OPERATOR_REPORTED_WINDOWS_TARGETED_PASS**, not independent review. Next Windows full unittest and JS Unicode/mapping pending, then served PRR14 `workspace.js` SHA check `596c8e90ad6c5b57ffba0eb6daf8c1b0d02a10e233a11f605436c323d205bbf0` and real Chrome event/feedback tests; external adversarial review PRR14 still PENDING; no promotion or CFC modifications.
+
+## PRR14 Windows full regression — operator-supplied PASS (24 Nov 2026)
+
+Operator-uploaded Windows PowerShell log `Wklejony tekst(20261124-204813).txt` confirms prior targeted `PRR14_WINDOWS_TARGETED: PASS` and now full discovery `=== PRR14 FULL WINDOWS REGRESSION ===`:
+- `Ran 136 tests in 22.686s`, `OK (skipped=1)`: 135 passed, 1 skipped, 0 failures/errors. Duplicated/inherited unittest executions not 136 independent scenarios.
+- `PRR1_UNICODE_UNIT: PASS_11`; `PRR5_UNICODE_MAPPING: PASS_16`; `PRR14_FULL_WINDOWS_REGRESSION: PASS`.
+- HTTP 403, 409, 415 and two `ResourceWarning` lines occurred during a passing test suite; no extra gate failures inferred. Some deliberately incomplete model responses show `P71_COMPLETE: False` but do not constitute regression failures.
+- Terminal explicitly records `REAL_CHROME: PENDING`, `EXTERNAL_REVIEW: PENDING`, `FREEZE: HOLD`.
+
+Evidence classification **OPERATOR_REPORTED_WINDOWS_FULL_PASS**, not independent execution. Next exact HTTP-served PRR14 `workspace.js` SHA verification expected `596c8e90ad6c5b57ffba0eb6daf8c1b0d02a10e233a11f605436c323d205bbf0`, followed by real browser technical D→newer C action feedback, and external adversarial review. PRR14 CANDIDATE_NOT_PROMOTED, frozen CFC/Wrapper/P74 untouched, M6 HOLD.
