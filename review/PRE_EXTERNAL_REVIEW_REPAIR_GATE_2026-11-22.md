@@ -624,3 +624,13 @@ Follow-up to prior verified-server PRR13 operator-controlled race test: A visibl
 - No visible `PRR13_SLOW_A.txt`, A SHA-256, active document A or A-based answer in the supplied viewport.
 
 Thus `PRR13_BROWSER_EVENT_A_PENDING_SELECTED_EMPTY_B_LATE_A_HTTP_200_NO_A_IN_GENERAL_AND_HAWM_VISIBLE: LOCAL_OPERATOR_OBSERVED_PASS`. Qualification: we did not independently verify actual loaded-tab JS hash (only served HTTP PRR13 SHA), DOM hidden state or import-generation value, nor native HAWM model (blocked/503), and this test relied on operator's timing and excerpts, not deterministic browser network hold. `HAWM_REAL_REPLICATION: NOT_DONE`; `EXTERNAL_REVIEW: PENDING`, `PRR13_STATE: CANDIDATE_NOT_PROMOTED`, `FREEZE: HOLD`, frozen CFC remains untouched. No C recovery on PRR13 browser claimed here.
+
+## PRR13 operator Chrome C recovery after pending-A zero-byte B race — 24 Nov 2026
+
+Operator supplied final HAWM view after earlier PRR13 Chrome test with A visibly pending at B selection, parser A HTTP 200, empty B rejected and no visible late A in free/HAWM views. Without refreshing, operator attached distinct `PRR11_TEST_C.txt`. Final UI reported:
+- `📎 PRR11_TEST_C.txt · NIEZWERYFIKOWANY`.
+- `NOWY DOKUMENT WCZYTANY · brak bieżącej odpowiedzi AI/Quickcheck. Poprzednie odpowiedzi HAWM są historyczne. Wyślij nowe pytanie.`
+- `ODCZYT ZAKOŃCZONY: PRR11_TEST_C.txt · 77 znaków · SHA-256: 2edce0072b7241c367e0eab8d733dbfc71c1c924a06e0d76288d0816fe1b9dea · ostrzeżenia: brak. Tekst NIEZWERYFIKOWANY; CFC NIE OCENIAŁ dokumentu.`
+- `NIE SPRAWDZONO Dokument: PRR11_TEST_C.txt`; synthetic stale result not applicable and M6 boundary explicitly unapproved.
+
+This matches the previously operator-observed SHA of the same C file on PRR11/PRR12, different from source A. **PRR13_CHROME_SOURCE_LIFECYCLE_A_PENDING_TO_EMPTY_B_REFUSAL_LATE_A_NO_VISIBLE_RESURRECTION_C_RECOVERY: LOCAL_OPERATOR_VISIBLE_PASS.** This is an operator-provided browser trace, not independent executed-script attestation, full hidden DOM validation, native HAWM end-to-end or AI answer verification. No question sent for C in this test. Windows targeted/full PASS, manifest 82/82, HTTP-served JS SHA matched previously, **EXTERNAL_REVIEW_PRR13: PENDING, CANDIDATE_NOT_PROMOTED, FREEZE HOLD**. CFC/Wrapper/P74 frozen, M6 HOLD.
