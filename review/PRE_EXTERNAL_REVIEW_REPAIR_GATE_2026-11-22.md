@@ -652,3 +652,14 @@ Assistant reproduced the exact PRR13 false toast and busy sibling negatives on u
 - Reviewer-supplied independent `probe.cjs` replay run against PRR14 source with expected D feedback assertion updated from `DONE` to `CANCELLED`: PASS. Reviewer-supplied `replay_integrated.py` with actual HTTP parser D/C 200, C current, `cancelled` status: PASS. **Adapting the expected assertion is a new local retest, not independent approval of PRR14**.
 
 **PRR14_STATE: CANDIDATE_NOT_PROMOTED. FREEZE HOLD.** Operator Windows targeted/full, exact HTTP-served JS, live Chrome PRR14 and independent adversarial review PRR14 PENDING; native HAWM end-to-end NOT DONE. No false semantic support/authorization claims. CFC Anchor 0.2.90rc1 / Wrapper v1.23 / P74 remain FROZEN; M6 DESIGN HOLD; Information Passport NOT CONNECTED; exact PRR5 attack bytes UNRESOLVED. See ZIP README for scope and limits. Potential global busy interaction with other manual busy writers and model-general-send source independence beyond stated test coverage remain out of scope, NOT VERIFIED.
+
+## PRR14 operator Windows targeted gate — PASS (24 Nov 2026)
+
+Operator supplied Windows PowerShell output from the unpacked `EVIDENCE_COPILOT_PRR14_TECHNICAL_BUSY_FEEDBACK_CANDIDATE`, running `verify_prr14.py`, `node --check workspace.js`, and PRR14/PRR13/PRR12/PRR11/PRR10/PRR9/PRR8 targeted JS suites:
+- `PRR14_OFFLINE_HASHES: PASS_87`; `FROZEN_CFC_SOURCE_IN_PACKAGE: NONE`; `EXACT_PRR5_ATTACK_BYTES: UNRESOLVED`; `NATIVE_HAWM_REAL_REPLICATION: NOT_DONE`; `INDEPENDENT_EXTERNAL_REPLICATION: NOT_DONE`; `PRR14_STATE: CANDIDATE_NOT_PROMOTED`.
+- New `PRR14_TECH_OLDER_D_FEEDBACK: PASS`, `PRR14_TECH_D_PENDING_TO_C_CLICK: PASS`, `PRR14_TECH_PASTE_PENDING_TO_NEW_PASTE: PASS`, `PRR14_HOME_PASTE_PENDING_TO_NEW_PASTE: PASS`, `PRR14_TECH_PENDING_D_TO_EMPTY_B: PASS`, `PRR14_UNRELATED_BUSY_GUARD: PASS`.
+- New four mutants independently rejected by targeted assertions: `PRR14_TECH_FEEDBACK_MUTATION`, `PRR14_TECH_BUSY_MUTATION`, `PRR14_PASTE_BUSY_MUTATION`, `PRR14_HOME_BUSY_MUTATION`: REJECTED.
+- Inherited PRR13 pending A→B and A→C PASS, cancel PASS, seeded HAWM nonadjacent and warning DOM PASS; PRR12 empty file and seeded history PASS; PRR11 removal PASS_2; PRR10 import PASS_6; PRR9 lifecycle PASS_2; PRR8 language PASS_3; inherited mutants REJECTED.
+- Terminal `PRR14_WINDOWS_TARGETED: PASS`; `FREEZE: HOLD`.
+
+Evidence classification **OPERATOR_REPORTED_WINDOWS_TARGETED_PASS**, not independent review. Next Windows full unittest and JS Unicode/mapping pending, then served PRR14 `workspace.js` SHA check `596c8e90ad6c5b57ffba0eb6daf8c1b0d02a10e233a11f605436c323d205bbf0` and real Chrome event/feedback tests; external adversarial review PRR14 still PENDING; no promotion or CFC modifications.
