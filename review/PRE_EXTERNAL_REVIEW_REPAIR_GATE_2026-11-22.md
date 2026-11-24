@@ -742,3 +742,13 @@ Operator supplied Windows PowerShell 5.1 transcript from extracted `EVIDENCE_COP
 - All four targeted mutation checks `HAWM_HIDES_ADD_BUTTON`, `WRONG_LEGACY_HOME_CHOOSER`, `NEW_SELECTION_NOT_DISPATCHED`, `SECOND_HAWM_IMPORT_FORM_VISIBLE`: `REJECTED`.
 
 Classify as **OPERATOR_REPORTED_WINDOWS_PRR16_INITIAL_TARGETED_PASS**. This transcript does NOT yet include inherited PRR14–PRR8 suites or full Python regression on operator machine, nor browser JS execution identity, local Chrome UI/overlap, independent review or native HAWM e2e. Next collect full regression including inherited JS suites + unittest + Unicode/Mapping, then served JS SHA and Chrome. `PRR16_STATE: CANDIDATE_NOT_PROMOTED`; `FREEZE HOLD`.
+
+## PRR16 operator Windows full regression PASS (24 Nov 2026)
+
+Operator supplied exact PowerShell log `Wklejony tekst(20261124-220404).txt` following their previously reported `PRR16_OFFLINE_HASHES: PASS_97` and `test_prr16_unified_button.js` targeted PASS/mutation rejections. `node --check workspace.js`, inherited JS `test_prr15_visible_entry.js` through `test_prr8_language.js`, `test_prr1_unicode.js`, `test_prr5_mapping.js`, and Python unittest all exited without error under a stop-on-nonzero wrapper:
+- `PRR15_TWO_ENTRY_UI_SUPERSEDED_BY_PRR16: PASS_EXPECTED_CONTRACT_CHANGE` (intentional replacement of former PRR15 dual-entry UI).
+- PRR14 six scenarios PASS + four mutants REJECTED; PRR13 source-order/history/warning tests PASS + three mutants REJECTED; PRR12–PRR8 inherited behavior and mutants PASS/REJECTED; `PRR1_UNICODE_UNIT: PASS_11`, `PRR5_UNICODE_MAPPING: PASS_16`.
+- Python `Ran 136 tests in 21.976s`, `OK (skipped=1)` = 135 pass, 1 skip, 0 fail/error; inherited executions not 136 independent adversarial tests.
+- Final `PRR16_FULL_WINDOWS_REGRESSION: PASS`, `FREEZE: HOLD`. HTTP negative statuses and ResourceWarnings did not fail suites.
+
+Classification `OPERATOR_WINDOWS_PRR16_TARGETED_AND_FULL_PASS`, not independent attestation. Next: stop prior server, start PRR16 `portable_server.py` from exact unpacked directory, verify HTTP-served `workspace.js` SHA `d2b77fb6d289d7c805082c2e6ba320f41e1a969c1508a568b97be5e45d27856f`, and real Chrome single-button HAWM/no-auto-switch test. `REAL_BROWSER_PRR16: PENDING`, `EXTERNAL_REVIEW: PENDING`, `PRR16_STATE: CANDIDATE_NOT_PROMOTED`, `FREEZE: HOLD`, frozen CFC unchanged.
