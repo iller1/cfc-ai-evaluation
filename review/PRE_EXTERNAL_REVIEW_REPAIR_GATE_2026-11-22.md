@@ -614,3 +614,13 @@ Operator pasted `portable_server.py` live HTTP log: `MODEL: qwen3:1.7b`, `HAWM_R
 ## PRR13 post-late-A Chrome visible state: no resurrection in ordinary-chat display — operator evidence (24 Nov 2026)
 
 After operator-confirmed selection of zero-byte B while A was still visibly loading, prior server log `POST /api/document-intake/parse` HTTP 200, operator then pasted full current browser page. It still showed `IMPORT ODRZUCONY · brak aktualnego dokumentu. Poprzednie odpowiedzi są historyczne; CFC NOT RUN.`, `NIE SPRAWDZONO`, no displayed old A filename/digest/current answer, CFC not run. **This provides operator-visible support for no late-A resurrection following completed HTTP parse.** However the pasted page explicitly had **Zwykły czat** selected with description `Zwykły czat korzysta z lokalnego AI bez stanu HAWM`, not Document Review HAWM; it shows common status display but does not yet confirm HAWM-specific projection after late A. Thus `PRR13_CHROME_A_PENDING_B_SELECTED_AFTER_A_HTTP_200_VISIBLE_GENERAL_CHAT: PASS_OBSERVED`, `PRR13_CHROME_HAWM_POST_SETTLEMENT: PENDING`. Served-code SHA confirmed earlier, but browser actual executed script hash not independently attested; external review PENDING and freeze HOLD.
+
+## PRR13 Chrome HAWM post-late-A view — operator reports no stale A visible (24 Nov 2026)
+
+Follow-up to prior verified-server PRR13 operator-controlled race test: A visibly loading when user selected empty B; parser A eventually returned HTTP 200; general chat afterward retained `IMPORT ODRZUCONY · brak aktualnego dokumentu` with no visible A. Operator switched in **same tab, without refresh**, to `Przegląd dokumentu · HAWM` and supplied current visible HAWM page:
+- Mode description: `Ten tryb korzysta z zapisanego stanu i rozmowy HAWM ... Bez uruchamiania CFC.`
+- `Lokalne AI niedostępne. Sprawdź usługę modelu.`
+- `NIE SPRAWDZONO`, `Nie ma aktualnego wyniku CFC dla rozmowy.`
+- No visible `PRR13_SLOW_A.txt`, A SHA-256, active document A or A-based answer in the supplied viewport.
+
+Thus `PRR13_BROWSER_EVENT_A_PENDING_SELECTED_EMPTY_B_LATE_A_HTTP_200_NO_A_IN_GENERAL_AND_HAWM_VISIBLE: LOCAL_OPERATOR_OBSERVED_PASS`. Qualification: we did not independently verify actual loaded-tab JS hash (only served HTTP PRR13 SHA), DOM hidden state or import-generation value, nor native HAWM model (blocked/503), and this test relied on operator's timing and excerpts, not deterministic browser network hold. `HAWM_REAL_REPLICATION: NOT_DONE`; `EXTERNAL_REVIEW: PENDING`, `PRR13_STATE: CANDIDATE_NOT_PROMOTED`, `FREEZE: HOLD`, frozen CFC remains untouched. No C recovery on PRR13 browser claimed here.
