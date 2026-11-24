@@ -766,3 +766,13 @@ This is an **operator-reported Chrome visible import / file digest matching inde
 ## PRR16 Chrome HAWM scope retained after single-button document import — operator confirmation (24 Nov 2026)
 
 Asked whether HAWM scope remains selected after operator Chrome import of `PRR11_TEST_C.txt` via the new single document button, operator explicitly replied **`Przegląd dokumentu · HAWM`**. Combined with prior visible status `ODCZYTANO: PRR11_TEST_C.txt · 77 znaków · SHA-256 pliku: 2edce0072b7241c367e0eab8d733dbfc71c1c924a06e0d76288d0816fe1b9dea · ostrzeżenia: brak. SOURCE UNVERIFIED · NOT CFC EVIDENCE.`, classify **PRR16_CHROME_LOCAL_HAWM_SCOPE_PERSISTENCE: OPERATOR_CONFIRMED_PASS** and **PRR16_CHROME_C_IMPORT_HASH: LOCAL_VISIBLE_PASS**. This resolves the specific PRR15 problem of a chat paperclip auto-switching from HAWM to free **for this test path**. No direct independent DOM audit, runtime tab JS byte attestation, real-browser overlapped D→C cancellation test, native HAWM end-to-end, or independent external review established. `PRR16_CANDIDATE_NOT_PROMOTED`, `FREEZE: HOLD`, frozen CFC preserved.
+
+## PRR16 real Chrome switch to ordinary chat — single button visible (24 Nov 2026)
+
+After operator-confirmed HAWM scope retained post-import of `PRR11_TEST_C.txt` (77 chars, SHA `2edce0072b7241c367e0eab8d733dbfc71c1c924a06e0d76288d0816fe1b9dea`), operator switched to `Zwykły czat` and pasted current visible top view:
+- mode description `Zwykły czat korzysta z lokalnego AI bez stanu HAWM`.
+- Exactly one visible file-add entry `📎 Dodaj dokument`, no second paperclip/import-button in supplied excerpt.
+- Existing file chip `📎 PRR11_TEST_C.txt · NIEZWERYFIKOWANY ×`; source details `ODCZYTANO ... 77 znaków ... SHA-256 ... SOURCE UNVERIFIED · NOT CFC EVIDENCE`.
+- Existing `✓ DONE: Wczytaj wybrany plik — Wczytano dokument lokalnie. Zaznacz fragment, przenieś do HAWM, zapisz go i przechwyć wersję. Pełny dokument nie został zapisany w HAWM ani oceniony przez CFC.`.
+
+Classification **PRR16_CHROME_FREE_SCOPE_SINGLE_BUTTON: OPERATOR_VISIBLE_PASS**. The prior document chip and feedback persist on mode switch; this is a visible shared-source status across modes, **not proof** that current HAWM conversation/history/authorizations share state, nor that document was saved to native HAWM. UX review open: `Wczytaj wybrany plik` technical operation feedback is jargon in ordinary chat, even with one upload button. Do not claim segregation proof from this. Next optional real Chrome overlapping D→C via single button in HAWM, including old D `CANCELLED` + C current SHA, then independent PRR16 adversarial review. `PRR16_STATE: CANDIDATE_NOT_PROMOTED`; `FREEZE HOLD`; frozen CFC unchanged.
