@@ -525,3 +525,15 @@ Operator supplied Windows PowerShell log from unpacked PRR12 candidate `EVIDENCE
 - Final `PRR12_WINDOWS_TARGETED: PASS`, `FULL_WINDOWS_REGRESSION: PENDING`, `REAL_CHROME: PENDING`, `EXTERNAL_REVIEW: PENDING`, `CFC: FROZEN`, `M6: HOLD`.
 
 This is an **operator-reported test run**, not independent reproduction; do not promote or freeze. Next instructed step: full Windows Python discovery (expected 135 PASS / 1 SKIP / 0 FAIL among 136 executions) and Node Unicode/mapping (PASS_11/PASS_16), followed by real Chrome A→zero-byte B→C on exact served PRR12 script, then external review.
+
+## PRR12 Windows full regression — operator-reported PASS (24 Nov 2026)
+
+User-supplied PowerShell transcript from unpacked exact PRR12 candidate shows:
+- `=== PRR12 FULL WINDOWS REGRESSION ===`
+- `Ran 136 tests in 22.595s`; `OK (skipped=1)`. Hence 135 passes, 1 skip, zero fails. This is a count of unittest executions and includes inherited/repeated methods, not 136 unique test scenarios.
+- `PRR1_UNICODE_UNIT: PASS_11`
+- `PRR5_UNICODE_MAPPING: PASS_16`
+- `PRR12_FULL_WINDOWS_REGRESSION: PASS`.
+- The HTTP 403/409/415 entries and ResourceWarning lines occur during a completed passing suite, and are not, by themselves, separate gate failures. Model response log includes `P71_COMPLETE: False` test outcomes; these are test fixtures/semantic checks and must not be conflated with full-run failure.
+
+The preceding PRR12 Windows targeted gate remains PASS_77 with targeted PRR12 positive and mutation-negative controls. **REAL_CHROME PRR12: PENDING**, verify exact served `workspace.js` SHA `ac7e8155ac2b232bf9b2e821530d9288ac4cf8f62e4b24b2491dfd2ef9cef02b` before testing completed A→selected 0-byte B→no active A→C; **INDEPENDENT_EXTERNAL_REVIEW: PENDING**; native HAWM end-to-end NOT DONE. PRR12 NOT PROMOTED, freeze HOLD, CFC/Wrapper/P74 FROZEN, M6 HOLD.
