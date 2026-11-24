@@ -582,3 +582,15 @@ User-supplied PowerShell transcript from unpacked `EVIDENCE_COPILOT_PRR13_EVENT_
 - Terminal `PRR13_WINDOWS_TARGETED: PASS`, `REAL_CHROME_PRR13: PENDING`, `EXTERNAL_REVIEW_PRR13: PENDING`, `FREEZE: HOLD`.
 
 This is operator-reported Windows execution, **not independent Chrome/native HAWM replication**. Next operator gate is full Windows unittest discovery (expected 136 executions, 135 passes / 1 skip) and JS Unicode/mapping. If PASS, verify served PRR13 workspace.js SHA before fresh Chrome event-order test. No frozen CFC modifications or promotion.
+
+## PRR13 Windows full regression — operator-reported PASS (24 Nov 2026)
+
+User-uploaded Windows PowerShell 5.1 log `Wklejony tekst(20261124-195700).txt` shows both targeted and full regression outputs from `EVIDENCE_COPILOT_PRR13_EVENT_ORDER_HISTORY_DOM_CANDIDATE`. Targeted gate `PRR13_WINDOWS_TARGETED: PASS` with manifest `PASS_82`, event pending A→empty B PASS, pending A→valid C PASS, cancel/no-selection PASS, HAWM nonadjacent/hidden warning seeded-renderer PASS, three targeted mutations rejected; inherited PRR12/PRR11/PRR10/PRR9/PRR8 suites PASS. Full gate:
+- `=== PRR13 FULL WINDOWS REGRESSION ===`
+- `Ran 136 tests in 22.618s`; `OK (skipped=1)`: 135 passed, 1 skipped, no failed tests; inherited discovery contains duplicate/inherited executions, not 136 unique scenarios.
+- `PRR1_UNICODE_UNIT: PASS_11`
+- `PRR5_UNICODE_MAPPING: PASS_16`
+- `PRR13_FULL_WINDOWS_REGRESSION: PASS`
+- `REAL_CHROME: PENDING`, `INDEPENDENT_REVIEW: PENDING`, `FREEZE: HOLD`.
+
+HTTP 403/409/415 and ResourceWarnings occurred during this passing test suite and are not separate failed gates. Some intentionally incomplete model-result fixtures in log show `P71_COMPLETE: False`; do not equate to full-run error. Evidence remains **operator-provided Windows logs**, not independent live-browser or native-HAWM execution. Next verify exact PRR13 served `workspace.js` SHA `184959070f14df4ac6976e88f482266425d58f47c7f02d523037ac6363ae9113` then Chrome event order including pending A→zero-byte B, and seek independent review. No promotion; CFC Anchor / Wrapper / P74 FROZEN; M6 HOLD.
