@@ -594,3 +594,7 @@ User-uploaded Windows PowerShell 5.1 log `Wklejony tekst(20261124-195700).txt` s
 - `REAL_CHROME: PENDING`, `INDEPENDENT_REVIEW: PENDING`, `FREEZE: HOLD`.
 
 HTTP 403/409/415 and ResourceWarnings occurred during this passing test suite and are not separate failed gates. Some intentionally incomplete model-result fixtures in log show `P71_COMPLETE: False`; do not equate to full-run error. Evidence remains **operator-provided Windows logs**, not independent live-browser or native-HAWM execution. Next verify exact PRR13 served `workspace.js` SHA `184959070f14df4ac6976e88f482266425d58f47c7f02d523037ac6363ae9113` then Chrome event order including pending A→zero-byte B, and seek independent review. No promotion; CFC Anchor / Wrapper / P74 FROZEN; M6 HOLD.
+
+## PRR13 HTTP-served JS identity verified by operator — 24 Nov 2026
+
+Operator PowerShell `(New-Object System.Net.WebClient).DownloadData("http://127.0.0.1:8780/workspace.js?prr13=fresh")`, then SHA256 yielded `SERVED_SHA256: 184959070f14df4ac6976e88f482266425d58f47c7f02d523037ac6363ae9113`. Matches PRR13 exact `workspace.js` artifact digest. **HTTP_SERVED_IDENTITY: VERIFIED_OPERATOR**. Does not prove browser-tab actually executed this asset, real user event-order correctness or independent replication. Next Chrome `?prr13=fresh`, held/slow A import then file-picker selection B during pending A and assert no late A return; independent external review PENDING. Freeze HOLD.
