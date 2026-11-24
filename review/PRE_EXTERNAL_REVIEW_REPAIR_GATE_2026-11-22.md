@@ -508,3 +508,20 @@ Three reviewed outputs for exact **PRR11** candidate SHA-256 `92633d1f2c74860e83
 - New Node production-function test covers completed A+answer→zero-byte B (reject, 0 HTTP parse requests for B, all old projections cleared, persists after language switch), C recovery, cancel picker (C preserved), ambiguous file+paste (fail closed), seeded HAWM document history A→× historical panel even after language change, ordinary non-document HAWM answer remains eligible. Separate exact PRR11 negative control demonstrates both failures. **Two disposable PRR12 mutations independently REJECTED at targeted assertions** (`PRR12_ZERO_BYTE_MUTATION`, `PRR12_HAWM_HISTORY_MUTATION`).
 - Assistant-local inherited tests: `python -B -m unittest discover -p 'test*.py' -q` **136 executions / 135 PASS / 1 SKIP** (historical PRR6B parent comparison missing, duplicates), node PRR11/PRR10/PRR9/PRR8 suites all PASS with inherited mutants REJECTED, Unicode PASS_11, mapping PASS_16, `node --check workspace.js` PASS.
 - **Claim boundary:** only seeded DOM renderer HAWM history tested; native HAWM unavailable, no production authorization. **PRR12 candidate NOT PROMOTED, FREEZE HOLD**. Windows targeted/regression, actual Chrome A→zero-byte B (with correct served PRR12 JS hash) and C reimport, and independent review of exact PRR12 ZIP **PENDING**. Do not label seeded HAWM as independently live replicated. CFC Anchor 0.2.90rc1/Wrapper v1.23/P74 FROZEN; M6 DESIGN HOLD; Passport NOT CONNECTED; exact PRR5 hostile bytes UNRESOLVED.
+
+## PRR12 Windows targeted gate — operator-reported PASS (24 Nov 2026)
+
+Operator supplied Windows PowerShell log from unpacked PRR12 candidate `EVIDENCE_COPILOT_PRR12_LOCAL_REFUSAL_HAWM_HISTORY_CANDIDATE`:
+- `PRR12_OFFLINE_HASHES: PASS_77`
+- `FROZEN_CFC_SOURCE_IN_PACKAGE: NONE`
+- `EXACT_PRR5_ATTACK_BYTES: UNRESOLVED`
+- `NATIVE_HAWM_REAL_REPLICATION: NOT_DONE`
+- `INDEPENDENT_EXTERNAL_REPLICATION: NOT_DONE`
+- `PRR12_STATE: CANDIDATE_NOT_PROMOTED`
+- `PRR12_LOCAL_ZERO_BYTE: PASS`
+- `PRR12_HAWM_HISTORICAL: PASS_SEEDED_RENDERER`
+- `PRR12_ZERO_BYTE_MUTATION: REJECTED`, `PRR12_HAWM_HISTORY_MUTATION: REJECTED`
+- PRR11 removal `PASS_2`, PRR10 state `PASS_6`, PRR9 lifecycle `PASS_2`, PRR8 language `PASS_3`; inherited mutations REJECTED
+- Final `PRR12_WINDOWS_TARGETED: PASS`, `FULL_WINDOWS_REGRESSION: PENDING`, `REAL_CHROME: PENDING`, `EXTERNAL_REVIEW: PENDING`, `CFC: FROZEN`, `M6: HOLD`.
+
+This is an **operator-reported test run**, not independent reproduction; do not promote or freeze. Next instructed step: full Windows Python discovery (expected 135 PASS / 1 SKIP / 0 FAIL among 136 executions) and Node Unicode/mapping (PASS_11/PASS_16), followed by real Chrome A→zero-byte B→C on exact served PRR12 script, then external review.
