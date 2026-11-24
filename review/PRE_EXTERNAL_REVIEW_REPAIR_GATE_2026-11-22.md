@@ -570,3 +570,15 @@ Assistant reproduced 3 independent review defects on exact verified PRR12 source
 - PRR13 historical suppression branch clears both visibility and text of `homeAiWarning`.
 - New full-production-script VM test exercises actual file change handler & action wrapper: pending A (busy) → zero-byte B (no HTTP for B) → late A ignored PASS; pending A → valid C PASS; cancelled picker preserves A PASS; seeded nonadjacent document history PASS; normal general chat reply remains visible; hidden warning text cleared PASS. Three targeted disposable mutants independently `REJECTED`. Inherited PRR12/11/10/9/8/1/5 JS suites PASS with inherited mutants rejected; Python discovery 136 executions, 135 PASS, 1 SKIP, 0 FAIL, as counted locally.
 - **PRR13 NOT PROMOTED / FREEZE HOLD**. Operator Windows targeted/full regression PENDING; exact served JS HTTP hash, true browser A-pending→empty-B event and A-pending→C, external adversarial review and native HAWM E2E PENDING/NOT DONE. Evidence before claims; Node vm != independent browser execution. PRR12 remains intact HOLD; Anchor 0.2.90rc1, Wrapper v1.23, P74 FROZEN; M6 DESIGN HOLD; Passport NOT CONNECTED; exact PRR5 hostile bytes UNRESOLVED.
+
+## PRR13 Windows targeted gate — operator-reported PASS (24 Nov 2026)
+
+User-supplied PowerShell transcript from unpacked `EVIDENCE_COPILOT_PRR13_EVENT_ORDER_HISTORY_DOM_CANDIDATE` reports:
+- `PRR13_OFFLINE_HASHES: PASS_82`
+- `FROZEN_CFC_SOURCE_IN_PACKAGE: NONE`, `EXACT_PRR5_ATTACK_BYTES: UNRESOLVED`, `NATIVE_HAWM_REAL_REPLICATION: NOT_DONE`, `INDEPENDENT_EXTERNAL_REPLICATION: NOT_DONE`, `PRR13_STATE: CANDIDATE_NOT_PROMOTED`.
+- New `test_prr13_event_history.js`: `PRR13_EVENT_PENDING_A_TO_EMPTY_B: PASS`; `PRR13_EVENT_PENDING_A_TO_VALID_C: PASS`; `PRR13_CANCEL_NO_SELECTION: PASS`; `PRR13_HAWM_NONADJACENT_HISTORY: PASS_SEEDED_RENDERER`; `PRR13_HAWM_WARNING_DOM_CLEARED: PASS_SEEDED_RENDERER`.
+- Targeted mutations `PRR13_BUSY_SELECTION_MUTATION: REJECTED`, `PRR13_HAWM_AMBIGUOUS_MUTATION: REJECTED`, `PRR13_WARNING_CLEAR_MUTATION: REJECTED`.
+- PRR12 zero-byte/seeded history PASS; PRR11 removal PASS_2; PRR10 import PASS_6; PRR9 state PASS_2; PRR8 language PASS_3; inherited mutations REJECTED.
+- Terminal `PRR13_WINDOWS_TARGETED: PASS`, `REAL_CHROME_PRR13: PENDING`, `EXTERNAL_REVIEW_PRR13: PENDING`, `FREEZE: HOLD`.
+
+This is operator-reported Windows execution, **not independent Chrome/native HAWM replication**. Next operator gate is full Windows unittest discovery (expected 136 executions, 135 passes / 1 skip) and JS Unicode/mapping. If PASS, verify served PRR13 workspace.js SHA before fresh Chrome event-order test. No frozen CFC modifications or promotion.
