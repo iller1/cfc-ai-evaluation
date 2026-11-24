@@ -697,3 +697,14 @@ Visible behavior: when scope `Przegląd dokumentu · HAWM` selected, **actual or
 Assistant-local checks: `PRR15_OFFLINE_HASHES: PASS_92`; `node --check workspace.js` PASS; `PRR15_TOP_TECHNICAL_INPUT_UNIQUE`, `ORIGINAL_TECHNICAL_HANDLER_REUSED`, `HAWM_MODE_TOP_IMPORT_VISIBLE`, `FREE_MODE_PAPERCLIP_VISIBLE` PASS; both targeted mutations REJECTED. Inherited PRR14 through PRR8 JS suites and Unicode/Mapping PASS, inherited mutations REJECTED; Python full unittest 136 executions in 20.989s, 135 PASS/1 SKIP/0 FAIL. Headless Chromium set-content UI smoke PASS (actual code, no page errors): top importer visibility, single technical input, free chat paperclip isolation, advanced details opt-in, PL/EN. Additional Chromium browser-mocked parse response (generated via real Python `document_intake.parse`, but network mocked, not live HTTP) PASS: import appears under HAWM and HAWM scope remains selected, SHA visible, CFC not run. **No claim of actual live served browser event-order test.**
 
 `PRR15_STATE: CANDIDATE_NOT_PROMOTED`, `OPERATOR_WINDOWS_PRR15: PENDING`, `REAL_CHROME_PRR15: PENDING`, `EXTERNAL_REVIEW_PRR15: PENDING`, `NATIVE_HAWM_END_TO_END: NOT DONE`, `FREEZE: HOLD`. Do not construe nicer interface as semantic verification / independent review / production authorization. Frozen CFC Anchor v0.2.90rc1, Operator Wrapper v1.23 and P74 preserved, M6 DESIGN HOLD, Information Passport NOT CONNECTED, exact hostile PRR5 bytes UNRESOLVED.
+
+## PRR15 operator Windows targeted gate — PASS (24 Nov 2026)
+
+Operator supplied PowerShell output from extracted exact PRR15 candidate:
+- `PRR15_OFFLINE_HASHES: PASS_92`; `FROZEN_CFC_SOURCE_IN_PACKAGE: NONE`; `EXACT_PRR5_ATTACK_BYTES: UNRESOLVED`; `NATIVE_HAWM_REAL_REPLICATION: NOT_DONE`; `INDEPENDENT_EXTERNAL_REPLICATION: NOT_DONE`; `PRR15_STATE: CANDIDATE_NOT_PROMOTED`.
+- `PRR15_TOP_TECHNICAL_INPUT_UNIQUE: PASS`; `PRR15_ORIGINAL_TECHNICAL_HANDLER_REUSED: PASS`; `PRR15_HAWM_MODE_TOP_IMPORT_VISIBLE: PASS`; `PRR15_FREE_MODE_PAPERCLIP_VISIBLE: PASS`.
+- `PRR15_HAWM_PANEL_ALWAYS_HIDDEN_MUTATION: REJECTED` and `PRR15_WRONG_PAPERCLIP_VISIBLE_MUTATION: REJECTED`.
+- PRR14 six targeted scenarios and four mutations, PRR13 five scenarios and three mutations, PRR12/PRR11/PRR10/PRR9/PRR8 inherited suites passed and listed mutations rejected.
+- Terminal `PRR15_WINDOWS_TARGETED: PASS`, `FREEZE: HOLD`.
+
+Classification **OPERATOR_REPORTED_PRR15_WINDOWS_TARGETED_PASS**. Next full Windows Python regression and Unicode/mapping gate, HTTP-served script binding, real Chrome PRR15 top-technical UI and D→C cancellation test, external adversarial review. **FREEZE HOLD** unchanged.
