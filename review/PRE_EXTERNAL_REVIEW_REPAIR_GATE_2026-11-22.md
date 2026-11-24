@@ -673,3 +673,7 @@ Operator-uploaded Windows PowerShell log `Wklejony tekst(20261124-204813).txt` c
 - Terminal explicitly records `REAL_CHROME: PENDING`, `EXTERNAL_REVIEW: PENDING`, `FREEZE: HOLD`.
 
 Evidence classification **OPERATOR_REPORTED_WINDOWS_FULL_PASS**, not independent execution. Next exact HTTP-served PRR14 `workspace.js` SHA verification expected `596c8e90ad6c5b57ffba0eb6daf8c1b0d02a10e233a11f605436c323d205bbf0`, followed by real browser technical D→newer C action feedback, and external adversarial review. PRR14 CANDIDATE_NOT_PROMOTED, frozen CFC/Wrapper/P74 untouched, M6 HOLD.
+
+## PRR14 exact HTTP-served JS hash — operator confirmed (24 Nov 2026)
+
+Operator on Windows PowerShell called loopback `http://127.0.0.1:8780/workspace.js?prr14=fresh` and reported `SERVED_SHA256: 596c8e90ad6c5b57ffba0eb6daf8c1b0d02a10e233a11f605436c323d205bbf0`. This equals PRR14 manifest workspace.js digest. Evidence classification `OPERATOR_REPORTED_HTTP_SERVED_BYTES_MATCH: PASS`. It **does not establish Chrome executed-script byte identity**, nor the browser race under real event ordering. Next browser step should fresh incognito, Network cache disabled, verify technical D parse is pending when new C is selected; after D settles, source must be C and old D operation feedback `CANCELLED` (not `DONE`). `REAL_CHROME_PRR14: PENDING`, `EXTERNAL_REVIEW: PENDING`, `FREEZE: HOLD`.
