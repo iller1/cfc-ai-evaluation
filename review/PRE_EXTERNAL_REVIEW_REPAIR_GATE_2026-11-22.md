@@ -708,3 +708,14 @@ Operator supplied PowerShell output from extracted exact PRR15 candidate:
 - Terminal `PRR15_WINDOWS_TARGETED: PASS`, `FREEZE: HOLD`.
 
 Classification **OPERATOR_REPORTED_PRR15_WINDOWS_TARGETED_PASS**. Next full Windows Python regression and Unicode/mapping gate, HTTP-served script binding, real Chrome PRR15 top-technical UI and D→C cancellation test, external adversarial review. **FREEZE HOLD** unchanged.
+
+## PRR15 operator Windows full regression — PASS (24 Nov 2026)
+
+Operator uploaded full Windows PowerShell transcript `Wklejony tekst(20261124-213104).txt` showing previously recorded `PRR15_WINDOWS_TARGETED: PASS` and subsequently:
+- `=== PRR15 FULL WINDOWS REGRESSION ===`.
+- Python `-B -m unittest discover -p "test*.py" -q`: `Ran 136 tests in 22.964s`; `OK (skipped=1)` = 135 passed, 1 skipped, zero failures/errors; count is not 136 independent scenarios.
+- `PRR1_UNICODE_UNIT: PASS_11`; `PRR5_UNICODE_MAPPING: PASS_16`.
+- `PRR15_FULL_WINDOWS_REGRESSION: PASS`; terminal `FREEZE: HOLD`.
+- HTTP 400/403/409/415, two Python ResourceWarnings and deliberately incomplete model outputs occurred in passing negative/diagnostic cases and did not trigger nonzero failure. No extra claims about real HAWM verification follow.
+
+Classification **OPERATOR_REPORTED_WINDOWS_TARGETED_AND_FULL_PASS**. Next exact served JS SHA match PRR15 candidate `b25253f6c4270cc9372746155e8fb334e03a44a07e5f5026f21cab38832a1c69`, then real Chrome visible top HAWM importer (not chat paperclip) and production-event D→C feedback regression; external independent adversarial PRR15 review remains pending. `PRR15_STATE: CANDIDATE_NOT_PROMOTED`; `FREEZE: HOLD`, frozen CFC/Wrapper/P74 unaffected.
