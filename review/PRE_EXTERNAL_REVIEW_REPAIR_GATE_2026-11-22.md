@@ -815,3 +815,39 @@ PRR16_DC_GATE: D_RELEASED_AFTER_C
 PROXY_HTTP: "POST /api/document-intake/parse HTTP/1.1" 200 -
 ```
 No `D_TIMEOUT_INVALID_TEST` shown. **Deterministic response release order established in operator-reported loopback gate:** D response held until C delivered, then D released. **PRR16_DC_LOCAL_DETERMINISTIC_CHROME: OPERATOR_OBSERVED_PASS** jointly from proxy log and browser current-C/SHA + old-D CANCELLED evidence. This directly closes the previously open LOCAL real-browser D→C order/feedback test under supplied deterministic harness. The third `PROXY_HTTP` 200 line alone is not an independent authentication of response order; the explicit gate markers are used. Limitations: external proxy harness controls timing (not vanilla server timing); no independent reviewer execution of this proxy/Chrome test; no native HAWM E2E or actual CFC execution; no proof of broader production authorization. `PRR16 NARROW LOCAL EXPERIMENTAL UI FREEZE: GO (exact ZIP)`; `GENERAL/PRODUCTION FREEZE: HOLD`; frozen CFC/Wrapper/P74 untouched, M6 DESIGN HOLD, Passport NOT CONNECTED, historical exact PRR5 bytes unresolved.
+
+
+## INT01 controlled integration — diagnostic findings and bounded operator replication (25 Nov 2026)
+
+**Evidence classification:** operator-reported PowerShell and Chrome outputs from the 25 Nov session, plus assistant-reported local prototype tests where explicitly identified. Not independent attestation. This is documentation-only; no production promotion, native runtime connection, or frozen component modification is claimed.
+
+### Diagnostic gates (281BR-PRR16-CLOSE)
+
+- A/B/C1/C2: reference archive and selected native/portable source identity gates passed; API and static contracts collected. PRR16 and M37 DOCX parsers differ structurally.
+- C3: exact-source isolated parser differential, portable PRR16 6/6 policy oracle; M37 accepted all five cases required to be refused (vanish, webHidden, alternate XML prefix tracked insertion, moveTo, UTF-16 internal DTD). INT-01 reproduced; no external entity access or code execution demonstrated.
+- C4: original PRR16 BIND function, controlled Node harness: shared-excerpt D→C substitution sends C token and simulated link; different excerpt sends C then mock refusal; removal causes TypeError. INT-02/03 reproduced at function level; real original UI reachability/native event persistence not established.
+- C5: exact native bind function and state hash, simulated state/append boundary: 6/7 oracle, stable and negative controls PASS; change after second state read produced accepted simulated event bound to old state. INT-04 observed under stricter current-at-commit semantics; real concurrency not tested.
+- D1–D3: existing live-effect endpoint has explicit authorization TOCTOU HOLD; one-time reservation is not a native-state transaction. State-owner reference app.py SHA-256 `0baa751d937159f3a8f4fe353d8b82195abc661b3ef0d5582a085fef6bb684d2`; thread lock covers save and ledger operations separately, not whole read-modify-write. Active runtime identity unverified.
+- D4: sequential control PASS; exact extracted native POST handler with temporary files and controlled two-thread schedule: both returned 200, same initial snapshot, final goal reverted to INITIAL_GOAL while task UPDATED_TASK; both edits in ledger. INT-05 LOST UPDATE and ledger/state mismatch reproduced in isolated exact handler, not an active-server HTTP reproduction. Original owner hash unchanged; no real project state accessed.
+
+**Direct PRR16→M37 integration: NO-GO.** Existing narrow PRR16 experimental UI GO unchanged. Proposed INT01 uses SQLite revision + digest CAS, state/event transaction, source identity and explicit uncertainty handling. INT-01–05 have tested prototype remedies, not closed native defects.
+
+### INT01 prototype operator replication
+
+| Gate | Operator-reported outcome | Scope |
+|---|---|---|
+| A | PASS 8/8 | Synthetic SQLite CAS, explicit retry, replay, wrong hash, rollback, ABA, ledger chain |
+| B | PASS 12/12 | Owner source/default-state match, full vs confirmed digest, invalidation, concurrent CAS, ledger replay and tamper checks |
+| C | PASS 18/18 | Exact PRR16 parser, 6 DOCX cases plus text/input/cache controls; staged parser SHA-256 `a91f9124ce1518fc9512e5904717f5db1f92f587b05b07a636fdfdd323f3ab6f`; native BIND absent; PDF runtime not tested |
+| D1 | PASS 16/16 | Exact PRR16 parser + B transaction contract; capture, source substitution refusal, stale/replay, CAS, rollback, trust flags, ledger integrity; synthetic state |
+| D2 | PASS 21/21 | Original wrong-token behavior reproduced; new JS controller passes source/draft/session generation, cancellation, stale response, unknown/no retry; synthetic transport, original workspace unchanged |
+| D3 | PASS 10/10 | Real loopback HTTP, exact parser and B/D1/D2 identities; post-COMMIT socket drop and no blind retry; audited ledger/request counts; synthetic database cleaned |
+| D4A | PASS 10/10 | Operator Chrome panel: PRR16 import, UI BIND, pre-dispatch swap/removal, draft ABA, post-commit swap, socket drop, UNKNOWN blocks, audit and effect denied; separate synthetic panel, not native HAWM |
+
+Aggregate **95/95 reported PASS across seven suites**, not 95 independent adversarial proofs. D4A startup operator reported archive identity PASS, PRR16 manifest PASS_97, dependencies PASS, native BIND disabled, exact parser PASS; Chrome final `INT01_D4A: PASS_10_OF_10`. The assistant's local browser launch had been blocked by policy, so Chrome evidence is operator-reported, not independent. No OS file chooser coverage in D4A automated test; no actual CFC execution or native HAWM connection. D4A ZIP SHA-256 `e4a2c54c0a08a664c09bf38a44f521ec62dae0fb9cc9c5ba6deb2e04a1122993`.
+
+### D4B recovery — local prototype PASS, Windows pending
+
+Assistant-reported local test suite 14/14 using exact PRR16 parser and B/D1. Durable intent before dispatch, cross-process lookup, no replay, historical classification, mismatched source/database refusal, integrity checks, missing DB refusal; missing evidence remains UNKNOWN and blocks subsequent operation. **Windows replication PENDING** at this checkpoint; no browser wiring, no full server-restart/power-loss proof, no protection claim against coordinated rewriting of both databases. Recovery kit `INT01_D4B_RECOVERY_TEST_KIT.zip`. Next: operator Windows D4B, then durable recovery wiring and regression; authorization and native integration remain separately gated.
+
+`PRR16 NARROW UI GO | INT01 A–D4A OPERATOR 95/95 | D4B LOCAL 14/14 / WINDOWS PENDING | NATIVE RUNTIME NOT CONNECTED | LIVE EFFECT HOLD | CFC FROZEN | M6 HOLD | E2E 0/6 | CP15 NOT CONNECTED`.
