@@ -851,3 +851,13 @@ Aggregate **95/95 reported PASS across seven suites**, not 95 independent advers
 Assistant-reported local test suite 14/14 using exact PRR16 parser and B/D1. Durable intent before dispatch, cross-process lookup, no replay, historical classification, mismatched source/database refusal, integrity checks, missing DB refusal; missing evidence remains UNKNOWN and blocks subsequent operation. **Windows replication PENDING** at this checkpoint; no browser wiring, no full server-restart/power-loss proof, no protection claim against coordinated rewriting of both databases. Recovery kit `INT01_D4B_RECOVERY_TEST_KIT.zip`. Next: operator Windows D4B, then durable recovery wiring and regression; authorization and native integration remain separately gated.
 
 `PRR16 NARROW UI GO | INT01 A–D4A OPERATOR 95/95 | D4B LOCAL 14/14 / WINDOWS PENDING | NATIVE RUNTIME NOT CONNECTED | LIVE EFFECT HOLD | CFC FROZEN | M6 HOLD | E2E 0/6 | CP15 NOT CONNECTED`.
+
+## INT01-D4B durable recovery — Windows operator replication PASS (25 Nov 2026)
+
+Operator supplied full PowerShell transcript: archive identity PASS, exact dependencies PASS, T01–T14 all PASS, `INT01_D4B: PASS_14_OF_14`, `SYNTHETIC_DATABASES: CLEANED`, `FRESH_RECOVERY_PROCESS: YES`, `INT01_D4B_WINDOWS_EXECUTION: COMPLETE`. Recovery kit SHA-256 `cc46a6134fd4b05f4f900f9dda4877ecade6beffbe574156d5313d99c1ef7a19` (expected archive reference).
+
+The reported cases cover durable intent before dispatch; absence stays UNKNOWN; new operation blocked while unknown; fresh-process recovery; repeat lookup without reexecution; replay refusal; historical classification after state change; false trust flags; wrong source and database refusal; ledger and client-intent tamper refusal; missing database not recreated; resolved intent permits new intent. Classification **OPERATOR_WINDOWS_RECOVERY_PASS_14_OF_14**, not independent attestation. This advances aggregate operator-reported INT01 A–D4B to **109/109 PASS across eight suites**, not 109 independent proofs.
+
+Limits explicitly emitted: `HTTP_BROWSER_RECOVERY: NOT_WIRED`, `POWER_LOSS: NOT_TESTED`, `NATIVE_RUNTIME: NOT_CONNECTED`, `CFC_EXECUTED: NO`, `LIVE_EFFECT: HOLD`. Fresh recovery process is not a full server/browser restart test. Next proposed D4C: connect durable intent and read-only outcome recovery to isolated D4A UI/HTTP, with restart and no-reexecution controls; retain UNKNOWN on insufficient evidence. No changes to frozen components or production promotion.
+
+`PRR16 NARROW UI GO | INT01 A–D4B OPERATOR 109/109 | D4C PLANNED | LIVE EFFECT HOLD | CFC FROZEN | M6 HOLD | E2E 0/6 | CP15 NOT CONNECTED`.
