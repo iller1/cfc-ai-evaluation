@@ -800,3 +800,18 @@ Operator supplied two successive HAWM UI snapshots from proposed deterministic D
 2. Later `PRR16_DC_C.txt` appeared as unverified current file; `ODCZYTANO: PRR16_DC_C.txt · 66 znaków · SHA-256 pliku: fa79d4564fd415689b3f40324082d7e08182cf1045edb3b29a76d647dba11b85`; selected `Przegląd dokumentu · HAWM` retained. Following UI line: `— CANCELLED: Wczytaj wybrany plik — Older import superseded by a newer source selection or removal.` Source continues marked `SOURCE UNVERIFIED · NOT CFC EVIDENCE`; no CFC execution claimed.
 
 Classification **PRR16_DC_CHROME_FINAL_SOURCE_AND_FEEDBACK: OPERATOR_VISIBLE_EXPECTED_RESULT**: C identity, length, digest and older-operation `CANCELLED` were actually reported in browser. **Deterministic overlap proof NOT YET CONFIRMED** because user has not yet pasted external proxy console sequence `D_HELD_HTTP_200` → `C_HTTP_200_SENT` → `D_RELEASED_AFTER_C` nor absence of `D_TIMEOUT_INVALID_TEST`. Request precisely these console events to establish actual response ordering. Without timestamps/log do not claim independently confirmed live HTTP race or upgrade broad freeze. `PRR16_DC_PROXY_ORDER: PENDING`, `PRR16_FROZEN_UI_NARROW_EXPERIMENTAL_GO` scope unchanged, `FULL CFC/HAWM FREEZE HOLD`.
+
+## PRR16 deterministic local Chrome D→C with live HTTP parser — complete operator evidence (25 Nov 2026)
+
+Operator supplied full second-PowerShell external proxy log from `PRR16_DC_DELAY_PROXY.py` listening on `127.0.0.1:8781`, forwarding unchanged PRR16 backend on `127.0.0.1:8780`, after previously supplying browser HAWM UI excerpts showing `PRR16_DC_C.txt` current SHA-256 `fa79d4564fd415689b3f40324082d7e08182cf1045edb3b29a76d647dba11b85` and older D action feedback `— CANCELLED: Wczytaj wybrany plik — Older import superseded by a newer source selection or removal.`
+
+Proxy events in operator transcript, in order:
+```
+PRR16_DC_GATE: D_HELD_HTTP_200
+PROXY_HTTP: "POST /api/document-intake/parse HTTP/1.1" 200 -
+PROXY_HTTP: "POST /api/document-intake/parse HTTP/1.1" 200 -
+PRR16_DC_GATE: C_HTTP_200_SENT
+PRR16_DC_GATE: D_RELEASED_AFTER_C
+PROXY_HTTP: "POST /api/document-intake/parse HTTP/1.1" 200 -
+```
+No `D_TIMEOUT_INVALID_TEST` shown. **Deterministic response release order established in operator-reported loopback gate:** D response held until C delivered, then D released. **PRR16_DC_LOCAL_DETERMINISTIC_CHROME: OPERATOR_OBSERVED_PASS** jointly from proxy log and browser current-C/SHA + old-D CANCELLED evidence. This directly closes the previously open LOCAL real-browser D→C order/feedback test under supplied deterministic harness. The third `PROXY_HTTP` 200 line alone is not an independent authentication of response order; the explicit gate markers are used. Limitations: external proxy harness controls timing (not vanilla server timing); no independent reviewer execution of this proxy/Chrome test; no native HAWM E2E or actual CFC execution; no proof of broader production authorization. `PRR16 NARROW LOCAL EXPERIMENTAL UI FREEZE: GO (exact ZIP)`; `GENERAL/PRODUCTION FREEZE: HOLD`; frozen CFC/Wrapper/P74 untouched, M6 DESIGN HOLD, Passport NOT CONNECTED, historical exact PRR5 bytes unresolved.
