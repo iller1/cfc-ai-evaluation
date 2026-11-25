@@ -861,3 +861,13 @@ The reported cases cover durable intent before dispatch; absence stays UNKNOWN; 
 Limits explicitly emitted: `HTTP_BROWSER_RECOVERY: NOT_WIRED`, `POWER_LOSS: NOT_TESTED`, `NATIVE_RUNTIME: NOT_CONNECTED`, `CFC_EXECUTED: NO`, `LIVE_EFFECT: HOLD`. Fresh recovery process is not a full server/browser restart test. Next proposed D4C: connect durable intent and read-only outcome recovery to isolated D4A UI/HTTP, with restart and no-reexecution controls; retain UNKNOWN on insufficient evidence. No changes to frozen components or production promotion.
 
 `PRR16 NARROW UI GO | INT01 A–D4B OPERATOR 109/109 | D4C PLANNED | LIVE EFFECT HOLD | CFC FROZEN | M6 HOLD | E2E 0/6 | CP15 NOT CONNECTED`.
+
+## INT01-D4C1 HTTP process restart — Windows operator replication PASS (25 Nov 2026)
+
+Operator supplied full PowerShell output: archive identity PASS, exact dependencies PASS, T01–T12 PASS, `INT01_D4C1: PASS_12_OF_12`, `REAL_LOOPBACK_HTTP: YES`, `SERVER_PROCESS_RESTART: YES`, `SYNTHETIC_DATABASES: CLEANED`, `INT01_D4C1_WINDOWS_EXECUTION: COMPLETE`. Expected kit SHA-256 `51bf8c1cd703298ed1f6a4f1cc502ecc1bcdd846180d350201b5296cf825f446`.
+
+Cases: access boundary; real drop after commit; pending blocks before restart; fresh server process; pending blocks after restart; recover committed; repeat recovery no reexecution; replay refused; new intent after recovery; drop before commit; absence UNKNOWN after restart; no retry or new write. **OPERATOR_WINDOWS_HTTP_RESTART_PASS_12_OF_12** (not independent attestation). Aggregate **121/121 operator-reported PASS across nine suites**, not independent proofs.
+
+Explicit limits: BROWSER_RECOVERY NOT_WIRED, CONCURRENT_HTTP NOT_TESTED, POWER_LOSS NOT_TESTED, NATIVE_RUNTIME NOT_CONNECTED, CFC_EXECUTED NO, LIVE_EFFECT HOLD. Next D4C2: isolated browser-facing recovery with persistent server state, explicit recovery only, no replay. Frozen components unchanged; no production promotion.
+
+`INT01 A–D4C1 OPERATOR 121/121 | D4C2 PLANNED | CFC FROZEN | M6 HOLD | E2E 0/6 | CP15 NOT CONNECTED`.
