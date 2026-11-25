@@ -871,3 +871,13 @@ Cases: access boundary; real drop after commit; pending blocks before restart; f
 Explicit limits: BROWSER_RECOVERY NOT_WIRED, CONCURRENT_HTTP NOT_TESTED, POWER_LOSS NOT_TESTED, NATIVE_RUNTIME NOT_CONNECTED, CFC_EXECUTED NO, LIVE_EFFECT HOLD. Next D4C2: isolated browser-facing recovery with persistent server state, explicit recovery only, no replay. Frozen components unchanged; no production promotion.
 
 `INT01 A–D4C1 OPERATOR 121/121 | D4C2 PLANNED | CFC FROZEN | M6 HOLD | E2E 0/6 | CP15 NOT CONNECTED`.
+
+## INT01-D4C2 browser recovery — operator Chrome PASS (25 Nov 2026)
+
+Operator supplied startup transcript: archive identity PASS, exact dependencies PASS, loopback URL, Phase 0/3 PENDING in Chrome. Operator subsequently supplied all thirteen PASS lines and `INT01_D4C2: PASS_13_OF_13`. Expected kit SHA-256 `9074364d83c0104e039d97e336f089b0a1c0f174d5e6aa5535ab0e80bcd0142f`.
+
+Cases T01–T13: browser drop after commit; audited commit and pending intent; server restart A; reload pending from journal; pending blocks write; recover historical source; repeat lookup no reexecution; replay refused/new allowed; drop before commit; server restart B; reload absence stays UNKNOWN; no retry or new write; effect denied. Classification **OPERATOR_CHROME_RECOVERY_PASS_13_OF_13**, not independent attestation. Aggregate **134/134 operator-reported PASS across ten suites**, not independent proofs.
+
+D4C2 is a separate synthetic recovery panel backed by the exact D4C1 worker, not wired into the D4A PRR16 import/BIND panel. Full combined browser flow remains OPEN. Concurrent recovery, power loss and native integration not established. No actual CFC execution or authorization. Next proposed gate: D4D combined PRR16 import/BIND and durable recovery using a unified verified request/receipt contract, preserving historical identity and UNKNOWN across reload/restart. Frozen components unchanged; no production promotion.
+
+`INT01 A–D4C2 OPERATOR 134/134 | D4D PLANNED | CFC FROZEN | M6 HOLD | E2E 0/6 | CP15 NOT CONNECTED | LIVE EFFECT HOLD`.
